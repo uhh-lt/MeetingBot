@@ -1,0 +1,44 @@
+.PER {
+    color: white;
+    border: 1px black;
+    padding: .2em .3em;
+    margin: 0 .25em;
+    line-height: 1;
+    display: inline-block;
+    border-radius: .25em;
+    background: orange;
+}
+
+.LOC {
+    color: white;
+    border: 1px black;
+    padding: .2em .3em;
+    margin: 0 .25em;
+    line-height: 1;
+    display: inline-block;
+    border-radius: .25em;
+    background: blue;
+}
+
+.ORG {
+    color: white;
+    border: 1px black;
+    padding: .2em .3em;
+    margin: 0 .25em;
+    line-height: 1;
+    display: inline-block;
+    border-radius: .25em;
+    background: green;
+}
+
+.MISC {
+    color: white;
+    border: 1px black;
+    padding: .2em .3em;
+    margin: 0 .25em;
+    line-height: 1;
+    display: inline-block;
+    border-radius: .25em;
+    background: red;
+}
+
