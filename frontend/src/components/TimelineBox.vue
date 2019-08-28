@@ -21,10 +21,10 @@
 </template>
 
 <script>
-  export default {
-    name: 'TimelineBox',
-    props: ['name', 'message', 'time'],
-  };
+export default {
+  name: 'TimelineBox',
+  props: ['name', 'message', 'time'],
+};
 </script>
 
 <style scoped>

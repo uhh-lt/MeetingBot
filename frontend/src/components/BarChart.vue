@@ -1,58 +1,84 @@
 <script>
-  import { HorizontalBar, mixins } from 'vue-chartjs';
-  const { reactiveProp } = mixins;
+import { HorizontalBar, mixins } from 'vue-chartjs';
 
-  export default {
-    extends: HorizontalBar,
-    mixins: [reactiveProp],
-    props: ['chartData', 'data'],
-    computed: {
-      barChartData: function() {
-        return this.data;
-      }
+const { reactiveProp } = mixins;
+
+export default {
+  extends: HorizontalBar,
+  mixins: [reactiveProp],
+  props: ['chartData'],
+  data() {
+    return {
+      redeanteil: [0, 0, 0, 0],
+      redeanteilInProzent: [0, 0, 0, 0],
+      data: [0, 0, 0, 0],
+    };
+  },
+  computed: {
+    barChartData() {
+      return this.data;
     },
-    mounted () {
+  },
+  mounted() {
+    this.renderBarChart();
+    this.$root.$on('onCompleteUtterance', this.onCompleteUtterance);
+  },
+  watch: {
+    data() {
+      console.log('data changed!!!');
       this.renderBarChart();
     },
-    watch: {
-      data: function() {
-        console.log("data changed!!!");
-        this.renderBarChart();
+  },
+  methods: {
+    onCompleteUtterance(data, speaker) {
+      console.log(`recieved utterance:${data}`);
+
+      // update redeanteil
+      this.redeanteil[speaker] += data.length;
+
+      // compute redeanteil in percent
+      const totalRedeanteil = this.redeanteil.reduce((total, num) => total + num);
+      for (let speaker = 0; speaker < this.redeanteil.length; speaker++) {
+        this.redeanteilInProzent[speaker] = (this.redeanteil[speaker] / totalRedeanteil) * 100;
       }
+
+      // visualize redeanteile in percent
+      this.data = [0, 0, 0, 0];
+      this.data = this.redeanteilInProzent;
+      this.data = this.data.slice(0);
     },
-    methods: {
-      renderBarChart: function() {
-        this.renderChart(
-          {
-            labels: ["Spk 1", "Spk 2", "Spk 3", "Spk 4"],
-            datasets: [
-              {
-                label: 'Redeanteil (in %)',
-                backgroundColor: 'rgba(139, 195, 74, 0.2)',
-                borderColor: '#8bc34a',
-                data: this.barChartData,
-                borderWidth: 3,
-              },
-            ]
-          },
-          {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              xAxes: [{
-                ticks: {
+    renderBarChart() {
+      this.renderChart(
+        {
+          labels: ['Spk 1', 'Spk 2', 'Spk 3', 'Spk 4'],
+          datasets: [
+            {
+              label: 'Redeanteil (in %)',
+              backgroundColor: 'rgba(40, 167, 69, 0.2)',
+              borderColor: '#28a745',
+              data: this.barChartData,
+              borderWidth: 3,
+            },
+          ],
+        },
+        {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            xAxes: [{
+              ticks: {
                 beginAtZero: true,
-                min:0,
-                max:100,
+                min: 0,
+                max: 100,
                 stepSize: 10,
-                },
-              }]
-            }
+              },
+            }],
           },
-        )
-      }
-    }
-  }
+        },
+      );
+    },
+  },
+};
 </script>
 
 <style scoped>

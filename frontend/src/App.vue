@@ -1,7 +1,29 @@
 <template>
   <div id="app">
 
-    <nav class="navbar sticky-top navbar-light bg-light">
+    <!-- Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            ...
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!--    START NAVBAR-->
+    <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
       <a class="navbar-brand" href="#">
         <img src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt="">
         MeetingBot
@@ -21,98 +43,192 @@
       </div>
 
       <div class="form-inline my-2 my-lg-0">
-        <button type="button" class="btn btn-labeled btn-dark mr-sm-2">
+        <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
+          <span class="btn-label"><i class="fas fa-cogs"></i></span>Settings</button>
+        <button type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-print"></i></span>Print</button>
-        <button type="button" class="btn btn-labeled btn-dark mr-sm-2">
+        <button type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-download"></i></span>Export</button>
         <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
       </div>
     </nav>
+<!--    END NAVBAR-->
 
+<!--    START CONTENT-->
     <div class="container-fluid">
 
       <div class="row">
         <div class="col-8">
-          <MessageVisualizer></MessageVisualizer>
+          <div>
+
+            <div id="timeline">
+              <TimelineBox name="Tim Fischer" time="15:01" message="Lorem ipsum dolor sit amet, quo ei simul congue exerci, ad nec admodum perfecto mnesarchum, vim ea mazim fierent detracto. Ea quis iuvaret expetendis his, te elit voluptua dignissim per, habeo iusto primis ea eam."></TimelineBox>
+              <TimelineBox v-for="(utt, id) in renderedUtterances" name="Speaker" time="15:01" :message="utt" :key="id"></TimelineBox>
+            </div>
+
+<!--            <div class="timeline">-->
+<!--              <div class="d-flex">-->
+<!--                <div v-for="n in speakers" class="p-1 flex-fill">-->
+<!--                  <div class="p-1" style="position:relative;">-->
+<!--                    <img src="./assets/avatar_scholar_128.png" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">-->
+<!--                    <h6 style="margin-top:74px; white-space: nowrap; text-align:center;">Speaker {{n}}</h6>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <div class="p-1" style="position:relative; width:66px;">-->
+<!--                  <div class="tlcircle">15:00</div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--              <TimelineRow message="Tim ist toll" speaker="1" speakers="4" time="15:00"></TimelineRow>-->
+<!--              <TimelineRow v-for="(utt, id) in renderedUtterances" :message="utt" :key="id" :speaker="(id%4) + 1" speakers="4" time="15:00"></TimelineRow>-->
+<!--            </div>-->
+
+<!--            <div id="bottom-bar" class="row">-->
+<!--              <div id="speech-input" class="col-sm-12">-->
+<!--                <h2 class="lang_de">Spracheingabe</h2>-->
+<!--                <h2 class="lang_en">Speech Input</h2>-->
+<!--                <div id="chat-area">-->
+<!--                  <p><span class="speaker">Computer: </span><i>Hi! I'm listening</i></p>-->
+<!--                  <p v-for="utt in renderedUtterances" v-html="utt"></p>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+
+          </div>
         </div>
         <div class="col-4">
           <div style="max-height:400px;">
-            <bar-chart :data="barChartData"></bar-chart>
+            <bar-chart></bar-chart>
           </div>
         </div>
       </div>
-
-<!--      <div style="padding: 0" class="row">-->
-<!--        <div class="col">-->
-<!--          <h1 style="float:left;">Minute Meeting Bot</h1>-->
-<!--          <img style="float: right;" alt="LT logo" src="./assets/lt.png" width="128" height="128">-->
-<!--        </div>-->
-<!--      </div>-->
-
-<!--      <SummarizationInput></SummarizationInput>-->
-<!--      <NamedEntityVisualizer></NamedEntityVisualizer>-->
-<!--      <KeywordVisualizer></KeywordVisualizer>-->
-<!--      <SummarizationVisualizer></SummarizationVisualizer>-->
-      <Footer></Footer>
     </div>
+    <!--      END CONTENT-->
+
+    <Footer></Footer>
+
   </div>
 </template>
 
 <script>
+import 'bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
+
 import TimelineBox from './components/TimelineBox';
-import MessageVisualizer from './components/MessageVisualizer';
+import TimelineRow from './components/TimelineRow';
 import SummarizationInput from './components/SummarizationInput.vue';
 import NamedEntityVisualizer from './components/NamedEntityVisualizer.vue';
 import SummarizationVisualizer from './components/SummarizationVisualizer.vue';
 import KeywordVisualizer from './components/KeywordVisualizer';
 import Footer from './components/Footer.vue';
 import BarChart from './components/BarChart';
+
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
-    MessageVisualizer,
     SummarizationInput,
     NamedEntityVisualizer,
     SummarizationVisualizer,
     KeywordVisualizer,
     Footer,
     TimelineBox,
+    TimelineRow,
     BarChart,
   },
+  created() {
+    // Execute methods on create
+    window.addEventListener('resize', this.onResize);
+  },
   mounted() {
-    this.$root.$on("onCompleteUtterance", (data, speaker) => {
-      console.log("recieved utterance:" + data);
+    // Listen to stream
+    const source = new EventSource('http://localhost:5000/stream');
+    source.onmessage = this.handleStream;
 
-      // update redeanteil
-      this.redeanteil[speaker] += data.length;
+    // update height
+    this.onResize();
+  },
+  data() {
+    return {
+      scrollChatAreaBottom: true,
+      utts: [],
+      renderedUtterances: [],
+      startNewUtt: true,
+      speakers: 4,
+    };
+  },
+  methods: {
+    sendCompleteUtterance(utterance, speaker) {
+      this.$root.$emit('onCompleteUtterance', utterance, speaker);
+    },
+    handleStream(event) {
+      console.log(event.data);
+      const jsonEvent = JSON.parse(event.data);
 
-      // compute redeanteil in percent
-      let totalRedeanteil = this.redeanteil.reduce((total, num) => total + num);
-      for(let speaker = 0; speaker < this.redeanteil.length; speaker++) {
-        this.redeanteilInProzent[speaker] = (this.redeanteil[speaker] / totalRedeanteil) * 100;
+      if (jsonEvent.handle === 'partialUtterance') {
+        if (this.startNewUtt) {
+          this.utts.push(jsonEvent.utterance);
+          this.addUtterance(jsonEvent);
+          this.startNewUtt = false;
+        } else {
+          this.utts.pop();
+          this.utts.push(jsonEvent.utterance);
+          this.replaceLastUtterance(jsonEvent, false);
+        }
+      } else if (jsonEvent.handle === 'completeUtterance') {
+        this.utts.pop();
+        this.utts.push(jsonEvent.utterance);
+        this.sendCompleteUtterance(jsonEvent.utterance, Math.floor(Math.random() * 4));
+        this.replaceLastUtterance(jsonEvent, true);
+        this.startNewUtt = true;
+      } else if (jsonEvent.handle === 'reset') {
+        this.reset();
+      }
+    },
+    renderUtterance(jsonEvent) {
+      return `<span class="speaker">${jsonEvent.speaker}:</span> ${jsonEvent.utterance}`;
+    },
+    renderUtteranceWithConfidence(jsonEvent) {
+      let result = `<span class="speaker">${jsonEvent.speaker}:</span> `;
+      const text = jsonEvent.utterance.split(' ');
+
+      for (let i = 0; i < text.length; i++) {
+        const word = text[i];
+        const conf = jsonEvent.confidences[i];
+        result += `<span style="color:rgba(0,0,0,${Math.max(conf * conf, 0.1)});">${word}</span> `;
       }
 
-      // visualize redeanteile in percent
-      this.barChartData = [0, 0, 0, 0];
-      this.barChartData = this.redeanteilInProzent;
-      this.barChartData = this.barChartData.slice(0);
-    });
+      console.log(result);
+      return result.trim();
+    },
+    addUtterance(jsonEvent) {
+      this.renderedUtterances.push(this.renderUtterance(jsonEvent));
+      // if (this.scrollChatAreaBottom) document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+    },
+    replaceLastUtterance(jsonEvent, renderConfidence) {
+      if (renderConfidence) {
+        this.renderedUtterances.pop();
+        this.renderedUtterances.push(this.renderUtteranceWithConfidence(jsonEvent));
+      } else {
+        this.renderedUtterances.pop();
+        this.renderedUtterances.push(this.renderUtterance(jsonEvent));
+      }
+      // if (this.scrollChatAreaBottom) {
+      //   document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+      // }
+    },
+    onResize() {
+      let navbarHeight = document.getElementById("navigation").clientHeight;
+      let footerHeight = document.getElementById("footer").clientHeight;
+      console.log("HEIGHTS:" + navbarHeight + " " + footerHeight);
+      document.getElementById("timeline").style.height = "calc(" + (window.innerHeight - navbarHeight - footerHeight) + "px - 4em - 2px)";
+    },
   },
-  data: function() {
-    return {
-      redeanteil: [0, 0, 0, 0],
-      redeanteilInProzent: [0, 0, 0, 0],
-      barChartData: [0, 0, 0, 0],
-    }
-  }
 };
 </script>
 
 <style>
-  @import "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css";
   @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -124,7 +240,206 @@ export default {
     padding-top: 2em;
     padding-bottom: 2em;
   }
+  #footer {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+  }
 
   .btn-label {position: relative;left: -12px;display: inline-block;padding: 6px 12px;background: rgba(0,0,0,0.15);border-radius: 3px 0 0 3px;}
   .btn-labeled {padding-top: 0;padding-bottom: 0;}
+
+
+  .flex-even {
+    flex: 1;
+  }
+
+  .tlcircle {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    right: 0;
+    background-color: white;
+    border: 4px solid #FF9F55;
+    border-radius: 50%;
+    z-index: 1;
+    text-align: center;
+    padding-top: 10px;
+    left: 0;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+  }
+
+  /* The actual timeline (the vertical ruler) */
+  #timeline {
+    position: relative;
+    margin: 0 auto;
+    overflow-y: hidden;
+  }
+
+  /* The actual timeline (the vertical ruler) */
+  #timeline::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    background-color: lightgrey;
+    top: 0;
+    bottom: 0;
+    left: calc(100% - 36px);
+  }
+
+  /* Container around content */
+  .tl-container {
+    padding: 10px 40px 10px 10px;
+    position: relative;
+    background-color: inherit;
+    width: calc(100% - 33px);
+  }
+
+  /* Container around content */
+  .tl-container2 {
+    padding: 10px;
+    position: relative;
+    background-color: inherit;
+  }
+
+  /* The circles on the timeline */
+  .timelinecircle {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    right: -25.5px;
+    background-color: white;
+    border: 4px solid #28a745;
+    top: 5px;
+    border-radius: 50%;
+    z-index: 1;
+    text-align:center;
+    padding-top:10px;
+  }
+
+  /* Place the container to the left */
+  .tl-left {
+    left: 0;
+  }
+
+  /* Place the container to the left */
+  .tl-left2 {
+    left: 0;
+  }
+
+  /* Place the container to the right */
+  .tl-right {
+    left: 50%;
+  }
+
+  /* Add arrows to the left container (pointing right) */
+  .tl-left::before {
+    content: " ";
+    height: 0;
+    position: absolute;
+    top: 22px;
+    width: 0;
+    z-index: 1;
+    right: 30px;
+    border: medium solid lightgrey;
+    border-width: 10px 0 10px 10px;
+    border-color: transparent transparent transparent lightgrey;
+  }
+
+  /* Add arrows to the left container (pointing right) */
+  .tl-left2::before {
+    content: " ";
+    height: 0;
+    position: absolute;
+    /*top: 22px;*/
+    width: 0;
+    z-index: 1;
+    right: 0px;
+    border: medium solid lightgrey;
+    border-width: 10px 0 10px 10px;
+    border-color: transparent transparent transparent lightgrey;
+    bottom: calc(50% - 10px)
+  }
+
+  .tl-left-line {
+    position: absolute;
+    z-index: 1;
+    left: calc(100% + 2px);
+    border: none;
+    border-top: 3px dotted black;
+    height: 50%;
+    bottom: 1px;
+  }
+
+  /* Add arrows to the right container (pointing left) */
+  .tl-right::before {
+    content: " ";
+    height: 0;
+    position: absolute;
+    top: 22px;
+    width: 0;
+    z-index: 1;
+    left: 30px;
+    border: medium solid white;
+    border-width: 10px 10px 10px 0;
+    border-color: transparent white transparent transparent;
+  }
+
+  /* Fix the circle for containers on the right side */
+  .tl-right::after {
+    left: -16px;
+  }
+
+  /* The actual content */
+  .tl-content {
+    padding: 10px;
+    background-color: white;
+    position: relative;
+    border-radius: 6px;
+    border: 4px solid lightgrey;
+    box-shadow: black 1px 1px 6px 0;
+  }
+
+  /* Media queries - Responsive timeline on screens less than 600px wide */
+  @media screen and (max-width: 600px) {
+    /* Place the timelime to the left */
+    .timeline::after {
+      left: 31px;
+    }
+
+    /* Full-width containers */
+    .tl-container {
+      width: 100%;
+      padding-left: 70px;
+      padding-right: 25px;
+    }
+
+    /* Make sure that all arrows are pointing leftwards */
+    .tl-container::before {
+      left: 60px;
+      border: medium solid white;
+      border-width: 10px 10px 10px 0;
+      border-color: transparent white transparent transparent;
+    }
+
+    /* Make sure that all arrows are pointing leftwards */
+    .tl-container2::before {
+      left: 60px;
+      border: medium solid white;
+      border-width: 10px 10px 10px 0;
+      border-color: transparent white transparent transparent;
+    }
+
+    /* Make sure all circles are at the same spot */
+    .tl-left::after, .tl-right::after {
+      left: 15px;
+    }
+
+    /* Make all right containers behave like the left ones */
+    .tl-right {
+      left: 0%;
+    }
+  }
 </style>

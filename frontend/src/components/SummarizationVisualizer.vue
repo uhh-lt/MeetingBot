@@ -10,10 +10,10 @@
 <script>
 export default {
   name: 'SummarizationVisualizer',
-  data: function () {
+  data() {
     return {
-      summary: "No Summary..."
-    }
+      summary: 'No Summary...',
+    };
   },
   mounted() {
     // listen on visualizeSummary events
@@ -22,13 +22,13 @@ export default {
     });
   },
   methods: {
-    visualizeSummary: function(summary) {
+    visualizeSummary(summary) {
       console.log(this.test);
 
       console.log(summary);
 
       this.summary = summary;
-    }
+    },
   },
 };
 </script>

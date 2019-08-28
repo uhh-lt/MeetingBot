@@ -10,10 +10,10 @@
 <script>
 export default {
   name: 'NamedEntityVisualizer',
-  data: function () {
+  data() {
     return {
-      test: "No entities detected..."
-    }
+      test: 'No entities detected...',
+    };
   },
   mounted() {
     // listen on visualizeEntities events
@@ -22,22 +22,20 @@ export default {
     });
   },
   methods: {
-    visualizeNamedEntities: function(text, entities, options) {
+    visualizeNamedEntities(text, entities, options) {
       console.log(this.test);
 
       console.log(entities);
 
-      if(entities.length === 0)
-        return;
+      if (entities.length === 0) return;
 
       // Order Replacements
       let replacements = [];
-      entities.forEach(function (element) {
-        if(!options[element.label])
-          return;
+      entities.forEach((element) => {
+        if (!options[element.label]) return;
 
-        let spanStart = "<span class='" + element.label + "'>";
-        let spanEnd = " <b>"+element.label+"</b></span>";
+        const spanStart = `<span class='${element.label}'>`;
+        const spanEnd = ` <b>${element.label}</b></span>`;
 
         replacements.push([element.start, spanStart]);
         replacements.push([element.end, spanEnd]);
@@ -47,15 +45,15 @@ export default {
       // Insert the spans
       let newText = text;
       let offset = 0;
-      replacements.forEach(function (element) {
+      replacements.forEach((element) => {
         newText = text.slice(0, element[0] + offset) + element[1] + text.slice(element[0] + offset, text.length);
         text = newText;
-        offset = offset + element[1].length;
+        offset += element[1].length;
       });
 
       // Apply the new text
       this.test = newText;
-    }
+    },
   },
 };
 </script>

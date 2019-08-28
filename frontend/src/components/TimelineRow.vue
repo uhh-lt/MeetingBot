@@ -17,10 +17,10 @@
 </template>
 
 <script>
-  export default {
-    name: 'TimelineRow',
-    props: ['speakers', 'speaker', 'message', 'time'],
-  };
+export default {
+  name: 'TimelineRow',
+  props: ['speakers', 'speaker', 'message', 'time'],
+};
 </script>
 
 <style scoped>

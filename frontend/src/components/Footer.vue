@@ -1,18 +1,9 @@
 <template>
-  <div class="row">
-    <div class="col">
-      <b>About:</b>
+  <footer id="footer" class="bg-light">
+    <div class="container">
+      <span class="text-muted">Developed by LT</span>
     </div>
-    <div class="col">
-      <b>Stuff:</b>
-    </div>
-    <div class="col">
-      <b>Stuff:</b>
-    </div>
-    <div class="col">
-      <b>By LT - University of Hamburg</b>
-    </div>
-</div>
+  </footer>
 </template>
 
 <script>

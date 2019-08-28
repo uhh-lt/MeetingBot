@@ -14,10 +14,10 @@
 <script>
 export default {
   name: 'KeywordVisualizer',
-  data: function () {
+  data() {
     return {
-      keywords: [{word:"No keywords found...", score:0}],
-    }
+      keywords: [{ word: 'No keywords found...', score: 0 }],
+    };
   },
   mounted() {
     // listen on visualizeEntities events
@@ -26,7 +26,7 @@ export default {
     });
   },
   methods: {
-    visualizeKeywords: function(keywords) {
+    visualizeKeywords(keywords) {
       console.log(keywords);
       this.keywords = keywords;
     },

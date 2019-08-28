@@ -23,14 +23,13 @@
 </template>
 
 <script>
-const BROKER_URL = "http://0.0.0.0:8888/mailsum";
+const BROKER_URL = 'http://0.0.0.0:8888/mailsum';
 
 
 export default {
   name: 'SummarizationInput',
   methods: {
-    callAPI: function () {
-
+    callAPI() {
       // Call NER API
       const text = document.getElementById('textarea-input').value;
       const options = {
@@ -39,18 +38,18 @@ export default {
         ORG: document.getElementById('checkbox-org').checked,
         MISC: document.getElementById('checkbox-misc').checked,
       };
-      postData(BROKER_URL + '/ner', {text: text})
-        .then(data => this.$root.$emit("visualizeEntities", text, data.entities, options)) // JSON-string from `response.json()` call
+      postData(`${BROKER_URL}/ner`, { text })
+        .then(data => this.$root.$emit('visualizeEntities', text, data.entities, options)) // JSON-string from `response.json()` call
         .catch(error => console.error(error));
 
       // Call Keyword API
-      postData(BROKER_URL + '/keywords', {count: 5, lang: 'deu', text: text})
-        .then(data => this.$root.$emit("visualizeKeywords", data['keywords'])) // JSON-string from `response.json()` call
+      postData(`${BROKER_URL}/keywords`, { count: 5, lang: 'deu', text })
+        .then(data => this.$root.$emit('visualizeKeywords', data.keywords)) // JSON-string from `response.json()` call
         .catch(error => console.error(error));
 
       // Call Summary API
-      postData(BROKER_URL + '/summarize', {method: "textrank", text: text})
-        .then(data => this.$root.$emit("visualizeSummary", data.summary)) // JSON-string from `response.json()` call
+      postData(`${BROKER_URL}/summarize`, { method: 'textrank', text })
+        .then(data => this.$root.$emit('visualizeSummary', data.summary)) // JSON-string from `response.json()` call
         .catch(error => console.error(error));
     },
   },
