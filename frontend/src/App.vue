@@ -5,16 +5,35 @@
     <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <div class="modal-header text-white bg-dark">
+            <h4 class="modal-title" id="exampleModalLabel">Settings</h4>
+            <button type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            ...
+            <div class="form-group px-2">
+              <label for="customRange1"># Speakers: {{speakers}}</label>
+              <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
+            </div>
+            <div v-for="(speaker, id) in speakers">
+              <div class="form-group px-2">
+                <hr>
+                <label :for="'speaker-' + speaker + '-name-input'">Speaker {{speaker}} Name:</label>
+                <input v-model="speakerName[id]" class="form-control" type="text" id="'speaker-' + speaker + '-name-input'">
+              </div>
+              <fieldset class="form-group px-2">
+                <label>Speaker {{speaker}} Avatar:</label><br>
+                <div v-for="avatar in avatars" class="form-check form-check-inline mb-2">
+                  <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
+                    <input v-model="selectedAvatar[id]" class="form-check-input" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
+                    <img :src="'./avatars/'+avatar" width="100" height="100">
+                  </label>
+                </div>
+              </fieldset>
+            </div>
           </div>
-          <div class="modal-footer">
+          <div class="modal-footer bg-light">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary">Save changes</button>
           </div>
@@ -151,12 +170,20 @@ export default {
   },
   data() {
     return {
+      speakerCount: "4",
+      speakerName: ["Speaker 1", "Speaker 2", "Speaker 3", "Speaker 4"],
+      avatars: ["avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png", "avatar6.png"],
+      selectedAvatar: ["avatar1.png", "avatar1.png", "avatar1.png", "avatar1.png"],
       scrollChatAreaBottom: true,
       utts: [],
       renderedUtterances: [],
       startNewUtt: true,
-      speakers: 4,
     };
+  },
+  computed: {
+    speakers() {
+      return parseInt(this.speakerCount);
+    },
   },
   methods: {
     sendCompleteUtterance(utterance, speaker) {
@@ -230,6 +257,28 @@ export default {
 
 <style>
   @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";
+
+
+  /*STYLE FOR SETTINGS IMAGES*/
+  /* HIDE RADIO */
+  [type=radio] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  /* IMAGE STYLES */
+  [type=radio] + img {
+    cursor: pointer;
+  }
+
+  /* CHECKED STYLES */
+  [type=radio]:checked + img {
+    outline: 2px solid #f00;
+  }
+  /*END STYLE FOR SETTINGS IMAGES*/
+
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
