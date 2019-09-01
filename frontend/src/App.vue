@@ -3,7 +3,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header text-white bg-dark">
             <h4 class="modal-title" id="exampleModalLabel">Settings</h4>
@@ -12,25 +12,84 @@
             </button>
           </div>
           <div class="modal-body">
-            <div class="form-group px-2">
-              <label for="customRange1"># Speakers: {{speakers}}</label>
-              <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
-            </div>
-            <div v-for="(speaker, id) in speakers">
-              <div class="form-group px-2">
+            <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-bottom: 10px;">
+              <li class="nav-item">
+                <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">General</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="speaker-tab" data-toggle="tab" href="#speaker" role="tab" aria-controls="speaker" aria-selected="false">Speakers</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other" role="tab" aria-controls="other" aria-selected="false">Placeholder</a>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+<!--              BEGIN GENERAL SETTINGS-->
+              <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <fieldset class="form-group px-2">
+                  <label>Timeline Sorting:</label><br>
+                  <div class="form-check form-check-inline mb-2">
+                    <label for="timeline-sorting-asc" class="form-check-label">
+                      <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-asc" value="ASC">
+                      ASCending
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline mb-2">
+                    <label for="timeline-sorting-desc" class="form-check-label">
+                      <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-desc" value="DESC">
+                      DESCending
+                    </label>
+                  </div>
+                </fieldset>
                 <hr>
-                <label :for="'speaker-' + speaker + '-name-input'">Speaker {{speaker}} Name:</label>
-                <input v-model="speakerName[id]" class="form-control" type="text" id="'speaker-' + speaker + '-name-input'">
+                <fieldset class="form-group px-2">
+                  <label>Timeline View:</label><br>
+                  <div class="form-check">
+                    <label for="timeline-view-line" class="form-check-label">
+                      <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-line" value="LINE">
+                      Display Timeline as single Line
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <label for="timeline-view-lanes" class="form-check-label">
+                      <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-lanes" value="LANES">
+                      Display Timeline as multiple Lanes
+                    </label>
+                  </div>
+                </fieldset>
               </div>
-              <fieldset class="form-group px-2">
-                <label>Speaker {{speaker}} Avatar:</label><br>
-                <div v-for="avatar in avatars" class="form-check form-check-inline mb-2">
-                  <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
-                    <input v-model="selectedAvatar[id]" class="form-check-input" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
-                    <img :src="'./avatars/'+avatar" width="100" height="100">
-                  </label>
+<!--              END GENERAL SETTINGS -->
+
+<!--              BEGIN SPEAKER SETTINGS-->
+              <div class="tab-pane fade" id="speaker" role="tabpanel" aria-labelledby="speaker-tab">
+                <div class="form-group px-2">
+                  <label for="customRange1"># Speakers: {{speakers}}</label>
+                  <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
                 </div>
-              </fieldset>
+                <div v-for="(speaker, id) in speakers">
+                  <div class="form-group px-2">
+                    <hr>
+                    <label :for="'speaker-' + speaker + '-name-input'">Speaker {{speaker}} Name:</label>
+                    <input v-model="speakerName[id]" class="form-control" type="text" id="'speaker-' + speaker + '-name-input'">
+                  </div>
+                  <fieldset class="form-group px-2">
+                    <label>Speaker {{speaker}} Avatar:</label><br>
+                    <div v-for="avatar in avatars" class="form-check form-check-inline mb-2">
+                      <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
+                        <input v-model="selectedAvatar[id]" class="form-check-input imgradio" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
+                        <img :src="'./avatars/'+avatar" width="100" height="100">
+                      </label>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+<!--              END SPEAKER SETTINGS-->
+
+<!--              BEGIN OTHER SETTINGS-->
+              <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
+                <p>Other Settings coming soon :)</p>
+              </div>
+<!--              END OTHER SETTINGS -->
             </div>
           </div>
           <div class="modal-footer bg-light">
@@ -44,7 +103,7 @@
 <!--    START NAVBAR-->
     <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
       <a class="navbar-brand" href="#">
-        <img src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+        <img src="/mbot.svg" width="30" height="30" class="d-inline-block align-top" alt="">
         MeetingBot
       </a>
 
@@ -81,43 +140,35 @@
         <div class="col-8">
           <div>
 
-            <div id="timeline">
-              <TimelineBox name="Tim Fischer" time="15:01" message="Lorem ipsum dolor sit amet, quo ei simul congue exerci, ad nec admodum perfecto mnesarchum, vim ea mazim fierent detracto. Ea quis iuvaret expetendis his, te elit voluptua dignissim per, habeo iusto primis ea eam."></TimelineBox>
-              <TimelineBox v-for="(utt, id) in renderedUtterances" name="Speaker" time="15:01" :message="utt" :key="id"></TimelineBox>
+            <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
+<!--              <TimelineBox name="Tim Fischer" time="15:01" message="Lorem ipsum dolor sit amet, quo ei simul congue exerci, ad nec admodum perfecto mnesarchum, vim ea mazim fierent detracto. Ea quis iuvaret expetendis his, te elit voluptua dignissim per, habeo iusto primis ea eam."></TimelineBox>-->
+              <TimelineBox v-if="timelineSorting === 'DESC'" v-for="(utt, id) in reversedUtterances" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :time="utt.startTime" :message="utt.html" :key="'line-reversed-' + id"></TimelineBox>
+              <TimelineBox v-if="timelineSorting === 'ASC'" v-for="(utt, id) in normalUtterances" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :time="utt.startTime" :message="utt.html" :key="'line-normal-' + id"></TimelineBox>
             </div>
 
-<!--            <div class="timeline">-->
-<!--              <div class="d-flex">-->
-<!--                <div v-for="n in speakers" class="p-1 flex-fill">-->
-<!--                  <div class="p-1" style="position:relative;">-->
-<!--                    <img src="./assets/avatar_scholar_128.png" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">-->
-<!--                    <h6 style="margin-top:74px; white-space: nowrap; text-align:center;">Speaker {{n}}</h6>-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--                <div class="p-1" style="position:relative; width:66px;">-->
+            <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
+              <div class="d-flex">
+                <div v-for="(n, id) in speakers" class="p-1 flex-even" style="border-bottom: 4px solid darkgrey;">
+                  <div class="p-1" style="position:relative;">
+                    <img :src="'/avatars/' + selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
+                    <h6 style="margin-top:74px; text-align:center;">{{speakerName[id]}}</h6>
+                  </div>
+                </div>
+                <div class="p-1" style="position:relative; width:66px;">
+                  <div class="tlline"></div>
 <!--                  <div class="tlcircle">15:00</div>-->
-<!--                </div>-->
-<!--              </div>-->
+                </div>
+              </div>
 <!--              <TimelineRow message="Tim ist toll" speaker="1" speakers="4" time="15:00"></TimelineRow>-->
-<!--              <TimelineRow v-for="(utt, id) in renderedUtterances" :message="utt" :key="id" :speaker="(id%4) + 1" speakers="4" time="15:00"></TimelineRow>-->
-<!--            </div>-->
-
-<!--            <div id="bottom-bar" class="row">-->
-<!--              <div id="speech-input" class="col-sm-12">-->
-<!--                <h2 class="lang_de">Spracheingabe</h2>-->
-<!--                <h2 class="lang_en">Speech Input</h2>-->
-<!--                <div id="chat-area">-->
-<!--                  <p><span class="speaker">Computer: </span><i>Hi! I'm listening</i></p>-->
-<!--                  <p v-for="utt in renderedUtterances" v-html="utt"></p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
+              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="(utt, id) in reversedUtterances" :message="utt.html" :key="'lanes-reversed-' + id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
+              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="(utt, id) in normalUtterances" :message="utt.html" :key="'lanes-normal-' + id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
+            </div>
 
           </div>
         </div>
         <div class="col-4">
           <div style="max-height:400px;">
-            <bar-chart></bar-chart>
+            <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount"></bar-chart>
           </div>
         </div>
       </div>
@@ -174,15 +225,21 @@ export default {
       speakerName: ["Speaker 1", "Speaker 2", "Speaker 3", "Speaker 4"],
       avatars: ["avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png", "avatar6.png"],
       selectedAvatar: ["avatar1.png", "avatar1.png", "avatar1.png", "avatar1.png"],
-      scrollChatAreaBottom: true,
-      utts: [],
-      renderedUtterances: [],
+      utterances: [],
       startNewUtt: true,
+      timelineSorting: 'DESC',
+      timelineView: 'LINE'
     };
   },
   computed: {
     speakers() {
       return parseInt(this.speakerCount);
+    },
+    normalUtterances() {
+      return this.utterances.slice();
+    },
+    reversedUtterances() {
+      return this.utterances.slice().reverse();
     },
   },
   methods: {
@@ -192,58 +249,66 @@ export default {
     handleStream(event) {
       console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
-
       if (jsonEvent.handle === 'partialUtterance') {
         if (this.startNewUtt) {
-          this.utts.push(jsonEvent.utterance);
           this.addUtterance(jsonEvent);
           this.startNewUtt = false;
         } else {
-          this.utts.pop();
-          this.utts.push(jsonEvent.utterance);
           this.replaceLastUtterance(jsonEvent, false);
         }
       } else if (jsonEvent.handle === 'completeUtterance') {
-        this.utts.pop();
-        this.utts.push(jsonEvent.utterance);
-        this.sendCompleteUtterance(jsonEvent.utterance, Math.floor(Math.random() * 4));
         this.replaceLastUtterance(jsonEvent, true);
         this.startNewUtt = true;
       } else if (jsonEvent.handle === 'reset') {
-        this.reset();
+        // this.doSomething();
       }
     },
     renderUtterance(jsonEvent) {
-      return `<span class="speaker">${jsonEvent.speaker}:</span> ${jsonEvent.utterance}`;
+      return `${jsonEvent.utterance}`;
     },
     renderUtteranceWithConfidence(jsonEvent) {
-      let result = `<span class="speaker">${jsonEvent.speaker}:</span> `;
+      let result = ``;
       const text = jsonEvent.utterance.split(' ');
-
       for (let i = 0; i < text.length; i++) {
         const word = text[i];
         const conf = jsonEvent.confidences[i];
         result += `<span style="color:rgba(0,0,0,${Math.max(conf * conf, 0.1)});">${word}</span> `;
       }
-
-      console.log(result);
       return result.trim();
     },
     addUtterance(jsonEvent) {
-      this.renderedUtterances.push(this.renderUtterance(jsonEvent));
-      // if (this.scrollChatAreaBottom) document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+      console.log("TIME" + jsonEvent.time);
+      let utterance = {
+        html: this.renderUtterance(jsonEvent),
+        speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
+        startTime: jsonEvent.time.toFixed(2),
+        endTime: 0,
+      };
+      this.utterances.push(utterance);
     },
-    replaceLastUtterance(jsonEvent, renderConfidence) {
-      if (renderConfidence) {
-        this.renderedUtterances.pop();
-        this.renderedUtterances.push(this.renderUtteranceWithConfidence(jsonEvent));
+    replaceLastUtterance(jsonEvent, completedUtterance) {
+      if (completedUtterance) {
+        let lastUtterance = this.utterances.pop();
+        let utterance = {
+          html: this.renderUtteranceWithConfidence(jsonEvent),
+          speaker: lastUtterance.speaker,
+          startTime: lastUtterance.startTime,
+          endTime: jsonEvent.time.toFixed(2),
+        };
+        this.utterances.push(utterance);
+        this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
+        console.log("COMPLETED UTTERANCE :D");
+        console.log(this.utterances);
       } else {
-        this.renderedUtterances.pop();
-        this.renderedUtterances.push(this.renderUtterance(jsonEvent));
+        let lastUtterance = this.utterances.pop();
+        let utterance = {
+          html: this.renderUtterance(jsonEvent),
+          speaker: lastUtterance.speaker,
+          startTime: lastUtterance.startTime,
+          endTime: 0,
+        };
+        this.utterances.push(utterance);
       }
-      // if (this.scrollChatAreaBottom) {
-      //   document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
-      // }
     },
     onResize() {
       let navbarHeight = document.getElementById("navigation").clientHeight;
@@ -261,7 +326,7 @@ export default {
 
   /*STYLE FOR SETTINGS IMAGES*/
   /* HIDE RADIO */
-  [type=radio] {
+  .imgradio[type=radio] {
     position: absolute;
     opacity: 0;
     width: 0;
@@ -269,12 +334,12 @@ export default {
   }
 
   /* IMAGE STYLES */
-  [type=radio] + img {
+  .imgradio[type=radio] + img {
     cursor: pointer;
   }
 
   /* CHECKED STYLES */
-  [type=radio]:checked + img {
+  .imgradio[type=radio]:checked + img {
     outline: 2px solid #f00;
   }
   /*END STYLE FOR SETTINGS IMAGES*/
@@ -309,7 +374,7 @@ export default {
     height: 50px;
     right: 0;
     background-color: white;
-    border: 4px solid #FF9F55;
+    border: 4px solid #28a745;
     border-radius: 50%;
     z-index: 1;
     text-align: center;
@@ -320,23 +385,34 @@ export default {
     bottom: 0;
   }
 
+  .tlline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    background-color: lightgrey;
+  }
+
   /* The actual timeline (the vertical ruler) */
   #timeline {
     position: relative;
     margin: 0 auto;
-    overflow-y: hidden;
+    overflow-y: scroll;
   }
 
   /* The actual timeline (the vertical ruler) */
-  #timeline::after {
-    content: '';
-    position: absolute;
-    width: 6px;
-    background-color: lightgrey;
-    top: 0;
-    bottom: 0;
-    left: calc(100% - 36px);
-  }
+  /*#timeline::after {*/
+  /*  content: '';*/
+  /*  position: absolute;*/
+  /*  width: 6px;*/
+  /*  background-color: lightgrey;*/
+  /*  top: 0;*/
+  /*  bottom: 0;*/
+  /*  left: calc(100% - 36px);*/
+  /*}*/
 
   /* Container around content */
   .tl-container {
@@ -344,6 +420,7 @@ export default {
     position: relative;
     background-color: inherit;
     width: calc(100% - 33px);
+    border-right: 6px solid lightgrey;
   }
 
   /* Container around content */
@@ -358,7 +435,7 @@ export default {
     position: absolute;
     width: 50px;
     height: 50px;
-    right: -25.5px;
+    right: -28px;
     background-color: white;
     border: 4px solid #28a745;
     top: 5px;

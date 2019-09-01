@@ -11,6 +11,7 @@
       </div>
     </div>
     <div class="p-1" style="position:relative; width:66px;">
+      <div class="tlline"></div>
       <div class="tlcircle">{{time}}</div>
     </div>
   </div>

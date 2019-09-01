@@ -6,7 +6,7 @@ const { reactiveProp } = mixins;
 export default {
   extends: HorizontalBar,
   mixins: [reactiveProp],
-  props: ['chartData'],
+  props: ['chartData', 'speakerCount', 'speakerNames'],
   data() {
     return {
       redeanteil: [0, 0, 0, 0],
@@ -18,6 +18,9 @@ export default {
     barChartData() {
       return this.data;
     },
+    speakers() {
+      return parseInt(this.speakerCount);
+    }
   },
   mounted() {
     this.renderBarChart();
@@ -28,6 +31,12 @@ export default {
       console.log('data changed!!!');
       this.renderBarChart();
     },
+    speakerNames() {
+      this.renderBarChart();
+    },
+    speakerCount() {
+      this.renderBarChart();
+    }
   },
   methods: {
     onCompleteUtterance(data, speaker) {
@@ -50,13 +59,13 @@ export default {
     renderBarChart() {
       this.renderChart(
         {
-          labels: ['Spk 1', 'Spk 2', 'Spk 3', 'Spk 4'],
+          labels: this.speakerNames.slice(0, this.speakers),
           datasets: [
             {
               label: 'Redeanteil (in %)',
               backgroundColor: 'rgba(40, 167, 69, 0.2)',
               borderColor: '#28a745',
-              data: this.barChartData,
+              data: this.barChartData.slice(0, this.speakers),
               borderWidth: 3,
             },
           ],
