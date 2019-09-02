@@ -1,0 +1,49 @@
+######
+##
+# 1) start: docker-compose docker-compose up -d <services>
+# 2) attach: docker attach ...
+# 3) detach: detach with <CTRL-p> <CTRL-q>
+# 4) stop: docker-compose down
+# VISIT localhost:8888/mbot/swagger-ui.html
+##
+######
+version: '2.3'
+
+networks:
+  anet:
+
+services:
+
+  # BEGIN: BROKER
+  broker:
+    image: bigabig/mbot-broker:latest
+    environment:
+      - server.contextPath=/mbot
+    ports:
+      - 8888:8080
+    networks:
+      - anet
+  # END: BROKER
+
+  # BEGIN: KEYWORDS
+  keywords:
+    image: bigabig/mbot-keyterms:latest
+    networks:
+      - anet
+  # END: KEYWORDS
+
+  # BEGIN: NER
+  ner:
+    image: bigabig/mbot-ner:latest
+    networks:
+      - anet
+  # END: NER
+
+  # BEGIN: TEXTRANK
+  textrank:
+    image: bigabig/mbot-textrank:latest
+    networks:
+      - anet
+  # END: TEXTRANK
+
+
