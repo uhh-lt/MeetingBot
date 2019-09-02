@@ -1,3 +1,12 @@
+.DISPLAYKEYWORD {
+    border: 1px black;
+    padding: .2em .3em;
+    margin: 0 .25em;
+    line-height: 1;
+    display: inline-block;
+    border-radius: .25em;
+}
+
 .disable-scrollbars::-webkit-scrollbar {
     width: 0px;
     background: transparent; /* Chrome/Safari/Webkit */

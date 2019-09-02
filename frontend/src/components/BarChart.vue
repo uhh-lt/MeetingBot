@@ -20,7 +20,7 @@ export default {
     },
     speakers() {
       return parseInt(this.speakerCount);
-    }
+    },
   },
   mounted() {
     this.renderBarChart();
@@ -36,7 +36,7 @@ export default {
     },
     speakerCount() {
       this.renderBarChart();
-    }
+    },
   },
   methods: {
     onCompleteUtterance(data, speaker) {

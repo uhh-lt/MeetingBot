@@ -1,7 +1,7 @@
 <template>
   <div id="app">
 
-    <!-- Modal -->
+<!--    START SETTINGS-->
     <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -44,7 +44,7 @@
                 <hr>
                 <fieldset class="form-group px-2">
                   <label>Timeline View:</label><br>
-                  <div class="form-check">
+                  <div class="form-check ">
                     <label for="timeline-view-line" class="form-check-label">
                       <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-line" value="LINE">
                       Display Timeline as single Line
@@ -55,6 +55,43 @@
                       <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-lanes" value="LANES">
                       Display Timeline as multiple Lanes
                     </label>
+                  </div>
+                </fieldset>
+                <hr>
+                <fieldset class="form-group px-2">
+                  <label>Visualize Confidence with Greyscale:</label><br>
+                  <div class="form-check form-check-inline">
+                    <label for="visualize-confidence-yes" class="form-check-label">
+                      <input v-on:change="shouldVisualizeConfidence = 'true'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-yes" value="true">
+                      Yes
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label for="visualize-confidence-no" class="form-check-label">
+                      <input v-on:change="shouldVisualizeConfidence = 'false'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-no" value="false">
+                      No
+                    </label>
+                  </div>
+                </fieldset>
+                <fieldset class="form-group px-2">
+                  <label>Hightlight Keywords with Background Color:</label><br>
+                  <div class="form-check form-check-inline mb-2">
+                    <label for="visualize-keywords-yes" class="form-check-label">
+                      <input v-on:change="shouldVisualizeKeywords = 'true'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-yes" value="true">
+                      Yes
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline mb-2">
+                    <label for="visualize-keywords-no" class="form-check-label">
+                      <input v-on:change="shouldVisualizeKeywords = 'false'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-no" value="false">
+                      No
+                    </label>
+                  </div>
+                  <div id="cp3a" class="input-group">
+                    <input v-model="keywordColor" type="text" class="form-control input-lg"/>
+                    <span class="input-group-append">
+                      <span class="input-group-text colorpicker-input-addon"><i></i></span>
+                    </span>
                   </div>
                 </fieldset>
               </div>
@@ -99,6 +136,7 @@
         </div>
       </div>
     </div>
+<!--    END SETTINGS -->
 
 <!--    START NAVBAR-->
     <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
@@ -142,8 +180,8 @@
 
             <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
 <!--              <TimelineBox name="Tim Fischer" time="15:01" message="Lorem ipsum dolor sit amet, quo ei simul congue exerci, ad nec admodum perfecto mnesarchum, vim ea mazim fierent detracto. Ea quis iuvaret expetendis his, te elit voluptua dignissim per, habeo iusto primis ea eam."></TimelineBox>-->
-              <TimelineBox v-if="timelineSorting === 'DESC'" v-for="(utt, id) in reversedUtterances" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :time="utt.startTime" :message="utt.html" :key="'line-reversed-' + id"></TimelineBox>
-              <TimelineBox v-if="timelineSorting === 'ASC'" v-for="(utt, id) in normalUtterances" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :time="utt.startTime" :message="utt.html" :key="'line-normal-' + id"></TimelineBox>
+              <TimelineBox v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
+              <TimelineBox v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
             </div>
 
             <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
@@ -160,8 +198,8 @@
                 </div>
               </div>
 <!--              <TimelineRow message="Tim ist toll" speaker="1" speakers="4" time="15:00"></TimelineRow>-->
-              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="(utt, id) in reversedUtterances" :message="utt.html" :key="'lanes-reversed-' + id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
-              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="(utt, id) in normalUtterances" :message="utt.html" :key="'lanes-normal-' + id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
+              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :message="utt.html" :key="'lanes-reversed-' + utt.id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
+              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :message="utt.html" :key="'lanes-normal-' + utt.id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
             </div>
 
           </div>
@@ -181,8 +219,14 @@
 </template>
 
 <script>
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.min.css'
+import $ from 'jquery'
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-colorpicker';
+import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
+
+import { computeKeywords } from './helper/api.js';
+import { encodeHTML } from './helper/htmlencoder.js';
 
 import TimelineBox from './components/TimelineBox';
 import TimelineRow from './components/TimelineRow';
@@ -212,6 +256,14 @@ export default {
     window.addEventListener('resize', this.onResize);
   },
   mounted() {
+    // Init colorpicker
+    $(function () {
+      $('#cp3a').colorpicker();
+    });
+    $('#cp3a').on('colorpickerChange', (event) => {
+      this.keywordColor = event.color.toString();
+    });
+
     // Listen to stream
     const source = new EventSource('http://localhost:5000/stream');
     source.onmessage = this.handleStream;
@@ -221,14 +273,18 @@ export default {
   },
   data() {
     return {
-      speakerCount: "4",
-      speakerName: ["Speaker 1", "Speaker 2", "Speaker 3", "Speaker 4"],
-      avatars: ["avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png", "avatar6.png"],
-      selectedAvatar: ["avatar1.png", "avatar1.png", "avatar1.png", "avatar1.png"],
+      speakerCount: '4',
+      speakerName: ['Speaker 1', 'Speaker 2', 'Speaker 3', 'Speaker 4'],
+      avatars: ['avatar1.png', 'avatar2.png', 'avatar3.png', 'avatar4.png', 'avatar5.png', 'avatar6.png'],
+      selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
       utterances: [],
       startNewUtt: true,
       timelineSorting: 'DESC',
-      timelineView: 'LINE'
+      timelineView: 'LINE',
+      shouldVisualizeConfidence: 'false',
+      shouldVisualizeKeywords: 'true',
+      keywordColor: 'rgb(255, 255, 0)',
+      utteranceMode: 'FULL', // OR 'MEDIUM' OR 'SHORT'
     };
   },
   computed: {
@@ -247,7 +303,7 @@ export default {
       this.$root.$emit('onCompleteUtterance', utterance, speaker);
     },
     handleStream(event) {
-      console.log(event.data);
+      // console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
       if (jsonEvent.handle === 'partialUtterance') {
         if (this.startNewUtt) {
@@ -263,58 +319,54 @@ export default {
         // this.doSomething();
       }
     },
-    renderUtterance(jsonEvent) {
-      return `${jsonEvent.utterance}`;
-    },
-    renderUtteranceWithConfidence(jsonEvent) {
-      let result = ``;
-      const text = jsonEvent.utterance.split(' ');
-      for (let i = 0; i < text.length; i++) {
-        const word = text[i];
-        const conf = jsonEvent.confidences[i];
-        result += `<span style="color:rgba(0,0,0,${Math.max(conf * conf, 0.1)});">${word}</span> `;
-      }
-      return result.trim();
-    },
     addUtterance(jsonEvent) {
-      console.log("TIME" + jsonEvent.time);
-      let utterance = {
-        html: this.renderUtterance(jsonEvent),
+      const utterance = {
+        completed: false,
+        text: encodeHTML(jsonEvent.utterance),
         speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
         startTime: jsonEvent.time.toFixed(2),
         endTime: 0,
+        id: `${jsonEvent.time.toFixed(4)}`,
+        keywords: [],
+        confidences: [],
       };
       this.utterances.push(utterance);
     },
     replaceLastUtterance(jsonEvent, completedUtterance) {
       if (completedUtterance) {
-        let lastUtterance = this.utterances.pop();
-        let utterance = {
-          html: this.renderUtteranceWithConfidence(jsonEvent),
+        const lastUtterance = this.utterances.pop();
+        const utterance = {
+          completed: true,
+          text: encodeHTML(jsonEvent.utterance),
           speaker: lastUtterance.speaker,
           startTime: lastUtterance.startTime,
           endTime: jsonEvent.time.toFixed(2),
+          id: lastUtterance.id,
+          keywords: [],
+          confidences: jsonEvent.confidences,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
-        console.log("COMPLETED UTTERANCE :D");
-        console.log(this.utterances);
+        computeKeywords(utterance);
       } else {
-        let lastUtterance = this.utterances.pop();
-        let utterance = {
-          html: this.renderUtterance(jsonEvent),
+        const lastUtterance = this.utterances.pop();
+        const utterance = {
+          completed: lastUtterance.completed,
+          text: encodeHTML(jsonEvent.utterance),
           speaker: lastUtterance.speaker,
           startTime: lastUtterance.startTime,
           endTime: 0,
+          id: lastUtterance.id,
+          keywords: [],
+          confidences: [],
         };
         this.utterances.push(utterance);
       }
     },
     onResize() {
-      let navbarHeight = document.getElementById("navigation").clientHeight;
-      let footerHeight = document.getElementById("footer").clientHeight;
-      console.log("HEIGHTS:" + navbarHeight + " " + footerHeight);
-      document.getElementById("timeline").style.height = "calc(" + (window.innerHeight - navbarHeight - footerHeight) + "px - 4em - 2px)";
+      const navbarHeight = document.getElementById('navigation').clientHeight;
+      const footerHeight = document.getElementById('footer').clientHeight;
+      document.getElementById('timeline').style.height = `calc(${window.innerHeight - navbarHeight - footerHeight}px - 4em - 2px)`;
     },
   },
 };
@@ -323,6 +375,16 @@ export default {
 <style>
   @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";
 
+  #app {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #2c3e50;
+  }
+
+  .force-color {
+    color: #2c3e50 !important;
+  }
 
   /*STYLE FOR SETTINGS IMAGES*/
   /* HIDE RADIO */
@@ -344,12 +406,6 @@ export default {
   }
   /*END STYLE FOR SETTINGS IMAGES*/
 
-  #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
-  }
   .row {
     padding-top: 2em;
     padding-bottom: 2em;

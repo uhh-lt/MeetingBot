@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.3.1",
+    "bootstrap-colorpicker": "^3.1.2",
     "chart.js": "^2.8.0",
     "core-js": "^2.6.5",
     "jquery": "^3.4.1",
