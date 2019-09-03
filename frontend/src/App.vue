@@ -103,7 +103,7 @@
                   <label for="customRange1"># Speakers: {{speakers}}</label>
                   <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
                 </div>
-                <div v-for="(speaker, id) in speakers">
+                <div v-for="(speaker, id) in speakers" :key="'speaker-settings-'+speaker">
                   <div class="form-group px-2">
                     <hr>
                     <label :for="'speaker-' + speaker + '-name-input'">Speaker {{speaker}} Name:</label>
@@ -111,7 +111,7 @@
                   </div>
                   <fieldset class="form-group px-2">
                     <label>Speaker {{speaker}} Avatar:</label><br>
-                    <div v-for="avatar in avatars" class="form-check form-check-inline mb-2">
+                    <div v-for="avatar in avatars" :key="'avatar-speaker-'+speaker+'-'+avatar" class="form-check form-check-inline mb-2">
                       <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
                         <input v-model="selectedAvatar[id]" class="form-check-input imgradio" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
                         <img :src="'./avatars/'+avatar" width="100" height="100">
@@ -179,14 +179,17 @@
           <div>
 
             <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
-<!--              <TimelineBox name="Tim Fischer" time="15:01" message="Lorem ipsum dolor sit amet, quo ei simul congue exerci, ad nec admodum perfecto mnesarchum, vim ea mazim fierent detracto. Ea quis iuvaret expetendis his, te elit voluptua dignissim per, habeo iusto primis ea eam."></TimelineBox>-->
-              <TimelineBox v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
-              <TimelineBox v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
+              <template v-if="timelineSorting === 'DESC'">
+                <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
+              </template>
+              <template v-if="timelineSorting === 'ASC'">
+                <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
+              </template>
             </div>
 
             <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
               <div class="d-flex">
-                <div v-for="(n, id) in speakers" class="p-1 flex-even" style="border-bottom: 4px solid darkgrey;">
+                <div v-for="(n, id) in speakers" :key="'speaker-'+id" class="p-1 flex-even" style="border-bottom: 4px solid darkgrey;">
                   <div class="p-1" style="position:relative;">
                     <img :src="'/avatars/' + selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
                     <h6 style="margin-top:74px; text-align:center;">{{speakerName[id]}}</h6>
@@ -197,9 +200,12 @@
 <!--                  <div class="tlcircle">15:00</div>-->
                 </div>
               </div>
-<!--              <TimelineRow message="Tim ist toll" speaker="1" speakers="4" time="15:00"></TimelineRow>-->
-              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
-              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+              <template v-if="timelineSorting === 'DESC'">
+                <TimelineRow  v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+              </template>
+              <template v-if="timelineSorting === 'ASC'">
+                <TimelineRow  v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+              </template>
             </div>
 
           </div>
@@ -225,27 +231,19 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
 
-import { computeKeywords } from './helper/api.js';
-import { encodeHTML } from './helper/htmlencoder.js';
+import { computeKeywords } from './helper/api';
+import { encodeHTML } from './helper/htmlencoder';
 
-import TimelineBox from './components/TimelineBox';
-import TimelineRow from './components/TimelineRow';
-import SummarizationInput from './components/SummarizationInput.vue';
-import NamedEntityVisualizer from './components/NamedEntityVisualizer.vue';
-import SummarizationVisualizer from './components/SummarizationVisualizer.vue';
-import KeywordVisualizer from './components/KeywordVisualizer';
+import TimelineBox from './components/TimelineBox.vue';
+import TimelineRow from './components/TimelineRow.vue';
 import Footer from './components/Footer.vue';
-import BarChart from './components/BarChart';
+import BarChart from './components/BarChart.vue';
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
-    SummarizationInput,
-    NamedEntityVisualizer,
-    SummarizationVisualizer,
-    KeywordVisualizer,
     Footer,
     TimelineBox,
     TimelineRow,
@@ -285,11 +283,12 @@ export default {
       shouldVisualizeKeywords: 'true',
       keywordColor: 'rgb(255, 255, 0)',
       utteranceMode: 'FULL', // OR 'MEDIUM' OR 'SHORT'
+      lastUtteranceType: 'partialUtterance',
     };
   },
   computed: {
     speakers() {
-      return parseInt(this.speakerCount);
+      return parseInt(this.speakerCount, 10);
     },
     normalUtterances() {
       return this.utterances.slice();
@@ -305,32 +304,59 @@ export default {
     handleStream(event) {
       console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
-      if (jsonEvent.handle === 'partialUtterance') {
-        if (this.startNewUtt) {
-          this.addUtterance(jsonEvent);
-          this.startNewUtt = false;
-        } else {
-          this.replaceLastUtterance(jsonEvent, false);
+
+      // UTTERANCE COMMANDS                                                                   // check if utterance is empty
+      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance') && jsonEvent.utterance.length > 0) {
+        // PARTIAL UTTERANCE
+        if (jsonEvent.handle === 'partialUtterance') {
+          if (this.startNewUtt) {
+            this.addUtterance(jsonEvent, false);
+            this.startNewUtt = false;
+          } else {
+            this.replaceLastUtterance(jsonEvent, false);
+          }
+        // COMPLETE UTTERANCE
+        } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
+          this.addUtterance(jsonEvent, true);
+        } else if (jsonEvent.handle === 'completeUtterance') {
+          this.replaceLastUtterance(jsonEvent, true);
+          this.startNewUtt = true;
         }
-      } else if (jsonEvent.handle === 'completeUtterance') {
-        this.replaceLastUtterance(jsonEvent, true);
-        this.startNewUtt = true;
+      // RESET COMMAND
       } else if (jsonEvent.handle === 'reset') {
         // this.doSomething();
       }
+      this.lastUtteranceType = jsonEvent.handle;
     },
-    addUtterance(jsonEvent) {
-      const utterance = {
-        completed: false,
-        text: encodeHTML(jsonEvent.utterance),
-        speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
-        startTime: jsonEvent.time.toFixed(2),
-        endTime: 0,
-        id: `${jsonEvent.time.toFixed(4)}`,
-        keywords: [],
-        confidences: [],
-      };
-      this.utterances.push(utterance);
+    addUtterance(jsonEvent, completed) {
+      let utterance;
+      if (completed) {
+        utterance = {
+          completed,
+          text: encodeHTML(jsonEvent.utterance),
+          speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
+          startTime: jsonEvent.time.toFixed(2),
+          endTime: jsonEvent.time.toFixed(2),
+          id: `${jsonEvent.time.toFixed(4)}`,
+          keywords: [],
+          confidences: [],
+        };
+        this.utterances.push(utterance);
+        this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
+        computeKeywords(utterance);
+      } else {
+        utterance = {
+          completed,
+          text: encodeHTML(jsonEvent.utterance),
+          speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
+          startTime: jsonEvent.time.toFixed(2),
+          endTime: 0,
+          id: `${jsonEvent.time.toFixed(4)}`,
+          keywords: [],
+          confidences: [],
+        };
+        this.utterances.push(utterance);
+      }
     },
     replaceLastUtterance(jsonEvent, completedUtterance) {
       if (completedUtterance) {
