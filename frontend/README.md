@@ -5,6 +5,11 @@
 npm install
 ```
 
+### START DOCKER CONTAINER
+```
+docker-compose up -d
+```
+
 ### Compiles and hot-reloads for development
 ```
 npm run serve

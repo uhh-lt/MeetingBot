@@ -145,10 +145,10 @@
         MeetingBot
       </a>
 
-      <div class="btn-group" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-secondary">Full</button>
-        <button type="button" class="btn btn-secondary">Medium</button>
-        <button type="button" class="btn btn-secondary">Short</button>
+      <div class="btn-group" role="group">
+        <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">Full</button>
+        <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">Medium</button>
+        <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Short</button>
       </div>
 
       <div class="form-inline">
@@ -198,8 +198,8 @@
                 </div>
               </div>
 <!--              <TimelineRow message="Tim ist toll" speaker="1" speakers="4" time="15:00"></TimelineRow>-->
-              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :message="utt.html" :key="'lanes-reversed-' + utt.id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
-              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :message="utt.html" :key="'lanes-normal-' + utt.id" :speaker="utt.speaker + 1" :speakers="speakers" :time="utt.startTime"></TimelineRow>
+              <TimelineRow v-if="timelineSorting === 'DESC'" v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+              <TimelineRow v-if="timelineSorting === 'ASC'" v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
             </div>
 
           </div>
@@ -219,7 +219,7 @@
 </template>
 
 <script>
-import $ from 'jquery'
+import $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-colorpicker';
@@ -257,7 +257,7 @@ export default {
   },
   mounted() {
     // Init colorpicker
-    $(function () {
+    $(() => {
       $('#cp3a').colorpicker();
     });
     $('#cp3a').on('colorpickerChange', (event) => {
@@ -303,7 +303,7 @@ export default {
       this.$root.$emit('onCompleteUtterance', utterance, speaker);
     },
     handleStream(event) {
-      // console.log(event.data);
+      console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
       if (jsonEvent.handle === 'partialUtterance') {
         if (this.startNewUtt) {

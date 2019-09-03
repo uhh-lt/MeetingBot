@@ -20,7 +20,8 @@ async function fetchKeywords(text) {
   if (data.keywords !== null && data.keywords.length > 0) {
     return data.keywords;
   }
-  throw new Error('Keywords are empty!');
+  console.log('Keywords are empty!');
+  return [];
 }
 
 function postData(url = '', data = {}) {
