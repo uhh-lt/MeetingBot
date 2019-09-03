@@ -83,6 +83,9 @@ export default {
               },
             }],
           },
+          legend: {
+            display: false,
+          },
         },
       );
     },

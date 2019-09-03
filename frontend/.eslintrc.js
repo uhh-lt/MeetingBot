@@ -16,10 +16,10 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["*.vue"],
+      files: ['*.vue'],
       rules: {
-          'max-len': 'off' // disables line length check
-      }
-    }
-  ]
+        'max-len': 'off', // disables line length check
+      },
+    },
+  ],
 };

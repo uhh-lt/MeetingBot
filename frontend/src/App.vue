@@ -175,46 +175,53 @@
     <div class="container-fluid">
 
       <div class="row">
+
+<!--        START TIMELINE-->
         <div class="col-8">
-          <div>
 
-            <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
-              <template v-if="timelineSorting === 'DESC'">
-                <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
-              </template>
-              <template v-if="timelineSorting === 'ASC'">
-                <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
-              </template>
-            </div>
+          <div class="card" style="margin-top: 1em; margin-bottom:1em;">
+            <h5 class="card-header" style="height: 50px;"><span>Gesprächs-Verlauf</span></h5>
+            <div class="card-body" style="padding:0;">
 
-            <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
-              <div class="d-flex">
-                <div v-for="(n, id) in speakers" :key="'speaker-'+id" class="p-1 flex-even" style="border-bottom: 4px solid darkgrey;">
-                  <div class="p-1" style="position:relative;">
-                    <img :src="'/avatars/' + selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
-                    <h6 style="margin-top:74px; text-align:center;">{{speakerName[id]}}</h6>
+              <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
+                <template v-if="timelineSorting === 'DESC'">
+                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
+                </template>
+                <template v-if="timelineSorting === 'ASC'">
+                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
+                </template>
+              </div>
+
+              <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
+                <div class="d-flex stickytimelineheader">
+                  <div v-for="(n, id) in speakers" :key="'speaker-'+id" class="p-1 flex-even bg-light" style="border-bottom: 1px solid rgba(0,0,0,.125);">
+                    <div class="p-1" style="position:relative;">
+                      <img :src="'/avatars/' + selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
+                      <h6 style="margin-top:74px; text-align:center;">{{speakerName[id]}}</h6>
+                    </div>
+                  </div>
+                  <div class="p-1 bg-light" style="position:relative; width:66px; border-bottom: 1px solid rgba(0,0,0,.125);">
+                    <div class="tlline"></div>
                   </div>
                 </div>
-                <div class="p-1" style="position:relative; width:66px;">
-                  <div class="tlline"></div>
-<!--                  <div class="tlcircle">15:00</div>-->
-                </div>
+                <template v-if="timelineSorting === 'DESC'">
+                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                </template>
+                <template v-if="timelineSorting === 'ASC'">
+                  <TimelineRow  v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                </template>
               </div>
-              <template v-if="timelineSorting === 'DESC'">
-                <TimelineRow  v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
-              </template>
-              <template v-if="timelineSorting === 'ASC'">
-                <TimelineRow  v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
-              </template>
-            </div>
 
+            </div>
           </div>
         </div>
+<!--        END TIMELINE-->
+
+<!--        START SIDEBAR-->
         <div class="col-4">
-          <div style="max-height:400px;">
-            <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount"></bar-chart>
-          </div>
+          <sidebar :speaker-name="speakerName" :speaker-count="speakerCount"></sidebar>
         </div>
+<!--        END SIDEBAR-->
       </div>
     </div>
     <!--      END CONTENT-->
@@ -238,12 +245,14 @@ import TimelineBox from './components/TimelineBox.vue';
 import TimelineRow from './components/TimelineRow.vue';
 import Footer from './components/Footer.vue';
 import BarChart from './components/BarChart.vue';
+import Sidebar from './components/Sidebar';
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
+    Sidebar,
     Footer,
     TimelineBox,
     TimelineRow,
@@ -297,6 +306,12 @@ export default {
       return this.utterances.slice().reverse();
     },
   },
+  watch: {
+    timelineSorting(newValue) {
+      // scroll to bot if timeline sorting changed to ASC
+      if (newValue === 'ASC') $('#timeline').scrollTop($('#timeline')[0].scrollHeight);
+    },
+  },
   methods: {
     sendCompleteUtterance(utterance, speaker) {
       this.$root.$emit('onCompleteUtterance', utterance, speaker);
@@ -322,6 +337,10 @@ export default {
           this.replaceLastUtterance(jsonEvent, true);
           this.startNewUtt = true;
         }
+        // scroll to bottom if order is DESC
+        if (this.timelineSorting === 'ASC') {
+          $('#timeline').scrollTop($('#timeline')[0].scrollHeight);
+        }
       // RESET COMMAND
       } else if (jsonEvent.handle === 'reset') {
         // this.doSomething();
@@ -335,8 +354,8 @@ export default {
           completed,
           text: encodeHTML(jsonEvent.utterance),
           speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
-          startTime: jsonEvent.time.toFixed(2),
-          endTime: jsonEvent.time.toFixed(2),
+          startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
+          endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
           keywords: [],
           confidences: [],
@@ -349,7 +368,7 @@ export default {
           completed,
           text: encodeHTML(jsonEvent.utterance),
           speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
-          startTime: jsonEvent.time.toFixed(2),
+          startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: `${jsonEvent.time.toFixed(4)}`,
           keywords: [],
@@ -366,7 +385,7 @@ export default {
           text: encodeHTML(jsonEvent.utterance),
           speaker: lastUtterance.speaker,
           startTime: lastUtterance.startTime,
-          endTime: jsonEvent.time.toFixed(2),
+          endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: lastUtterance.id,
           keywords: [],
           confidences: jsonEvent.confidences,
@@ -392,7 +411,8 @@ export default {
     onResize() {
       const navbarHeight = document.getElementById('navigation').clientHeight;
       const footerHeight = document.getElementById('footer').clientHeight;
-      document.getElementById('timeline').style.height = `calc(${window.innerHeight - navbarHeight - footerHeight}px - 4em - 2px)`;
+      const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
+      document.getElementById('timeline').style.height = `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)`;
     },
   },
 };
@@ -432,10 +452,10 @@ export default {
   }
   /*END STYLE FOR SETTINGS IMAGES*/
 
-  .row {
-    padding-top: 2em;
-    padding-bottom: 2em;
-  }
+  /*.row {*/
+  /*  padding-top: 2em;*/
+  /*  padding-bottom: 2em;*/
+  /*}*/
   #footer {
     width: 100%;
     height: 60px;
@@ -450,6 +470,13 @@ export default {
     flex: 1;
   }
 
+  .stickytimelineheader {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+  }
+
   .tlcircle {
     position: absolute;
     width: 50px;
@@ -458,7 +485,7 @@ export default {
     background-color: white;
     border: 4px solid #28a745;
     border-radius: 50%;
-    z-index: 1;
+    z-index: 3;
     text-align: center;
     padding-top: 10px;
     left: 0;
