@@ -6,7 +6,7 @@
         <i v-if="sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-up"></i>
         <span style="margin-left:0.5em;">Redeanteile (in %)</span>
       </h5>
-      <div v-if="sidebarElements[0]" class="card-body" :style="sidebarBodyHeights[0]">
+      <div :class="sidebarElements[0] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[0]">
         <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :styles="{position: 'relative', height: '100%'}"></bar-chart>
       </div>
     </div>
@@ -17,7 +17,7 @@
         <i v-if="sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-up"></i>
         <span style="margin-left:0.5em;">Redeanteile (in %)</span>
       </h5>
-      <div v-if="sidebarElements[1]" class="card-body" :style="sidebarBodyHeights[1]">
+      <div :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
         <p>Some Element :D</p>
       </div>
     </div>
@@ -28,7 +28,7 @@
         <i v-if="sidebarElements[2]" v-on:click="toggleSidebarElement(2)" class="fas fa-chevron-up"></i>
         <span style="margin-left:0.5em;">Redeanteile (in %)</span>
       </h5>
-      <div v-if="sidebarElements[2]" class="card-body" :style="sidebarBodyHeights[2]">
+      <div :class="sidebarElements[2] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[2]">
         <p>Some Element :D</p>
       </div>
     </div>
@@ -45,14 +45,29 @@ export default {
   components: { BarChart },
   data() {
     return {
-      sidebarElements: [true, true, true],
+      sidebarElements: [false, false, false],
+      sidebarBodyHeights: ['', '', ''],
     };
   },
-  computed: {
-    sidebarBodyHeights() {
+  created() {
+    window.addEventListener('resize', this.updateSidebarHeights);
+  },
+  methods: {
+    numOpenSidebarElements() {
+      return this.sidebarElements.map(value => value * 1)
+        .reduce((pv, cv) => pv + cv, 0);
+    },
+    toggleSidebarElement(element) {
+      this.sidebarElements[element] = !this.sidebarElements[element];
+      this.sidebarElements = this.sidebarElements.slice(0);
+      this.updateSidebarHeights();
+    },
+    updateSidebarHeights() {
       const result = Array(this.sidebarElements.length).fill('');
-      if (document && document.getElementById('sidebar') && document.getElementsByClassName('card-header').length > 0) {
-        const maxSidebarHeight = document.getElementById('sidebar').clientHeight;
+      if (window && document && document.getElementById('navigation') && document.getElementById('footer') && document.getElementsByClassName('card-header').length > 0) {
+        const navbarHeight = document.getElementById('navigation').clientHeight;
+        const footerHeight = document.getElementById('footer').clientHeight;
+        const maxSidebarHeight = window.innerHeight - navbarHeight - footerHeight - 2;
         const sidebarHeaderHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
         const activeElements = this.numOpenSidebarElements();
         const totalElements = this.sidebarElements.length;
@@ -63,17 +78,7 @@ export default {
           }
         }
       }
-      return result;
-    },
-  },
-  methods: {
-    numOpenSidebarElements() {
-      return this.sidebarElements.map(value => value * 1)
-        .reduce((pv, cv) => pv + cv, 0);
-    },
-    toggleSidebarElement(element) {
-      this.sidebarElements[element] = !this.sidebarElements[element];
-      this.sidebarElements = this.sidebarElements.slice(0);
+      this.sidebarBodyHeights = result;
     },
   },
 };
@@ -87,5 +92,9 @@ export default {
 
   .sidebar-element {
     margin-bottom: 1em;
+  }
+
+  .hide {
+    display: none;
   }
 </style>

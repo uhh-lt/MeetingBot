@@ -25,6 +25,7 @@ export default {
   mounted() {
     this.renderBarChart();
     this.$root.$on('onCompleteUtterance', this.onCompleteUtterance);
+    this.$root.$on('onReset', this.onReset);
   },
   watch: {
     data() {
@@ -39,6 +40,11 @@ export default {
     },
   },
   methods: {
+    onReset() {
+      this.redeanteil = [0, 0, 0, 0];
+      this.redeanteilInProzent = [0, 0, 0, 0];
+      this.data = [0, 0, 0, 0];
+    },
     onCompleteUtterance(data, speaker) {
       console.log(`recieved utterance:${data}`);
 

@@ -1,142 +1,7 @@
 <template>
   <div id="app">
 
-<!--    START SETTINGS-->
-    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header text-white bg-dark">
-            <h4 class="modal-title" id="exampleModalLabel">Settings</h4>
-            <button type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-bottom: 10px;">
-              <li class="nav-item">
-                <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">General</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="speaker-tab" data-toggle="tab" href="#speaker" role="tab" aria-controls="speaker" aria-selected="false">Speakers</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="other-tab" data-toggle="tab" href="#other" role="tab" aria-controls="other" aria-selected="false">Placeholder</a>
-              </li>
-            </ul>
-            <div class="tab-content" id="myTabContent">
-<!--              BEGIN GENERAL SETTINGS-->
-              <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                <fieldset class="form-group px-2">
-                  <label>Timeline Sorting:</label><br>
-                  <div class="form-check form-check-inline mb-2">
-                    <label for="timeline-sorting-asc" class="form-check-label">
-                      <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-asc" value="ASC">
-                      ASCending
-                    </label>
-                  </div>
-                  <div class="form-check form-check-inline mb-2">
-                    <label for="timeline-sorting-desc" class="form-check-label">
-                      <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-desc" value="DESC">
-                      DESCending
-                    </label>
-                  </div>
-                </fieldset>
-                <hr>
-                <fieldset class="form-group px-2">
-                  <label>Timeline View:</label><br>
-                  <div class="form-check ">
-                    <label for="timeline-view-line" class="form-check-label">
-                      <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-line" value="LINE">
-                      Display Timeline as single Line
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <label for="timeline-view-lanes" class="form-check-label">
-                      <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-lanes" value="LANES">
-                      Display Timeline as multiple Lanes
-                    </label>
-                  </div>
-                </fieldset>
-                <hr>
-                <fieldset class="form-group px-2">
-                  <label>Visualize Confidence with Greyscale:</label><br>
-                  <div class="form-check form-check-inline">
-                    <label for="visualize-confidence-yes" class="form-check-label">
-                      <input v-on:change="shouldVisualizeConfidence = 'true'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-yes" value="true">
-                      Yes
-                    </label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <label for="visualize-confidence-no" class="form-check-label">
-                      <input v-on:change="shouldVisualizeConfidence = 'false'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-no" value="false">
-                      No
-                    </label>
-                  </div>
-                </fieldset>
-                <fieldset class="form-group px-2">
-                  <label>Hightlight Keywords with Background Color:</label><br>
-                  <div class="form-check form-check-inline mb-2">
-                    <label for="visualize-keywords-yes" class="form-check-label">
-                      <input v-on:change="shouldVisualizeKeywords = 'true'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-yes" value="true">
-                      Yes
-                    </label>
-                  </div>
-                  <div class="form-check form-check-inline mb-2">
-                    <label for="visualize-keywords-no" class="form-check-label">
-                      <input v-on:change="shouldVisualizeKeywords = 'false'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-no" value="false">
-                      No
-                    </label>
-                  </div>
-                  <div id="cp3a" class="input-group">
-                    <input v-model="keywordColor" type="text" class="form-control input-lg"/>
-                    <span class="input-group-append">
-                      <span class="input-group-text colorpicker-input-addon"><i></i></span>
-                    </span>
-                  </div>
-                </fieldset>
-              </div>
-<!--              END GENERAL SETTINGS -->
-
-<!--              BEGIN SPEAKER SETTINGS-->
-              <div class="tab-pane fade" id="speaker" role="tabpanel" aria-labelledby="speaker-tab">
-                <div class="form-group px-2">
-                  <label for="customRange1"># Speakers: {{speakers}}</label>
-                  <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
-                </div>
-                <div v-for="(speaker, id) in speakers" :key="'speaker-settings-'+speaker">
-                  <div class="form-group px-2">
-                    <hr>
-                    <label :for="'speaker-' + speaker + '-name-input'">Speaker {{speaker}} Name:</label>
-                    <input v-model="speakerName[id]" class="form-control" type="text" id="'speaker-' + speaker + '-name-input'">
-                  </div>
-                  <fieldset class="form-group px-2">
-                    <label>Speaker {{speaker}} Avatar:</label><br>
-                    <div v-for="avatar in avatars" :key="'avatar-speaker-'+speaker+'-'+avatar" class="form-check form-check-inline mb-2">
-                      <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
-                        <input v-model="selectedAvatar[id]" class="form-check-input imgradio" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
-                        <img :src="'./avatars/'+avatar" width="100" height="100">
-                      </label>
-                    </div>
-                  </fieldset>
-                </div>
-              </div>
-<!--              END SPEAKER SETTINGS-->
-
-<!--              BEGIN OTHER SETTINGS-->
-              <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
-                <p>Other Settings coming soon :)</p>
-              </div>
-<!--              END OTHER SETTINGS -->
-            </div>
-          </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-<!--    END SETTINGS -->
+    <settings></settings>
 
 <!--    START NAVBAR-->
     <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
@@ -151,12 +16,7 @@
         <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Short</button>
       </div>
 
-      <div class="form-inline">
-        <button type="button" class="btn btn-labeled btn-success mr-sm-2">
-          <span class="btn-label"><i class="fas fa-play"></i></span>Play</button>
-        <button type="button" class="btn btn-labeled btn-danger">
-          <span class="btn-label"><i class="fas fa-pause"></i></span>Pause</button>
-      </div>
+      <control-bar></control-bar>
 
       <div class="form-inline my-2 my-lg-0">
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
@@ -183,32 +43,32 @@
             <h5 class="card-header" style="height: 50px;"><span>Gesprächs-Verlauf</span></h5>
             <div class="card-body" style="padding:0;">
 
-              <div v-if="timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
-                <template v-if="timelineSorting === 'DESC'">
-                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
+              <div v-if="settings.timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
+                <template v-if="settings.timelineSorting === 'DESC'">
+                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :img="settings.selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
                 </template>
-                <template v-if="timelineSorting === 'ASC'">
-                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :img="selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
+                <template v-if="settings.timelineSorting === 'ASC'">
+                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :img="settings.selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
                 </template>
               </div>
 
-              <div v-if="timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
+              <div v-if="settings.timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
                 <div class="d-flex stickytimelineheader">
-                  <div v-for="(n, id) in speakers" :key="'speaker-'+id" class="p-1 flex-even bg-light" style="border-bottom: 1px solid rgba(0,0,0,.125);">
+                  <div v-for="(n, id) in settings.speaker" :key="'speaker-'+id" class="p-1 flex-even bg-light" style="border-bottom: 1px solid rgba(0,0,0,.125);">
                     <div class="p-1" style="position:relative;">
-                      <img :src="'/avatars/' + selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
-                      <h6 style="margin-top:74px; text-align:center;">{{speakerName[id]}}</h6>
+                      <img :src="'/avatars/' + settings.selectedAvatar[id]" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
+                      <h6 style="margin-top:74px; text-align:center;">{{settings.speakerName[id]}}</h6>
                     </div>
                   </div>
                   <div class="p-1 bg-light" style="position:relative; width:66px; border-bottom: 1px solid rgba(0,0,0,.125);">
                     <div class="tlline"></div>
                   </div>
                 </div>
-                <template v-if="timelineSorting === 'DESC'">
-                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                <template v-if="settings.timelineSorting === 'DESC'">
+                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
                 </template>
-                <template v-if="timelineSorting === 'ASC'">
-                  <TimelineRow  v-for="utt in normalUtterances" :speakers="speakers" :mode="utteranceMode" :show-confidence="shouldVisualizeConfidence" :show-keywords="shouldVisualizeKeywords" :keyword-color="keywordColor" :utterance="utt" :name="speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                <template v-if="settings.timelineSorting === 'ASC'">
+                  <TimelineRow  v-for="utt in normalUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
                 </template>
               </div>
 
@@ -219,7 +79,7 @@
 
 <!--        START SIDEBAR-->
         <div class="col-4">
-          <sidebar :speaker-name="speakerName" :speaker-count="speakerCount"></sidebar>
+          <sidebar :speaker-name="settings.speakerName" :speaker-count="settings.speaker"></sidebar>
         </div>
 <!--        END SIDEBAR-->
       </div>
@@ -235,8 +95,6 @@
 import $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-colorpicker';
-import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
 
 import { computeKeywords } from './helper/api';
 import { encodeHTML } from './helper/htmlencoder';
@@ -246,12 +104,16 @@ import TimelineRow from './components/TimelineRow.vue';
 import Footer from './components/Footer.vue';
 import BarChart from './components/BarChart.vue';
 import Sidebar from './components/Sidebar';
+import ControlBar from './components/ControlBar';
+import Settings from './components/Settings';
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
+    Settings,
+    ControlBar,
     Sidebar,
     Footer,
     TimelineBox,
@@ -263,42 +125,44 @@ export default {
     window.addEventListener('resize', this.onResize);
   },
   mounted() {
-    // Init colorpicker
-    $(() => {
-      $('#cp3a').colorpicker();
-    });
-    $('#cp3a').on('colorpickerChange', (event) => {
-      this.keywordColor = event.color.toString();
-    });
-
     // Listen to stream
     const source = new EventSource('http://localhost:5000/stream');
     source.onmessage = this.handleStream;
+    source.onerror = (evt) => {
+      console.log('STREAM: Error Event!');
+      this.sendStreamStatus('ERROR');
+    };
+    source.onopen = (evt) => {
+      console.log('STREAM: Open Event!');
+      this.sendStreamStatus('OPEN');
+    };
 
     // update height
-    this.onResize();
+    setTimeout(this.onResize(), 100);
+
+    // listen to events
+    this.$root.$on('onSettingsSaved', this.onSettingsSaved);
+    this.$root.$on('onReset', this.resetUtterances);
   },
   data() {
     return {
-      speakerCount: '4',
-      speakerName: ['Speaker 1', 'Speaker 2', 'Speaker 3', 'Speaker 4'],
-      avatars: ['avatar1.png', 'avatar2.png', 'avatar3.png', 'avatar4.png', 'avatar5.png', 'avatar6.png'],
-      selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
+      settings: {
+        speaker: 4,
+        speakerName: ['Speaker 1', 'Speaker 2', 'Speaker 3', 'Speaker 4'],
+        selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
+        timelineSorting: 'DESC',
+        timelineView: 'LINE',
+        showConfidence: 'false',
+        showKeywords: 'true',
+        keywordColor: 'rgb(255, 255, 0)',
+      },
       utterances: [],
       startNewUtt: true,
-      timelineSorting: 'DESC',
-      timelineView: 'LINE',
-      shouldVisualizeConfidence: 'false',
-      shouldVisualizeKeywords: 'true',
-      keywordColor: 'rgb(255, 255, 0)',
       utteranceMode: 'FULL', // OR 'MEDIUM' OR 'SHORT'
-      lastUtteranceType: 'partialUtterance',
+      lastUtteranceType: 'completeUtterance',
     };
   },
   computed: {
-    speakers() {
-      return parseInt(this.speakerCount, 10);
-    },
     normalUtterances() {
       return this.utterances.slice();
     },
@@ -313,39 +177,74 @@ export default {
     },
   },
   methods: {
+    sendStreamStatus(status) {
+      this.$root.$emit('onStreamStatusChanged', status);
+    },
     sendCompleteUtterance(utterance, speaker) {
       this.$root.$emit('onCompleteUtterance', utterance, speaker);
+    },
+    resetUtterances() {
+      this.utterances = [];
+      this.startNewUtt = true;
+      this.lastUtteranceType = 'completeUtterance';
     },
     handleStream(event) {
       console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
 
-      // UTTERANCE COMMANDS                                                                   // check if utterance is empty
-      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance') && jsonEvent.utterance.length > 0) {
-        // PARTIAL UTTERANCE
-        if (jsonEvent.handle === 'partialUtterance') {
-          if (this.startNewUtt) {
-            this.addUtterance(jsonEvent, false);
-            this.startNewUtt = false;
-          } else {
-            this.replaceLastUtterance(jsonEvent, false);
+      // UTTERANCE COMMANDS
+      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance')) {
+
+        // check if utterance is empty
+        if(jsonEvent.utterance.length > 0) {
+
+          // PARTIAL UTTERANCE
+          if (jsonEvent.handle === 'partialUtterance') {
+            if (this.startNewUtt) {
+              this.addUtterance(jsonEvent, false);
+              this.startNewUtt = false;
+            } else {
+              this.replaceLastUtterance(jsonEvent, false);
+            }
+
+            // COMPLETE UTTERANCE
+          } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
+            this.addUtterance(jsonEvent, true);
+          } else if (jsonEvent.handle === 'completeUtterance') {
+            this.replaceLastUtterance(jsonEvent, true);
+            this.startNewUtt = true;
           }
-        // COMPLETE UTTERANCE
-        } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
-          this.addUtterance(jsonEvent, true);
-        } else if (jsonEvent.handle === 'completeUtterance') {
-          this.replaceLastUtterance(jsonEvent, true);
-          this.startNewUtt = true;
+
+          // scroll to bottom if order is DESC
+          if (this.timelineSorting === 'ASC') {
+            $('#timeline')
+              .scrollTop($('#timeline')[0].scrollHeight);
+          }
+
+          // set last utterance type
+          this.lastUtteranceType = jsonEvent.handle;
         }
-        // scroll to bottom if order is DESC
-        if (this.timelineSorting === 'ASC') {
-          $('#timeline').scrollTop($('#timeline')[0].scrollHeight);
-        }
+
       // RESET COMMAND
       } else if (jsonEvent.handle === 'reset') {
         // this.doSomething();
+
+      // STATUS COMMANDS
+      } else if (jsonEvent.handle === 'asr_ready') {
+        this.sendStreamStatus('NOT_DECODING');
+      } else if (jsonEvent.handle === 'status') {
+        if (jsonEvent.shutdown) {
+          this.sendStreamStatus('SHUTDOWN');
+        } else if (jsonEvent.isDecoding) {
+          this.sendStreamStatus('DECODING');
+        } else {
+          this.sendStreamStatus('NOT_DECODING');
+        }
+
+      // UNKOWN COMMANDS
+      } else {
+        console.log('ERROR STREAM COMMAND UNKNOWN!!');
       }
-      this.lastUtteranceType = jsonEvent.handle;
     },
     addUtterance(jsonEvent, completed) {
       let utterance;
@@ -353,7 +252,7 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
@@ -367,7 +266,7 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.speakers), // later on: jsonEvent.speaker
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: `${jsonEvent.time.toFixed(4)}`,
@@ -413,6 +312,10 @@ export default {
       const footerHeight = document.getElementById('footer').clientHeight;
       const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
       document.getElementById('timeline').style.height = `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)`;
+    },
+    onSettingsSaved(settings) {
+      console.log('Settings saved!');
+      this.settings = settings;
     },
   },
 };

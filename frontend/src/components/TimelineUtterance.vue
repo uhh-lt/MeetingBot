@@ -24,6 +24,9 @@ export default {
           case 'SHORT':
             html = this.visualizeConfidenceAndKeywordsShort();
             break;
+          default:
+            html = '';
+            break;
         }
         setTimeout(() => {
           $('[data-toggle="tooltip"]').tooltip();
@@ -42,6 +45,13 @@ export default {
     },
     fillArray(value, len) {
       return Array(len).fill(value);
+    },
+    mergeFiller(string) {
+      let result = string;
+      const find = '-+(\\s*-*)*';
+      const re = new RegExp(find, 'g');
+      result = result.replace(re, ' --- ');
+      return result;
     },
     confword2HTML(word, confidence) {
       let confidenceSpan;
@@ -85,6 +95,7 @@ export default {
           newText += `${this.fillArray('-', word.length).join('')} `;
         }
       }
+      newText = this.mergeFiller(newText);
       return newText.trim();
     },
     visualizeConfidenceAndKeywordsMedium() {
@@ -122,8 +133,11 @@ export default {
             calculatedConf = Math.max(conf * conf, 0.1);
             newText += this.confword2HTML(word, calculatedConf);
             break;
+          default:
+            break;
         }
       }
+      newText = this.mergeFiller(newText);
       return newText.trim();
     },
     visualizeConfidenceAndKeywordsFull() {
@@ -153,6 +167,8 @@ export default {
             conf = this.utterance.confidences[i];
             calculatedConf = Math.max(conf * conf, 0.1);
             newText += this.keyword2HTML(word, calculatedConf);
+            break;
+          default:
             break;
         }
       }

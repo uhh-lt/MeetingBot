@@ -8,7 +8,7 @@
 
 <script>
 export default {
-  name: 'NamedEntityVisualizer',
+  name: 'Footer',
 };
 </script>
 
