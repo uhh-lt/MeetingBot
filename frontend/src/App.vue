@@ -215,7 +215,7 @@ export default {
       this.handleStream(fakeEvent);
     },
     handleStream(event) {
-      // console.log(event.data);
+      console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
 
       // UTTERANCE COMMANDS
@@ -278,7 +278,8 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          //speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
@@ -294,7 +295,8 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          //speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          speaker: parseInt(jsonEvent.speaker.charAt(7)),
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: `${jsonEvent.time.toFixed(4)}`,
