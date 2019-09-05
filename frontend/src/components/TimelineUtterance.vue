@@ -40,9 +40,6 @@ export default {
     renderUtterance() {
       return this.utterance.text;
     },
-    inList(item, list) {
-      return list.indexOf(item) >= 0;
-    },
     fillArray(value, len) {
       return Array(len).fill(value);
     },
@@ -56,30 +53,30 @@ export default {
     confword2HTML(word, confidence) {
       let confidenceSpan;
       if (this.showConfidence === 'true') {
-        confidenceSpan = `<span class="visualize-confidence" style="color:rgba(0,0,0,${confidence});">`;
+        confidenceSpan = `<span style="color:rgba(0,0,0,${confidence});">`;
       } else if (this.showConfidence === 'false') {
-        confidenceSpan = `<span class="visualize-confidence force-color" style="color:rgba(0,0,0,${confidence});">`;
+        confidenceSpan = `<span class="forceColor" style="color:rgba(0,0,0,${confidence});">`;
       }
       return `${confidenceSpan}${word}</span> `;
     },
-    keyword2HTML(word, confidence) {
+    keyword2HTML(word, confidence, keywordness) {
       let confidenceSpan;
       let keywordSpan;
       if (this.showConfidence === 'true') {
-        confidenceSpan = `<span class="visualize-confidence" style="color:rgba(0,0,0,${confidence});">`;
+        confidenceSpan = `<span style="color:rgba(0,0,0,${confidence});">`;
       } else if (this.showConfidence === 'false') {
-        confidenceSpan = `<span class="visualize-confidence force-color" style="color:rgba(0,0,0,${confidence});">`;
+        confidenceSpan = `<span class="forceColor" style="color:rgba(0,0,0,${confidence});">`;
       }
       if (this.showKeywords === 'true') {
-        keywordSpan = `<span class='DISPLAYKEYWORD KEYWORD' style='background:${this.keywordColor}' data-toggle="tooltip" data-placement="top" title="Score:">`;
+        keywordSpan = `<span class='DISPLAYKEYWORD KEYWORD' style='background:${this.keywordColor}' dataToggle="tooltip" dataPlacement="top" title="C: ${confidence} | KW: ${keywordness.toFixed(2)}">`;
       } else if (this.showKeywords === 'false') {
         keywordSpan = "<span class='KEYWORD'>";
       }
       return `${keywordSpan}${confidenceSpan}${word} </span></span>`;
     },
     visualizeConfidenceAndKeywordsShort() {
-      let { keywords } = this.utterance;
-      keywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+
       let newText = '';
       const text = this.utterance.text.split(' ');
       let word;
@@ -89,24 +86,28 @@ export default {
         word = text[i];
         conf = this.utterance.confidences[i];
         calculatedConf = Math.max(conf * conf, 0.1);
-        if (this.inList(word.toLowerCase(), keywords)) {
-          newText += this.keyword2HTML(word, calculatedConf);
+        if (keywordnessTokenMap.has(i)) {
+          newText += this.keyword2HTML(word, calculatedConf, keywordnessTokenMap.get(i));
         } else {
           newText += `${this.fillArray('-', word.length).join('')} `;
         }
       }
       newText = this.mergeFiller(newText);
+      // fix errors of mergeFiller
+      newText = newText.replace(new RegExp("dataToggle", 'g'), "data-toggle");
+      newText = newText.replace(new RegExp("dataPlacement", 'g'), "data-placement");
+
       return newText.trim();
     },
     visualizeConfidenceAndKeywordsMedium() {
-      let { keywords } = this.utterance;
-      keywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
-      const text = this.utterance.text.split(' ');
+      let text = this.utterance.text.split(' ');
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+
       const isImportantWord = Array(text.length).fill(0);
       let word;
       for (let i = 0; i < text.length; i++) {
         word = text[i];
-        if (this.inList(word.toLowerCase(), keywords)) {
+        if (keywordnessTokenMap.has(i)) {
           isImportantWord[i] = 1;
           if (i > 0 && isImportantWord[i - 1] === 0) { isImportantWord[i - 1] = 2; }
           if (i > 1 && isImportantWord[i - 2] === 0) { isImportantWord[i - 2] = 2; }
@@ -126,7 +127,7 @@ export default {
           case 1: // keyword
             conf = this.utterance.confidences[i];
             calculatedConf = Math.max(conf * conf, 0.1);
-            newText += this.keyword2HTML(word, calculatedConf);
+            newText += this.keyword2HTML(word, calculatedConf, keywordnessTokenMap.get(i));
             break;
           case 2: // confword
             conf = this.utterance.confidences[i];
@@ -138,46 +139,137 @@ export default {
         }
       }
       newText = this.mergeFiller(newText);
+      // fix errors of mergeFiller
+      newText = newText.replace(new RegExp("dataToggle", 'g'), "data-toggle");
+      newText = newText.replace(new RegExp("dataPlacement", 'g'), "data-placement");
+
       return newText.trim();
     },
     visualizeConfidenceAndKeywordsFull() {
-      let { keywords } = this.utterance;
-      keywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
-      const text = this.utterance.text.split(' ');
-      const isImportantWord = Array(text.length).fill(0);
-      let word;
-      for (let i = 0; i < text.length; i++) {
-        word = text[i];
-        if (this.inList(word.toLowerCase(), keywords)) {
-          isImportantWord[i] = 1;
-        }
-      }
+      let confidences = this.utterance.confidences;
+      let tokens = this.utterance.text.split(' ');
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+
+      // Build the final text
       let newText = '';
       let conf;
       let calculatedConf;
-      for (let i = 0; i < text.length; i++) {
-        word = text[i];
-        switch (isImportantWord[i]) {
-          case 0: // confword
-            conf = this.utterance.confidences[i];
-            calculatedConf = Math.max(conf * conf, 0.1);
-            newText += this.confword2HTML(word, calculatedConf);
-            break;
-          case 1: // keyword
-            conf = this.utterance.confidences[i];
-            calculatedConf = Math.max(conf * conf, 0.1);
-            newText += this.keyword2HTML(word, calculatedConf);
-            break;
-          default:
-            break;
+      let token;
+      for (let i = 0; i < tokens.length; i++) {
+        token = tokens[i];
+        conf = confidences[i];
+        calculatedConf = Math.max(conf * conf, 0.1);
+        // if token is in this map, it has to be a keyword!
+        if(keywordnessTokenMap.has(i)) {
+          newText += this.keyword2HTML(token, calculatedConf, keywordnessTokenMap.get(i));
+        } else {
+          newText += this.confword2HTML(token, calculatedConf);
         }
       }
+      newText = newText.replace(new RegExp("dataToggle", 'g'), "data-toggle");
+      newText = newText.replace(new RegExp("dataPlacement", 'g'), "data-placement");
       return newText.trim();
     },
+    calculateKeywordnessTokenMap() {
+
+      let keywords = this.utterance.keywords;
+      let confidences = this.utterance.confidences;
+      let text = this.utterance.text;
+      let tokens = this.utterance.text.split(' ');
+
+      console.log("TL_UTT Text");
+      console.log(text);
+      console.log("TL_UTT Tokens");
+      console.log(tokens);
+      console.log("TL_UTT Keywords");
+      console.log(keywords);
+      console.log("TL_UTT Confidences");
+      console.log(confidences);
+
+      // map that stores a keywordScore for each array of involved tokenIndices
+      // [
+      //   { involved: [1, 2, 3], score: 10 },
+      //   { involved: [6, 7, 8], score: 10 },
+      // ]
+      let keywordScore = [];
+
+      // TOKENS:       0   1   2
+      // CHAR OFFSET: 0123456789
+      // STRING:      Tim ist to
+      let offset = 0;
+      let characterOffset2TokenID = new Map();
+      // build characterOffset2TokenMap
+      for(let i = 0; i < tokens.length; i += 1) {
+        let token = tokens[i];
+        for (let j = 0; j < token.length; j += 1) {
+          characterOffset2TokenID.set(offset, i);
+          offset += 1;
+        }
+        offset += 1;
+      }
+      console.log("TL_UTT Character2TokenID");
+      console.log(characterOffset2TokenID);
+
+      // perform regex search for each keyword in the list
+      keywords.forEach((keyword) => {
+        let numWords = keyword.word.split(' ').length;
+        let match;
+        const re = new RegExp(`${keyword.word}`, 'gi');
+        while ((match = re.exec(text)) != null) {
+
+          // using match.index to find token index
+          let tokenIndex = characterOffset2TokenID.get(match.index);
+
+          // calculate average confidence for the keyword phrase
+          // also calculated an array of involved tokenIds in the keyword phrase
+          let avgConfidence = 0;
+          let involvedTokenIDs = [];
+          for(let i = 0; i < numWords; i += 1) {
+            let realIndex = tokenIndex + i;
+            let confidence = confidences[realIndex];
+            avgConfidence += confidence;
+            involvedTokenIDs.push(realIndex);
+          }
+
+          // save keywordness for keyword phrase (as token ids)
+          keywordScore.push({
+            involved: involvedTokenIDs,
+            score: keyword.score * avgConfidence,
+          });
+        }
+      });
+
+      console.log("TL_UTT KeywordScores");
+      console.log(keywordScore);
+
+      // sort the keywordScores by value
+      keywordScore =  keywordScore.sort((a, b) => b.score - a.score);
+
+      // then just use the top 3 keywords
+      let maximum = Math.min(3, keywordScore.length);
+      keywordScore = keywordScore.slice(0, maximum);
+
+      // remap top keyword phrases as f.e.
+      // { involved: [0, 1, 2], score: 10 }
+      // to
+      // [ { token: 0, score: 10 },
+      //   { token: 1, score: 10 },
+      //   { token: 2, score: 10 } ]
+      let keywordnessTokenMap = new Map();
+      keywordScore.forEach(obj => {
+        obj.involved.forEach(tokenId => {
+          keywordnessTokenMap.set(tokenId, obj.score);
+        });
+      });
+
+      console.log("TL_UTT ProcessedKeywordScores");
+      console.log(keywordnessTokenMap);
+
+      return keywordnessTokenMap;
+    }
   },
 };
 </script>
 
 <style scoped>
-
 </style>

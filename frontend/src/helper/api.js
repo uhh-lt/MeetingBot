@@ -7,7 +7,18 @@ async function computeKeywords(utterance) {
   let keywords = await fetchKeywords(utterance.text);
   // utterance.keywords = keywords.map(value => value.word).join(" ");
   keywords = keywords.filter(value => value.word !== 'UNK');
+
+  // keywords = keywords
+  //   .flatMap(value => {
+  //     return {
+  //       word: value.word.split(' '),
+  //       score: value.score,
+  //     }
+  // }).map(value => value.toLowerCase());
+
+
   utterance.keywords = keywords;
+  return keywords;
 }
 
 async function sendCommand(command) {

@@ -21,7 +21,7 @@
       <div class="form-inline my-2 my-lg-0">
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Settings</button>
-        <button type="button" class="btn btn-labeled btn-light mr-sm-2">
+        <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-print"></i></span>Print</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-download"></i></span>Export</button>
@@ -183,13 +183,39 @@ export default {
     sendCompleteUtterance(utterance, speaker) {
       this.$root.$emit('onCompleteUtterance', utterance, speaker);
     },
+    sendKeywords(keywords) {
+      this.$root.$emit('onNewKeywords', keywords);
+    },
     resetUtterances() {
       this.utterances = [];
       this.startNewUtt = true;
       this.lastUtteranceType = 'completeUtterance';
     },
+    sendFakeStream() {
+      let utterances = [
+        'Die Stadt Hamburg hat eine sehr tolle Hamburg Universität und liegt ganz nahe an dem Fluss die Alster.',
+        'Hamburg ist toll',
+        'Sprachtechnologie ist toll'
+      ];
+      let confidences = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1 ,1, 1, 1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+      ];
+      let randomUtterance = Math.floor(Math.random() * utterances.length);
+      let fakeEventData = {
+        handle: 'completeUtterance',
+        utterance: utterances[randomUtterance],
+        time: Math.random(),
+        confidences: confidences[randomUtterance],
+      };
+      let fakeEvent = {
+        data: JSON.stringify(fakeEventData),
+      };
+      this.handleStream(fakeEvent);
+    },
     handleStream(event) {
-      console.log(event.data);
+      // console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
 
       // UTTERANCE COMMANDS
@@ -257,11 +283,13 @@ export default {
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
           keywords: [],
-          confidences: [],
+          confidences: jsonEvent.confidences,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance);
+        computeKeywords(utterance).then(data => {
+          this.sendKeywords(data);
+        });
       } else {
         utterance = {
           completed,
@@ -291,7 +319,9 @@ export default {
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance);
+        computeKeywords(utterance).then(data => {
+          this.sendKeywords(data);
+        });
       } else {
         const lastUtterance = this.utterances.pop();
         const utterance = {
@@ -329,10 +359,6 @@ export default {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
-  }
-
-  .force-color {
-    color: #2c3e50 !important;
   }
 
   /*STYLE FOR SETTINGS IMAGES*/

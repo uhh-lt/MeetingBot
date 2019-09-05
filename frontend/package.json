@@ -15,7 +15,8 @@
     "jquery": "^3.4.1",
     "popper.js": "^1.15.0",
     "vue": "^2.6.10",
-    "vue-chartjs": "^3.4.2"
+    "vue-chartjs": "^3.4.2",
+    "vue-d3-cloud": "^0.2.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.8.0",

@@ -15,10 +15,10 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Redeanteile (in %)</span>
+        <span style="margin-left:0.5em;">Wordle</span>
       </h5>
-      <div :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
-        <p>Some Element :D</p>
+      <div id="wordcloud-container" :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
+        <WordCloud :width="wordCloudSize.width" :height="wordCloudSize.height"></WordCloud>
       </div>
     </div>
 
@@ -38,15 +38,22 @@
 
 <script>
 import BarChart from './BarChart';
+import WordCloud from './WordCloud';
 
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
-  components: { BarChart },
+  components: { WordCloud, BarChart },
   data() {
     return {
       sidebarElements: [false, false, false],
       sidebarBodyHeights: ['', '', ''],
+      sidebarHeights: [0, 0, 0],
+      updatingWordCloud: false,
+      wordCloudSize: {
+        height: 0,
+        width: 0
+      },
     };
   },
   created() {
@@ -79,6 +86,23 @@ export default {
         }
       }
       this.sidebarBodyHeights = result;
+      if(!this.updatingWordCloud) {
+        this.updatingWordCloud = true;
+        setTimeout(() => {
+          console.log("update word-cloud heights");
+          console.log(document.getElementById('wordcloud-container'));
+          if(document.getElementById('wordcloud-container')) {
+            let container = document.getElementById('wordcloud-container');
+            this.wordCloudSize.height = container.clientHeight;
+            this.wordCloudSize.width = container.clientWidth;
+            console.log(this.wordCloudSize);
+          } else {
+            this.wordCloudSize.height = 0;
+            this.wordCloudSize.width = 0;
+          }
+          this.updatingWordCloud = false;
+        }, 1000);
+      }
     },
   },
 };
@@ -96,5 +120,9 @@ export default {
 
   .hide {
     display: none;
+  }
+
+  #wordcloud-container {
+    padding:0 !important;
   }
 </style>

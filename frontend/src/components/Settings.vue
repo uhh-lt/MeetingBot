@@ -5,7 +5,7 @@
       <div class="modal-content">
         <div class="modal-header text-white bg-dark">
           <h4 class="modal-title" id="exampleModalLabel">Settings</h4>
-          <button type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
+          <button v-on:click="revertSettings" type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -60,13 +60,13 @@
                 <label>Visualize Confidence with Greyscale:</label><br>
                 <div class="form-check form-check-inline">
                   <label for="visualize-confidence-yes" class="form-check-label">
-                    <input v-on:change="shouldVisualizeConfidence = 'true'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-yes" value="true">
+                    <input v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-yes" value="true">
                     Yes
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="visualize-confidence-no" class="form-check-label">
-                    <input v-on:change="shouldVisualizeConfidence = 'false'" v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-no" value="false">
+                    <input v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-no" value="false">
                     No
                   </label>
                 </div>
@@ -75,13 +75,13 @@
                 <label>Hightlight Keywords with Background Color:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="visualize-keywords-yes" class="form-check-label">
-                    <input v-on:change="shouldVisualizeKeywords = 'true'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-yes" value="true">
+                    <input v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-yes" value="true">
                     Yes
                   </label>
                 </div>
                 <div class="form-check form-check-inline mb-2">
                   <label for="visualize-keywords-no" class="form-check-label">
-                    <input v-on:change="shouldVisualizeKeywords = 'false'" v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-no" value="false">
+                    <input v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-no" value="false">
                     No
                   </label>
                 </div>
@@ -91,6 +91,11 @@
                       <span class="input-group-text colorpicker-input-addon"><i></i></span>
                     </span>
                 </div>
+              </fieldset>
+              <hr>
+              <fieldset class="form-group px-2">
+                <label for="example-number-input">WordCloud Maximum Words:</label><br>
+                  <input v-model="wordCloudWords" class="form-control" type="number" id="example-number-input">
               </fieldset>
             </div>
             <!--              END GENERAL SETTINGS -->
@@ -128,7 +133,7 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+          <button v-on:click="revertSettings" type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
           <button v-on:click="saveSettings" type="button" class="btn btn-primary" data-dismiss="modal">Save changes</button>
         </div>
       </div>
@@ -155,6 +160,8 @@ export default {
       shouldVisualizeConfidence: 'false',
       shouldVisualizeKeywords: 'true',
       keywordColor: 'rgb(255, 255, 0)',
+      wordCloudWords: "10",
+      oldSettings: {},
     };
   },
   mounted() {
@@ -167,7 +174,7 @@ export default {
     });
 
     // init settings
-    // this.saveSettings();
+    this.saveSettings();
   },
   computed: {
     speakers() {
@@ -175,6 +182,17 @@ export default {
     },
   },
   methods: {
+    revertSettings() {
+      this.speakerCount = "" + this.oldSettings.speaker;
+      this.speakerName = this.oldSettings.speakerName;
+      this.selectedAvatar = this.oldSettings.selectedAvatar;
+      this.timelineSorting = this.oldSettings.timelineSorting;
+      this.timelineView = this.oldSettings.timelineView;
+      this.showConfidence = this.oldSettings.showConfidence;
+      this.showKeywords = this.oldSettings.showKeywords;
+      this.keywordColor = this.oldSettings.keywordColor;
+      this.wordCloudWords = this.oldSettings.wordCloudWords;
+    },
     saveSettings() {
       const settings = {
         speaker: this.speakers,
@@ -185,7 +203,9 @@ export default {
         showConfidence: this.shouldVisualizeConfidence,
         showKeywords: this.shouldVisualizeKeywords,
         keywordColor: this.keywordColor,
+        wordCloudWords: this.wordCloudWords,
       };
+      this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
     },
     jsonCopy(src) {
