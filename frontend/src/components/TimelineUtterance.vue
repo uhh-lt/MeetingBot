@@ -10,35 +10,38 @@ export default {
   props: ['utterance', 'mode', 'showConfidence', 'showKeywords', 'keywordColor'],
   computed: {
     html() {
-      if (this.utterance.completed) {
-        let html;
-        console.log('MODE');
-        console.log(this.mode);
-        switch (this.mode) {
-          case 'FULL':
-            html = this.visualizeConfidenceAndKeywordsFull();
-            break;
-          case 'MEDIUM':
-            html = this.visualizeConfidenceAndKeywordsMedium();
-            break;
-          case 'SHORT':
-            html = this.visualizeConfidenceAndKeywordsShort();
-            break;
-          default:
-            html = '';
-            break;
+      let text = '';
+      this.utterance.forEach(utterance => {
+        if (utterance.completed) {
+          let html;
+          switch (this.mode) {
+            case 'FULL':
+              html = this.visualizeConfidenceAndKeywordsFull(utterance);
+              break;
+            case 'MEDIUM':
+              html = this.visualizeConfidenceAndKeywordsMedium(utterance);
+              break;
+            case 'SHORT':
+              html = this.visualizeConfidenceAndKeywordsShort(utterance);
+              break;
+            default:
+              html = '';
+              break;
+          }
+          text += html + "<br>";
+        } else {
+          text += this.renderUtterance(utterance) + " ";
         }
-        setTimeout(() => {
-          $('[data-toggle="tooltip"]').tooltip();
-        }, 100);
-        return html;
-      }
-      return this.renderUtterance();
+      });
+      setTimeout(() => {
+        $('[data-toggle="tooltip"]').tooltip();
+      }, 100);
+      return text.trim();
     },
   },
   methods: {
-    renderUtterance() {
-      return this.utterance.text;
+    renderUtterance(utterance) {
+      return utterance.text;
     },
     fillArray(value, len) {
       return Array(len).fill(value);
@@ -74,17 +77,17 @@ export default {
       }
       return `${keywordSpan}${confidenceSpan}${word} </span></span>`;
     },
-    visualizeConfidenceAndKeywordsShort() {
-      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+    visualizeConfidenceAndKeywordsShort(utterance) {
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap(utterance);
 
       let newText = '';
-      const text = this.utterance.text.split(' ');
+      const text = utterance.text.split(' ');
       let word;
       let conf;
       let calculatedConf;
       for (let i = 0; i < text.length; i++) {
         word = text[i];
-        conf = this.utterance.confidences[i];
+        conf = utterance.confidences[i];
         calculatedConf = Math.max(conf * conf, 0.1);
         if (keywordnessTokenMap.has(i)) {
           newText += this.keyword2HTML(word, calculatedConf, keywordnessTokenMap.get(i));
@@ -99,9 +102,9 @@ export default {
 
       return newText.trim();
     },
-    visualizeConfidenceAndKeywordsMedium() {
-      let text = this.utterance.text.split(' ');
-      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+    visualizeConfidenceAndKeywordsMedium(utterance) {
+      let text = utterance.text.split(' ');
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap(utterance);
 
       const isImportantWord = Array(text.length).fill(0);
       let word;
@@ -125,12 +128,12 @@ export default {
             newText += `${this.fillArray('-', word.length).join('')} `;
             break;
           case 1: // keyword
-            conf = this.utterance.confidences[i];
+            conf = utterance.confidences[i];
             calculatedConf = Math.max(conf * conf, 0.1);
             newText += this.keyword2HTML(word, calculatedConf, keywordnessTokenMap.get(i));
             break;
           case 2: // confword
-            conf = this.utterance.confidences[i];
+            conf = utterance.confidences[i];
             calculatedConf = Math.max(conf * conf, 0.1);
             newText += this.confword2HTML(word, calculatedConf);
             break;
@@ -145,10 +148,10 @@ export default {
 
       return newText.trim();
     },
-    visualizeConfidenceAndKeywordsFull() {
-      let confidences = this.utterance.confidences;
-      let tokens = this.utterance.text.split(' ');
-      let keywordnessTokenMap = this.calculateKeywordnessTokenMap();
+    visualizeConfidenceAndKeywordsFull(utterance) {
+      let confidences = utterance.confidences;
+      let tokens = utterance.text.split(' ');
+      let keywordnessTokenMap = this.calculateKeywordnessTokenMap(utterance);
 
       // Build the final text
       let newText = '';
@@ -170,12 +173,12 @@ export default {
       newText = newText.replace(new RegExp("dataPlacement", 'g'), "data-placement");
       return newText.trim();
     },
-    calculateKeywordnessTokenMap() {
+    calculateKeywordnessTokenMap(utterance) {
 
-      let keywords = this.utterance.keywords;
-      let confidences = this.utterance.confidences;
-      let text = this.utterance.text;
-      let tokens = this.utterance.text.split(' ');
+      let keywords = utterance.keywords;
+      let confidences = utterance.confidences;
+      let text = utterance.text;
+      let tokens = utterance.text.split(' ');
 
       console.log("TL_UTT Text");
       console.log(text);

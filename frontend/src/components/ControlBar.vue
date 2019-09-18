@@ -23,7 +23,7 @@
 
     <template v-else-if="status === StatusEnum.PAUSED">
       <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
-        <span class="btn-label"><i class="fas fa-play"></i></span>Resume</button>
+        <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
       <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
         <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
     </template>

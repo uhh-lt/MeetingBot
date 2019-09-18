@@ -15,7 +15,7 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Wordle</span>
+        <span style="margin-left:0.5em;">Wort Wolke</span>
       </h5>
       <div id="wordcloud-container" :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
         <WordCloud :width="wordCloudSize.width" :height="wordCloudSize.height"></WordCloud>

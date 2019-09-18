@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex">
     <div v-for="n in parseInt(speakers)" class="flex-even">
-      <div v-if="n === (utterance.speaker + 1)" class="tl-container2 tl-left2">
+      <div v-if="n === (utterance[0].speaker + 1)" class="tl-container2 tl-left2">
         <div class="tl-content" style="position:relative;">
           <div style="display:table; height:100%;">
             <div style="display:table-cell; vertical-align:middle;">
@@ -14,7 +14,7 @@
     </div>
     <div class="p-1" style="position:relative; width:66px;">
       <div class="tlline"></div>
-      <div class="tlcircle">{{utterance.startTime}}</div>
+      <div class="tlcircle">{{utterance[0].startTime}}</div>
     </div>
   </div>
 </template>

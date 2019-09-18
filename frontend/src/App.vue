@@ -7,26 +7,26 @@
     <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
       <a class="navbar-brand" href="#">
         <img src="/mbot.svg" width="30" height="30" class="d-inline-block align-top" alt="">
-        MeetingBot
+        MoM Bot
       </a>
 
       <div class="btn-group" role="group">
-        <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">Full</button>
-        <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">Medium</button>
-        <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Short</button>
+        <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">Alles</button>
+        <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">Mittel</button>
+        <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Kurz</button>
       </div>
 
       <control-bar></control-bar>
 
       <div class="form-inline my-2 my-lg-0">
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
-          <span class="btn-label"><i class="fas fa-cogs"></i></span>Settings</button>
+          <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
         <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
-          <span class="btn-label"><i class="fas fa-print"></i></span>Print</button>
-        <button type="button" class="btn btn-labeled btn-light mr-sm-2">
-          <span class="btn-label"><i class="fas fa-download"></i></span>Export</button>
-        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+          <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
+        <button v-on:click="createPDF" type="button" class="btn btn-labeled btn-light mr-sm-2">
+          <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
+        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">
+        <button v-on:click="sendNextAgendaPoint" class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
       </div>
     </nav>
 <!--    END NAVBAR-->
@@ -45,10 +45,10 @@
 
               <div v-if="settings.timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
                 <template v-if="settings.timelineSorting === 'DESC'">
-                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :img="settings.selectedAvatar[utt.speaker]" :key="'line-reversed-' + utt.id"></TimelineBox>
+                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-reversed-' + utt[0].id"></TimelineBox>
                 </template>
                 <template v-if="settings.timelineSorting === 'ASC'">
-                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :img="settings.selectedAvatar[utt.speaker]" :key="'line-normal-' + utt.id"></TimelineBox>
+                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-normal-' + utt[0].id"></TimelineBox>
                 </template>
               </div>
 
@@ -65,10 +65,10 @@
                   </div>
                 </div>
                 <template v-if="settings.timelineSorting === 'DESC'">
-                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :key="'lanes-reversed-' + utt[0].id"></TimelineRow>
                 </template>
                 <template v-if="settings.timelineSorting === 'ASC'">
-                  <TimelineRow  v-for="utt in normalUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt.speaker]" :key="'lanes-reversed-' + utt.id"></TimelineRow>
+                  <TimelineRow  v-for="utt in normalUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :key="'lanes-reversed-' + utt[0].id"></TimelineRow>
                 </template>
               </div>
 
@@ -106,6 +106,7 @@ import BarChart from './components/BarChart.vue';
 import Sidebar from './components/Sidebar';
 import ControlBar from './components/ControlBar';
 import Settings from './components/Settings';
+import jsPDF from 'jspdf';
 
 require('@/assets/css/main.css');
 
@@ -148,7 +149,7 @@ export default {
     return {
       settings: {
         speaker: 4,
-        speakerName: ['Speaker 1', 'Speaker 2', 'Speaker 3', 'Speaker 4'],
+        speakerName: ['Sprecher 1', 'Sprecher 2', 'Sprecher 3', 'Sprecher 4'],
         selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
         timelineSorting: 'DESC',
         timelineView: 'LINE',
@@ -160,14 +161,16 @@ export default {
       startNewUtt: true,
       utteranceMode: 'FULL', // OR 'MEDIUM' OR 'SHORT'
       lastUtteranceType: 'completeUtterance',
+      fakeUtteranceNum: 0,
+      currentAgendaPoint: 0,
     };
   },
   computed: {
     normalUtterances() {
-      return this.utterances.slice();
+      return this.calcGroupedUtterances();
     },
     reversedUtterances() {
-      return this.utterances.slice().reverse();
+      return this.calcGroupedUtterances().reverse();
     },
   },
   watch: {
@@ -177,6 +180,12 @@ export default {
     },
   },
   methods: {
+    sendNextAgendaPoint() {
+      if(this.currentAgendaPoint < this.settings.agendaPoints) {
+        this.currentAgendaPoint++;
+      }
+      this.$root.$emit('onNextAgenda');
+    },
     sendStreamStatus(status) {
       this.$root.$emit('onStreamStatusChanged', status);
     },
@@ -191,18 +200,45 @@ export default {
       this.startNewUtt = true;
       this.lastUtteranceType = 'completeUtterance';
     },
+    calcGroupedUtterances() {
+      let groupedUtterances = [];
+      let lastSpeaker = -1;
+      this.utterances.forEach(utterance => {
+        // same speaker => add to utterance group
+        if(utterance.speaker === lastSpeaker) {
+          let utteranceGroup = groupedUtterances.pop();
+          utteranceGroup.push(utterance);
+          groupedUtterances.push(utteranceGroup);
+        }
+        // other speaker => create new utterance group
+        else {
+          groupedUtterances.push([utterance]);
+        }
+        // update last speaker
+        lastSpeaker = utterance.speaker;
+      });
+      return groupedUtterances;
+    },
     sendFakeStream() {
       let utterances = [
-        'Die Stadt Hamburg hat eine sehr tolle Hamburg Universität und liegt ganz nahe an dem Fluss die Alster.',
-        'Hamburg ist toll',
-        'Sprachtechnologie ist toll'
+        'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
+        'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
+        'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
+        'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
+        'Genau und deshalb überrreiche ich jetzt das Wort direkt an Mark weiter, der uns über IT Sicherheit berichten wird'
       ];
       let confidences = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1 ,1, 1, 1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
+        Array(utterances[0].split(" ").length).fill(1),
+        Array(utterances[1].split(" ").length).fill(1),
+        Array(utterances[2].split(" ").length).fill(1),
+        Array(utterances[3].split(" ").length).fill(1),
+        Array(utterances[4].split(" ").length).fill(1),
       ];
-      let randomUtterance = Math.floor(Math.random() * utterances.length);
+      // let randomUtterance = Math.floor(Math.random() * utterances.length);
+      let randomUtterance = this.fakeUtteranceNum;
+      this.fakeUtteranceNum += 1;
+      if(this.fakeUtteranceNum >= utterances.length)
+        this.fakeUtteranceNum = 0;
       let fakeEventData = {
         handle: 'completeUtterance',
         utterance: utterances[randomUtterance],
@@ -215,7 +251,7 @@ export default {
       this.handleStream(fakeEvent);
     },
     handleStream(event) {
-      console.log(event.data);
+      // console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
 
       // UTTERANCE COMMANDS
@@ -278,13 +314,14 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: parseInt(jsonEvent.speaker.charAt(7)),
-          //speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          // speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
           keywords: [],
           confidences: jsonEvent.confidences,
+          agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
@@ -295,13 +332,14 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          //speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
-          speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          // speaker: parseInt(jsonEvent.speaker.charAt(7)),
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: `${jsonEvent.time.toFixed(4)}`,
           keywords: [],
           confidences: [],
+          agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
       }
@@ -318,6 +356,7 @@ export default {
           id: lastUtterance.id,
           keywords: [],
           confidences: jsonEvent.confidences,
+          agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
@@ -335,6 +374,7 @@ export default {
           id: lastUtterance.id,
           keywords: [],
           confidences: [],
+          agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
       }
@@ -349,6 +389,84 @@ export default {
       console.log('Settings saved!');
       this.settings = settings;
     },
+    createPDF() {
+      let pdf = new jsPDF('p', 'pt', 'letter');
+      // source can be HTML-formatted string, or a reference
+      // to an actual DOM element from which the text will be scraped.
+
+      let today = new Date();
+      let dd = String(today.getDate()).padStart(2, '0');
+      let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      let yyyy = today.getFullYear();
+
+      today = dd + '.' + mm + '.' + yyyy;
+
+      let html = '' +
+        '<h1>Meeting vom ' + today + '</h1>' +
+        '<h2>Agenda</h2>';
+
+      html += '<ol>';
+      for(let i = 0; i < this.settings.agendaPoints + 1; i++) {
+        html += '<li>'+this.settings.agendaTitel[i]+'</li>';
+      }
+      html += '</ol>';
+
+      for(let i = 0; i < this.settings.agendaPoints + 1; i++) {
+        let agendaTitle = i < this.settings.agendaPoints ? this.settings.agendaTitel[i] : 'Sonstiges';
+        html += '<h2>'+agendaTitle+'</h2>';
+
+        let start = true;
+        let lastSpeaker = -1337;
+        let utterances = this.utterances.filter(value => value.agenda === i);
+        utterances.forEach(utterance => {
+          if(utterance.speaker !== lastSpeaker) {
+            if(start) {
+              html += '<p><b>'+this.settings.speakerName[utterance.speaker]+' ('+utterance.startTime+'):</b> ' +utterance.text;
+            } else {
+              html += '</p><p><b>'+this.settings.speakerName[utterance.speaker]+' ('+utterance.startTime+'):</b> ' +utterance.text;
+            }
+          } else {
+            html += utterance.text;
+          }
+          start = false;
+          lastSpeaker = utterance.speaker;
+        });
+        html += '</p>'
+      }
+
+      // we support special element handlers. Register them with jQuery-style
+      // ID selector for either ID or node name. ("#iAmID", "div", "span" etc.)
+      // There is no support for any other type of selectors
+      // (class, of compound) at this time.
+      let specialElementHandlers = {
+        // element with id of "bypass" - jQuery style selector
+        '#bypassme': function (element, renderer) {
+          // true = "handled elsewhere, bypass text extraction"
+          return true
+        }
+      };
+      let margins = {
+        top: 30,
+        bottom: 40,
+        left: 40,
+        width: 522
+      };
+      // all coords and widths are in jsPDF instance's declared units
+      // 'inches' in this case
+      pdf.fromHTML(
+        html, // HTML string or DOM elem ref.
+        margins.left, // x coord
+        margins.top, { // y coord
+          'width': margins.width, // max width of content on PDF
+          'elementHandlers': specialElementHandlers
+        },
+
+        function (dispose) {
+          // dispose: object with X, Y of the last line add to the PDF
+          //          this allow the insertion of new lines after html
+          pdf.save('Test.pdf');
+        }, margins);
+    }
   },
 };
 </script>

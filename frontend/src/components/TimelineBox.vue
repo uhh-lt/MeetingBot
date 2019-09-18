@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="timelinecircle">
-      {{utterance.startTime}}
+      {{utterance[0].startTime}}
     </div>
   </div>
 </template>
