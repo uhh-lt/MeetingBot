@@ -110,7 +110,7 @@
                 <div class="form-group px-2">
                   <hr>
                   <label :for="'speaker-' + speaker + '-name-input'">Sprecher {{speaker}} Name:</label>
-                  <input v-model="speakerName[id]" class="form-control" type="text" id="'speaker-' + speaker + '-name-input'">
+                  <input v-model="speakerName[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-name-input'">
                 </div>
                 <fieldset class="form-group px-2">
                   <label>Sprecher {{speaker}} Avatar:</label><br>
@@ -139,7 +139,7 @@
                 <div class="form-group px-2">
                   <hr>
                   <label :for="'agenda-' + index + '-titel-input'">{{index}}. Agendapunkt Titel:</label>
-                  <input v-model="agendaTitel[id]" class="form-control" type="text" id="'agenda-' + index + '-titel-input'">
+                  <input v-model="agendaTitel[id]" class="form-control" type="text" :id="'agenda-' + index + '-titel-input'">
                 </div>
                 <fieldset class="form-group px-2">
                   <label :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten):</label><br>
