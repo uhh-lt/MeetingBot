@@ -5,6 +5,8 @@
 
     <exporter :utterances="utterances"></exporter>
 
+    <importer></importer>
+
 <!--    START NAVBAR-->
     <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
       <a class="navbar-brand" href="#">
@@ -21,6 +23,8 @@
       <control-bar></control-bar>
 
       <div class="form-inline my-2 my-lg-0">
+        <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
+          <span class="btn-label"><i class="fas fa-cogs"></i></span>Importieren</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
         <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
@@ -109,12 +113,14 @@ import Sidebar from './components/Sidebar';
 import ControlBar from './components/ControlBar';
 import Settings from './components/Settings';
 import Exporter from './components/Exporter';
+import Importer from './components/Importer';
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
+    Importer,
     Exporter,
     Settings,
     ControlBar,
@@ -167,6 +173,7 @@ export default {
       fakeUtteranceNum: 0,
       currentAgendaPoint: 0,
       editorAgenda: [true, true, true, true],
+      importedData: '',
     };
   },
   computed: {
@@ -188,7 +195,7 @@ export default {
       this.$root.$emit('onOpenExporter');
     },
     sendNextAgendaPoint() {
-      if(this.currentAgendaPoint < this.settings.agendaPoints) {
+      if (this.currentAgendaPoint < this.settings.agendaPoints) {
         this.currentAgendaPoint++;
       }
       this.$root.$emit('onNextAgenda');
@@ -208,12 +215,12 @@ export default {
       this.lastUtteranceType = 'completeUtterance';
     },
     calcGroupedUtterances() {
-      let groupedUtterances = [];
+      const groupedUtterances = [];
       let lastSpeaker = -1;
-      this.utterances.forEach(utterance => {
+      this.utterances.forEach((utterance) => {
         // same speaker => add to utterance group
-        if(utterance.speaker === lastSpeaker) {
-          let utteranceGroup = groupedUtterances.pop();
+        if (utterance.speaker === lastSpeaker) {
+          const utteranceGroup = groupedUtterances.pop();
           utteranceGroup.push(utterance);
           groupedUtterances.push(utteranceGroup);
         }
@@ -227,32 +234,31 @@ export default {
       return groupedUtterances;
     },
     sendFakeStream() {
-      let utterances = [
+      const utterances = [
         'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
         'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
         'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
-        'Genau und deshalb überrreiche ich jetzt das Wort direkt an Mark weiter, der uns über IT Sicherheit berichten wird'
+        'Genau und deshalb überrreiche ich jetzt das Wort direkt an Mark weiter, der uns über IT Sicherheit berichten wird',
       ];
-      let confidences = [
-        Array(utterances[0].split(" ").length).fill(Math.random()),
-        Array(utterances[1].split(" ").length).fill(Math.random()),
-        Array(utterances[2].split(" ").length).fill(Math.random()),
-        Array(utterances[3].split(" ").length).fill(Math.random()),
-        Array(utterances[4].split(" ").length).fill(Math.random()),
+      const confidences = [
+        Array(utterances[0].split(' ').length).fill(Math.random()),
+        Array(utterances[1].split(' ').length).fill(Math.random()),
+        Array(utterances[2].split(' ').length).fill(Math.random()),
+        Array(utterances[3].split(' ').length).fill(Math.random()),
+        Array(utterances[4].split(' ').length).fill(Math.random()),
       ];
       // let randomUtterance = Math.floor(Math.random() * utterances.length);
-      let randomUtterance = this.fakeUtteranceNum;
+      const randomUtterance = this.fakeUtteranceNum;
       this.fakeUtteranceNum += 1;
-      if(this.fakeUtteranceNum >= utterances.length)
-        this.fakeUtteranceNum = 0;
-      let fakeEventData = {
+      if (this.fakeUtteranceNum >= utterances.length) this.fakeUtteranceNum = 0;
+      const fakeEventData = {
         handle: 'completeUtterance',
         utterance: utterances[randomUtterance],
         time: Math.random(),
         confidences: confidences[randomUtterance],
       };
-      let fakeEvent = {
+      const fakeEvent = {
         data: JSON.stringify(fakeEventData),
       };
       this.handleStream(fakeEvent);
@@ -263,10 +269,8 @@ export default {
 
       // UTTERANCE COMMANDS
       if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance')) {
-
         // check if utterance is empty
-        if(jsonEvent.utterance.length > 0) {
-
+        if (jsonEvent.utterance.length > 0) {
           // PARTIAL UTTERANCE
           if (jsonEvent.handle === 'partialUtterance') {
             if (this.startNewUtt) {
@@ -332,7 +336,7 @@ export default {
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then(data => {
+        computeKeywords(utterance).then((data) => {
           this.sendKeywords(data);
         });
       } else {
@@ -367,7 +371,7 @@ export default {
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then(data => {
+        computeKeywords(utterance).then((data) => {
           this.sendKeywords(data);
         });
       } else {

@@ -178,12 +178,12 @@ export default {
       shouldVisualizeConfidence: 'false',
       shouldVisualizeKeywords: 'true',
       keywordColor: 'rgb(255, 255, 0)',
-      wordCloudWords: "10",
+      wordCloudWords: '10',
       oldSettings: {},
       agendaPoints: '4',
       agendaTitel: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4', '', '', '', '', '', ''],
-      agendaTime: ["10", "10", "10", "10", "10", "10", "10", "10", "10", "10"],
-      agendaWarnTime: "5",
+      agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
+      agendaWarnTime: '5',
     };
   },
   mounted() {
@@ -197,6 +197,9 @@ export default {
 
     // init settings
     setTimeout(this.saveSettings, 100);
+
+    // listen to events
+    this.$root.$on('onImport', this.onImport);
   },
   computed: {
     speakers() {
@@ -204,11 +207,27 @@ export default {
     },
     agendas() {
       return parseInt(this.agendaPoints, 10);
-    }
+    },
   },
   methods: {
+    onImport(e) {
+      let event = this.jsonCopy(e);
+      this.agendaPoints = event.agenda.agendaPoints;
+
+      for(let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i++) {
+       this.agendaTitel[i] = event.agenda.agendaTitle[i];
+      }
+      for(let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i++) {
+        this.agendaTime[i] = event.agenda.agendaTime[i];
+      }
+      for(let i = 0; i < Math.min(event.selectedAttendents, 4); i++) {
+        this.speakerName[i] = event.attendants[i].name;
+      }
+      this.speakerCount = Math.min(event.selectedAttendents, 4);
+      this.saveSettings();
+    },
     revertSettings() {
-      this.speakerCount = "" + this.oldSettings.speaker;
+      this.speakerCount = `${this.oldSettings.speaker}`;
       this.speakerName = this.oldSettings.speakerName;
       this.selectedAvatar = this.oldSettings.selectedAvatar;
       this.timelineSorting = this.oldSettings.timelineSorting;

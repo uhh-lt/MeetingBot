@@ -52,7 +52,7 @@ export default {
       updatingWordCloud: false,
       wordCloudSize: {
         height: 0,
-        width: 0
+        width: 0,
       },
     };
   },
@@ -86,13 +86,13 @@ export default {
         }
       }
       this.sidebarBodyHeights = result;
-      if(!this.updatingWordCloud) {
+      if (!this.updatingWordCloud) {
         this.updatingWordCloud = true;
         setTimeout(() => {
-          console.log("update word-cloud heights");
+          console.log('update word-cloud heights');
           console.log(document.getElementById('wordcloud-container'));
-          if(document.getElementById('wordcloud-container')) {
-            let container = document.getElementById('wordcloud-container');
+          if (document.getElementById('wordcloud-container')) {
+            const container = document.getElementById('wordcloud-container');
             this.wordCloudSize.height = container.clientHeight;
             this.wordCloudSize.width = container.clientWidth;
             console.log(this.wordCloudSize);

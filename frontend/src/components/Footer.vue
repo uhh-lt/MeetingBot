@@ -46,7 +46,7 @@ export default {
   data() {
     return {
       currentAgendaPoint: 0,
-      agenda: [ {
+      agenda: [{
         title: 'Punkt 1',
         id: 'a1',
         status: 'active',
@@ -100,19 +100,18 @@ export default {
   },
   methods: {
     calcAgendaWidth(agenda) {
-      if(agenda.end === -1) {
+      if (agenda.end === -1) {
         return ((this.currentTime - agenda.start) / this.totalTime) * 100;
-      } else {
-        return ((agenda.end - agenda.start) / this.totalTime)  * 100;
       }
+      return ((agenda.end - agenda.start) / this.totalTime) * 100;
     },
     onNextAgenda() {
-      let oldAgenda = this.agenda[this.currentAgendaPoint];
+      const oldAgenda = this.agenda[this.currentAgendaPoint];
       oldAgenda.end = this.currentTime;
       oldAgenda.status = 'finished';
       this.currentAgendaPoint += 1;
-      if(this.currentAgendaPoint < this.agenda.length) {
-        let newAgenda = this.agenda[this.currentAgendaPoint];
+      if (this.currentAgendaPoint < this.agenda.length) {
+        const newAgenda = this.agenda[this.currentAgendaPoint];
         newAgenda.start = this.currentTime;
         newAgenda.status = 'active';
         this.usedTime = oldAgenda.end;
@@ -124,19 +123,19 @@ export default {
       console.log(newAgenda);
     },
     onSettingsSaved(settings) {
-      let totalAgendaTime = settings.agendaTime.slice(0, settings.agendaPoints).map(x => parseInt(x, 10)).reduce((a,b) => a + b, 0);
-      let newAgenda = [];
+      const totalAgendaTime = settings.agendaTime.slice(0, settings.agendaPoints).map(x => parseInt(x, 10)).reduce((a, b) => a + b, 0);
+      const newAgenda = [];
       let plannedSum = 0;
-      for(let i = 0; i < settings.agendaPoints; i++) {
-        let agendaTime = parseInt(settings.agendaTime[i], 10);
-        let agenda = {
+      for (let i = 0; i < settings.agendaPoints; i++) {
+        const agendaTime = parseInt(settings.agendaTime[i], 10);
+        const agenda = {
           title: settings.agendaTitel[i],
-          id: 'a'+i,
+          id: `a${i}`,
           status: i === 0 ? 'active' : 'pending',
           start: i === 0 ? 0 : -1,
           end: -1,
           planned: plannedSum + agendaTime,
-          style: 'width: ' + (agendaTime / totalAgendaTime) * 100 + '%',
+          style: `width: ${(agendaTime / totalAgendaTime) * 100}%`,
         };
         plannedSum += agendaTime;
         newAgenda.push(agenda);
@@ -147,11 +146,11 @@ export default {
     },
     fakeTick() {
       this.currentTime += 1;
-      if(this.currentTime >= this.totalTime) {
+      if (this.currentTime >= this.totalTime) {
         this.currentTime = this.totalTime;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
