@@ -89,6 +89,7 @@ export default {
     this.$root.$on('onAgendaChanged', this.onAgendaChanged);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
+    this.$root.$on('onCompleteUtterance', this.onCompleteUtterance);
   },
   computed: {
     startTime() {
@@ -104,6 +105,12 @@ export default {
         return ((this.currentTime - agenda.start) / this.totalTime) * 100;
       }
       return ((agenda.end - agenda.start) / this.totalTime) * 100;
+    },
+    onCompleteUtterance(utterance, data, speaker) {
+      this.currentTime = utterance.time;
+      if (this.currentTime >= this.totalTime) {
+        this.currentTime = this.totalTime;
+      }
     },
     onNextAgenda() {
       const oldAgenda = this.agenda[this.currentAgendaPoint];

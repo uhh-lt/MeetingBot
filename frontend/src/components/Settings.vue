@@ -171,6 +171,7 @@ export default {
     return {
       speakerCount: '4',
       speakerName: ['Sprecher 1', 'Sprecher 2', 'Sprecher 3', 'Sprecher 4'],
+      speakerMail: ['a@b.c', 'a@b.c', 'a@b.c', 'a@b.c'],
       avatars: ['avatar1.png', 'avatar2.png', 'avatar3.png', 'avatar4.png', 'avatar5.png', 'avatar6.png'],
       selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
       timelineSorting: 'DESC',
@@ -211,17 +212,18 @@ export default {
   },
   methods: {
     onImport(e) {
-      let event = this.jsonCopy(e);
+      const event = this.jsonCopy(e);
       this.agendaPoints = event.agenda.agendaPoints;
 
-      for(let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i++) {
-       this.agendaTitel[i] = event.agenda.agendaTitle[i];
+      for (let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i++) {
+        this.agendaTitel[i] = event.agenda.agendaTitle[i];
       }
-      for(let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i++) {
+      for (let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i++) {
         this.agendaTime[i] = event.agenda.agendaTime[i];
       }
-      for(let i = 0; i < Math.min(event.selectedAttendents, 4); i++) {
+      for (let i = 0; i < Math.min(event.selectedAttendents, 4); i++) {
         this.speakerName[i] = event.attendants[i].name;
+        this.speakerMail[i] = event.attendants[i].email;
       }
       this.speakerCount = Math.min(event.selectedAttendents, 4);
       this.saveSettings();
@@ -229,6 +231,7 @@ export default {
     revertSettings() {
       this.speakerCount = `${this.oldSettings.speaker}`;
       this.speakerName = this.oldSettings.speakerName;
+      this.speakerMail = this.oldSettings.speakerMail;
       this.selectedAvatar = this.oldSettings.selectedAvatar;
       this.timelineSorting = this.oldSettings.timelineSorting;
       this.timelineView = this.oldSettings.timelineView;
@@ -245,6 +248,7 @@ export default {
       const settings = {
         speaker: this.speakers,
         speakerName: this.speakerName,
+        speakerMail: this.speakerMail,
         selectedAvatar: this.selectedAvatar,
         timelineSorting: this.timelineSorting,
         timelineView: this.timelineView,

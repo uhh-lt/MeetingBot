@@ -45,7 +45,7 @@ export default {
       this.redeanteilInProzent = [0, 0, 0, 0];
       this.data = [0, 0, 0, 0];
     },
-    onCompleteUtterance(data, speaker) {
+    onCompleteUtterance(utterance, data, speaker) {
       console.log(`recieved utterance:${data}`);
 
       // update redeanteil

@@ -24,7 +24,7 @@
 
       <div class="form-inline my-2 my-lg-0">
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
-          <span class="btn-label"><i class="fas fa-cogs"></i></span>Importieren</button>
+          <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
         <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
@@ -32,7 +32,7 @@
         <button v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
         <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">
-        <button v-on:click="sendNextAgendaPoint" class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
       </div>
     </nav>
 <!--    END NAVBAR-->
@@ -153,6 +153,7 @@ export default {
     // listen to events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onReset', this.resetUtterances);
+    this.$root.$on('onNextAgenda', this.onNextAgenda);
   },
   data() {
     return {
@@ -174,6 +175,7 @@ export default {
       currentAgendaPoint: 0,
       editorAgenda: [true, true, true, true],
       importedData: '',
+      fakeTime: 0,
     };
   },
   computed: {
@@ -194,17 +196,16 @@ export default {
     sendOpenExporter() {
       this.$root.$emit('onOpenExporter');
     },
-    sendNextAgendaPoint() {
+    onNextAgenda() {
       if (this.currentAgendaPoint < this.settings.agendaPoints) {
         this.currentAgendaPoint++;
       }
-      this.$root.$emit('onNextAgenda');
     },
     sendStreamStatus(status) {
       this.$root.$emit('onStreamStatusChanged', status);
     },
-    sendCompleteUtterance(utterance, speaker) {
-      this.$root.$emit('onCompleteUtterance', utterance, speaker);
+    sendCompleteUtterance(fullutterance, utterance, speaker) {
+      this.$root.$emit('onCompleteUtterance', fullutterance, utterance, speaker);
     },
     sendKeywords(keywords) {
       this.$root.$emit('onNewKeywords', keywords);
@@ -234,6 +235,7 @@ export default {
       return groupedUtterances;
     },
     sendFakeStream() {
+      this.fakeTime += 1;
       const utterances = [
         'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
         'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
@@ -255,7 +257,7 @@ export default {
       const fakeEventData = {
         handle: 'completeUtterance',
         utterance: utterances[randomUtterance],
-        time: Math.random(),
+        time: this.fakeTime,
         confidences: confidences[randomUtterance],
       };
       const fakeEvent = {
@@ -327,6 +329,7 @@ export default {
           text: encodeHTML(jsonEvent.utterance),
           // speaker: parseInt(jsonEvent.speaker.charAt(7)),
           speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: `${jsonEvent.time.toFixed(4)}`,
@@ -335,7 +338,7 @@ export default {
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
-        this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
+        this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((data) => {
           this.sendKeywords(data);
         });
@@ -345,6 +348,7 @@ export default {
           text: encodeHTML(jsonEvent.utterance),
           speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           // speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: `${jsonEvent.time.toFixed(4)}`,
@@ -362,6 +366,7 @@ export default {
           completed: true,
           text: encodeHTML(jsonEvent.utterance),
           speaker: lastUtterance.speaker,
+          time: lastUtterance.time,
           startTime: lastUtterance.startTime,
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: lastUtterance.id,
@@ -370,7 +375,7 @@ export default {
           agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
-        this.sendCompleteUtterance(jsonEvent.utterance, utterance.speaker);
+        this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((data) => {
           this.sendKeywords(data);
         });
@@ -380,6 +385,7 @@ export default {
           completed: lastUtterance.completed,
           text: encodeHTML(jsonEvent.utterance),
           speaker: lastUtterance.speaker,
+          time: lastUtterance.time,
           startTime: lastUtterance.startTime,
           endTime: 0,
           id: lastUtterance.id,

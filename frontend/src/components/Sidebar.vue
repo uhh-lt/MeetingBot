@@ -4,10 +4,10 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Redeanteile (in %)</span>
+        <span style="margin-left:0.5em;">Agenda</span>
       </h5>
       <div :class="sidebarElements[0] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[0]">
-        <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :styles="{position: 'relative', height: '100%'}"></bar-chart>
+        <AgendaVisualizer></AgendaVisualizer>
       </div>
     </div>
 
@@ -29,7 +29,7 @@
         <span style="margin-left:0.5em;">Redeanteile (in %)</span>
       </h5>
       <div :class="sidebarElements[2] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[2]">
-        <p>Some Element :D</p>
+        <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :styles="{position: 'relative', height: '100%'}"></bar-chart>
       </div>
     </div>
 
@@ -39,11 +39,12 @@
 <script>
 import BarChart from './BarChart';
 import WordCloud from './WordCloud';
+import AgendaVisualizer from './AgendaVisualizer';
 
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
-  components: { WordCloud, BarChart },
+  components: { AgendaVisualizer, WordCloud, BarChart },
   data() {
     return {
       sidebarElements: [false, false, false],

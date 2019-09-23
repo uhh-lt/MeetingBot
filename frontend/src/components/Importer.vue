@@ -94,130 +94,131 @@
 </template>
 
 <script>
-  import ICAL from 'ical.js'
+import ICAL from 'ical.js';
 
-  export default {
-    name: 'Importer',
-    data() {
-      return {
-        currentTab: 0,
-        fileImported: false,
-        successfulImport: false,
-        events: [{
-          title: "Ein Titel",
-          agenda: {
-            agendaPoints: "4",
-            agendaTitle: ["Punkt1", "Punkt1", "Punkt1", "Punkt1"],
-            agendaTime: ["10", "10", "10", "10"],
-          },
-          attendants: [{
-            name: "Tim",
-            email: "tim@ist.toll",
-          }],
-          selectedAttendents: 1,
+export default {
+  name: 'Importer',
+  data() {
+    return {
+      currentTab: 0,
+      fileImported: false,
+      successfulImport: false,
+      events: [{
+        title: 'Ein Titel',
+        agenda: {
+          agendaPoints: '4',
+          agendaTitle: ['Punkt1', 'Punkt1', 'Punkt1', 'Punkt1'],
+          agendaTime: ['10', '10', '10', '10'],
+        },
+        attendants: [{
+          name: 'Tim',
+          email: 'tim@ist.toll',
         }],
+        selectedAttendents: 1,
+      }],
+    };
+  },
+  computed: {
+  },
+  methods: {
+    resetAll() {
+      this.currentTab = 0;
+      this.fileImported = false;
+      this.successfulImport = false;
+      this.events = [];
+      this.$refs.labelFileImport.innerHTML = 'Datei zum Importieren auswählen';
+    },
+    save() {
+      this.$root.$emit('onImport', this.events[this.currentTab]);
+      setTimeout(() => {
+        this.resetAll();
+      }, 100);
+    },
+    selectTab(id) {
+      this.currentTab = id;
+    },
+    loadFile(e) {
+      const file = e.target.files[0];
+      console.log(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.importICSData(reader.result);
+      };
+      reader.readAsText(file);
+      this.$refs.fileInputImport.value = '';
+      this.$refs.labelFileImport.innerHTML = file.name;
+    },
+    importICSData(iCalendarData) {
+      this.fileImported = true;
+      const events = [];
+      let jcalData = null;
+      try {
+        jcalData = ICAL.parse(iCalendarData);
+      } catch (e) {
+        console.log('CANNOT PARSE PROVIDED FILE :(');
       }
+      if (jcalData !== null) {
+        const comp = new ICAL.Component(jcalData);
+        const vevents = comp.getAllSubcomponents('vevent');
+        vevents.forEach((vevent) => {
+          events.push(this.parseEvent(vevent));
+        });
+        this.events = events;
+      }
+      this.successfulImport = jcalData !== null;
     },
-    computed: {
+    parseEvent(vevent) {
+      const event = new ICAL.Event(vevent);
+      const title = event.summary;
+      const agenda = this.parseAgendaFromDescription(event.description);
+      const attendants = this.parseAttendantsFromEvent(event);
+      return {
+        title,
+        agenda,
+        attendants,
+        selectedAttendents: attendants.length,
+      };
     },
-    methods: {
-      resetAll() {
-        this.currentTab = 0;
-        this.fileImported = false;
-        this.successfulImport = false;
-        this.events = [];
-      },
-      save() {
-        this.$root.$emit('onImport', this.events[this.currentTab]);
-        setTimeout(() => {
-          this.resetAll();
-        }, 100);
-      },
-      selectTab(id) {
-        this.currentTab = id;
-      },
-      loadFile(e) {
-        const file = e.target.files[0];
-        console.log(file);
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.importICSData(reader.result);
-        };
-        reader.readAsText(file);
-        this.$refs.fileInputImport.value = '';
-        this.$refs.labelFileImport.innerHTML = file.name;
-      },
-      importICSData(iCalendarData) {
-        this.fileImported = true;
-        let events = [];
-        let jcalData = null;
-        try {
-          jcalData = ICAL.parse(iCalendarData);
-        } catch (e) {
-          console.log("CANNOT PARSE PROVIDED FILE :(");
-        }
-        if(jcalData !== null) {
-          let comp = new ICAL.Component(jcalData);
-          let vevents = comp.getAllSubcomponents("vevent");
-          vevents.forEach(vevent => {
-            events.push(this.parseEvent(vevent));
+    parseAttendantsFromEvent(event) {
+      const attendants = [];
+      event.attendees.forEach((attend) => {
+        const name = attend.jCal[1].cn;
+        const email = attend.getFirstValue().replace('mailto:', '');
+        if (name && email) {
+          attendants.push({
+            name,
+            email,
           });
-          this.events = events;
         }
-        this.successfulImport = jcalData !== null;
-      },
-      parseEvent(vevent) {
-        let event = new ICAL.Event(vevent);
-        let title = event.summary;
-        let agenda = this.parseAgendaFromDescription(event.description);
-        let attendants = this.parseAttendantsFromEvent(event);
-        return {
-          title,
-          agenda,
-          attendants,
-          selectedAttendents: attendants.length,
-        };
-      },
-      parseAttendantsFromEvent(event) {
-        let attendants = [];
-        event.attendees.forEach(attend => {
-          let name = attend.jCal[1].cn;
-          let email = attend.getFirstValue().replace("mailto:", "");
-          if(name && email) {
-            attendants.push({
-              name,
-              email,
-            });
-          }
-        });
-        return attendants;
-      },
-      parseAgendaFromDescription(description) {
-        let agendaPoints = "0";
-        let agendaTitle = [];
-        let agendaTime = [];
+      });
+      return attendants;
+    },
+    parseAgendaFromDescription(description) {
+      let agendaPoints = '0';
+      const agendaTitle = [];
+      const agendaTime = [];
 
-        let  re = new RegExp("\\[(.*)]");
+      const re = new RegExp('\\[(.*)]');
 
-        let agendasplit = description.split(";");
-        agendasplit.forEach(a => {
-          let agenda = a.trim();
-          let match = re.exec(agenda);
-          let time = match[1];
-          agenda = agenda.slice(0, match.index).trim();
-          agendaTitle.push(agenda);
-          agendaTime.push(time);
-        });
+      const agendasplit = description.split(';');
+      agendasplit.forEach((a) => {
+        let agenda = a.trim();
+        const match = re.exec(agenda);
+        const time = match[1];
+        agenda = agenda.slice(0, match.index).trim();
+        agendaTitle.push(agenda);
+        agendaTime.push(time);
+      });
 
-        agendaPoints = "" + agendaTitle.length;
-        return {
-          agendaPoints,
-          agendaTitle,
-          agendaTime,
-        };
-      },
-    }
-  };
+      agendaPoints = `${agendaTitle.length}`;
+      return {
+        agendaPoints,
+        agendaTitle,
+        agendaTime,
+      };
+    },
+  },
+};
 </script>
 
 <style scoped>

@@ -31,7 +31,7 @@
                   <div :id="'agenda-'+id+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
                     <i style="font-size: 24px;" class="fas"
-                       :class="{'fa-poo': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile': utterance.score > 0.75}"></i></div>
+                       :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
                 </div>
               </template>
             </div>
@@ -49,7 +49,7 @@
                 <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                 <div class="col-sm-1 col-form-label" style="text-align: center;">
                   <i style="font-size: 24px;" class="fas"
-                     :class="{'fa-poo': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile': utterance.score > 0.75}"></i></div>
+                     :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
               </div>
             </template>
           </div>
@@ -57,6 +57,7 @@
         <div class="modal-footer bg-light">
           <button v-on:click="updateEditorUtterances" type="button" class="btn btn-primary mr-auto">Aussagen aktualisieren</button>
           <button type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
+          <a class="btn btn-primary" :href="mailto">E-Mail schreiben</a>
           <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">PDF herunterladen</button>
         </div>
       </div>
@@ -82,6 +83,32 @@ export default {
       editorSpeakername: [],
       firstTime: true,
     };
+  },
+  computed: {
+    mailto() {
+      let mailto = 'mailto:';
+      let firstCC = true;
+      let i = 0;
+      this.settings.speakerMail.forEach(email => {
+        if(i === 0) {
+          mailto += email;
+        } else {
+          if(firstCC) {
+            mailto += '?cc=';
+            firstCC = false;
+          }
+          if(i === this.settings.speakerMail.length -1) {
+            mailto += email;
+          } else {
+            mailto += email + ";";
+          }
+        }
+        i += 1;
+      });
+      mailto += '&subject=Meeting%20vom%20' + this.editorAgendaDate;
+      mailto += '&body=Hallo%20alle%20Zusammen'+escape(',')+escape('\r\n')+escape('\r\n')+'Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings'+escape('.')+escape('\r\n')+escape('\r\n')+'http://example.com/'+escape('\r\n')+escape('\r\n')+'Gruß'+escape('\r\n')+'MoM%20Bot';
+      return mailto;
+    },
   },
   mounted() {
     // listen to events
@@ -125,6 +152,7 @@ export default {
       }
       this.editorAgendaVisibility.push(true);
 
+      this.editorUtterances = [];
       for (let i = 0; i < this.editorAgendaPoints + 1; i++) {
         let utterances = this.utterances.filter(value => value.agenda === i);
         utterances = this.jsonCopy(utterances);
@@ -141,6 +169,11 @@ export default {
 
         this.editorUtterances.push(utterances);
       }
+
+      this.editorSpeakername = this.editorSpeakername.slice();
+      this.editorAgendaTitles = this.editorAgendaTitles.slice();
+      this.editorAgendaVisibility = this.editorAgendaVisibility.slice();
+      this.editorUtterances = this.editorUtterances.slice();
     },
     visualizeUtterance(utterance) {
       let html = '';
