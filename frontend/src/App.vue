@@ -152,7 +152,7 @@ export default {
 
     // listen to events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
-    this.$root.$on('onReset', this.resetUtterances);
+    this.$root.$on('onReset', this.onReset);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
   },
   data() {
@@ -173,8 +173,6 @@ export default {
       lastUtteranceType: 'completeUtterance',
       fakeUtteranceNum: 0,
       currentAgendaPoint: 0,
-      editorAgenda: [true, true, true, true],
-      importedData: '',
       fakeTime: 0,
     };
   },
@@ -210,10 +208,13 @@ export default {
     sendKeywords(keywords) {
       this.$root.$emit('onNewKeywords', keywords);
     },
-    resetUtterances() {
+    onReset() {
       this.utterances = [];
       this.startNewUtt = true;
       this.lastUtteranceType = 'completeUtterance';
+      this.currentAgendaPoint = 0;
+      this.fakeTime = 0;
+      this.fakeUtteranceNum = 0;
     },
     calcGroupedUtterances() {
       const groupedUtterances = [];

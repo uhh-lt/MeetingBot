@@ -36,8 +36,17 @@ export default {
     // listen to events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onNewKeywords', this.handleNewKeywords);
+    this.$root.$on('onReset', this.onReset);
   },
   methods: {
+    onReset() {
+      this.keywordMap = new Map();
+      this.allKeywords = [
+        { text: 'nothing', value: 100 },
+        { text: 'to', value: 100 },
+        { text: 'show', value: 100 },
+      ];
+    },
     onSettingsSaved(settings) {
       this.maxKeywords = parseInt(settings.wordCloudWords, 10);
     },

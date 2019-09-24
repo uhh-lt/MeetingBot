@@ -89,35 +89,45 @@ export default {
       let mailto = 'mailto:';
       let firstCC = true;
       let i = 0;
-      this.settings.speakerMail.forEach(email => {
-        if(i === 0) {
-          mailto += email;
-        } else {
-          if(firstCC) {
-            mailto += '?cc=';
-            firstCC = false;
-          }
-          if(i === this.settings.speakerMail.length -1) {
+      if(this.settings) {
+        this.settings.speakerMail.forEach(email => {
+          if(i === 0) {
             mailto += email;
           } else {
-            mailto += email + ";";
+            if(firstCC) {
+              mailto += '?cc=';
+              firstCC = false;
+            }
+            if(i === this.settings.speakerMail.length -1) {
+              mailto += email;
+            } else {
+              mailto += email + ";";
+            }
           }
-        }
-        i += 1;
-      });
-      mailto += '&subject=Meeting%20vom%20' + this.editorAgendaDate;
-      mailto += '&body=Hallo%20alle%20Zusammen'+escape(',')+escape('\r\n')+escape('\r\n')+'Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings'+escape('.')+escape('\r\n')+escape('\r\n')+'http://example.com/'+escape('\r\n')+escape('\r\n')+'Gruß'+escape('\r\n')+'MoM%20Bot';
-      return mailto;
+          i += 1;
+        });
+        mailto += '&subject=Meeting%20vom%20' + this.editorAgendaDate;
+        mailto += '&body=Hallo%20alle%20Zusammen'+escape(',')+escape('\r\n')+escape('\r\n')+'Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings'+escape('.')+escape('\r\n')+escape('\r\n')+'http://example.com/'+escape('\r\n')+escape('\r\n')+'Gruß'+escape('\r\n')+'MoM%20Bot';
+        return mailto;
+      } else {
+        return '';
+      }
     },
   },
   mounted() {
     // listen to events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onOpenExporter', this.onOpenExporter);
+    this.$root.$on('onReset', this.onReset);
   },
   methods: {
+    onReset() {
+      this.firstTime = true;
+    },
     onSettingsSaved(settings) {
       this.settings = settings;
+      this.editorSpeakername = this.settings.speakerName;
+      this.editorSpeakername = this.editorSpeakername.slice();
     },
     onOpenExporter() {
       if (this.firstTime) {

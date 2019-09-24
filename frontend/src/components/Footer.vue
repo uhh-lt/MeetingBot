@@ -90,6 +90,7 @@ export default {
     this.$root.$on('onNextAgenda', this.onNextAgenda);
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onCompleteUtterance', this.onCompleteUtterance);
+    this.$root.$on('onReset', this.onReset);
   },
   computed: {
     startTime() {
@@ -105,6 +106,44 @@ export default {
         return ((this.currentTime - agenda.start) / this.totalTime) * 100;
       }
       return ((agenda.end - agenda.start) / this.totalTime) * 100;
+    },
+    onReset() {
+      this.currentAgendaPoint = 0;
+      this.agenda = [{
+        title: 'Punkt 1',
+        id: 'a1',
+        status: 'active',
+        start: 0,
+        end: -1,
+        planned: 10,
+        style: 'width: 25%',
+      }, {
+        title: 'Punkt 2',
+        id: 'a2',
+        status: 'pending',
+        start: -1,
+        end: -1,
+        planned: 20,
+        style: 'width: 25%',
+      }, {
+        title: 'Punkt 3',
+        id: 'a3',
+        status: 'pending',
+        start: -1,
+        end: -1,
+        planned: 30,
+        style: 'width: 25%',
+      }, {
+        title: 'Punkt 4',
+        id: 'a4',
+        status: 'pending',
+        start: -1,
+        end: -1,
+        planned: 40,
+        style: 'width: 25%',
+      }];
+      this.currentTime = 0;
+      this.usedTime = 0;
     },
     onCompleteUtterance(utterance, data, speaker) {
       this.currentTime = utterance.time;

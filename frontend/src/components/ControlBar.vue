@@ -9,9 +9,13 @@
       <button type="button" class="btn btn-outline-light disabled">WAITING FOR ASR TO LOAD...</button>
     </template>
 
-    <template v-else-if="status === StatusEnum.STOPPED">
+    <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.BEFORE_MEETING">
       <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success" :disabled="buttonStatus.start">
         <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
+    </template>
+    <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.AFTER_MEETING">
+      <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success">
+        Neues Meeting starten</button>
     </template>
 
     <template v-else-if="status === StatusEnum.STARTED">
@@ -27,11 +31,16 @@
       <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
         <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
     </template>
+
+    <template v-else>
+      <button type="button" class="btn btn-outline-light disabled">AN ERROR OCCURED :(</button>
+    </template>
   </div>
 </template>
 
 <script>
 import { sendCommand } from '../helper/api';
+import Store from '../helper/Store';
 
 export default {
   name: 'ControlBar',
@@ -51,7 +60,7 @@ export default {
         stop: false,
         resume: false,
       },
-      inMeeting: false,
+      meeting: Store.meeting,
     };
   },
   mounted() {
@@ -70,9 +79,9 @@ export default {
       } else if (streamStatus === 'DECODING') {
         this.status = this.StatusEnum.STARTED;
       } else if (streamStatus === 'NOT_DECODING') {
-        if (this.inMeeting) {
+        if (this.meeting.status === this.meeting.enum.IN_MEETING) {
           this.status = this.StatusEnum.PAUSED;
-        } else {
+        } else if (this.meeting.status === this.meeting.enum.BEFORE_MEETING || this.meeting.status === this.meeting.enum.AFTER_MEETING) {
           this.status = this.StatusEnum.STOPPED;
         }
       } else if (streamStatus === 'SHUTDOWN') {
@@ -85,24 +94,28 @@ export default {
       switch (buttonType) {
         case 'START':
           console.log('START clicked');
-          this.sendReset();
           this.sendButtonCommand('start', 'start');
-          this.inMeeting = true;
+          this.meeting.status = this.meeting.enum.IN_MEETING;
           break;
         case 'PAUSE':
           console.log('PAUSE clicked');
           this.sendButtonCommand('stop', 'stop');
-          this.inMeeting = true;
+          this.meeting.status = this.meeting.enum.IN_MEETING;
           break;
         case 'STOP':
           console.log('STOP clicked');
           this.sendButtonCommand('stop', 'stop');
-          this.inMeeting = false;
+          this.meeting.status = this.meeting.enum.AFTER_MEETING;
           break;
         case 'RESUME':
           console.log('RESUME clicked');
           this.sendButtonCommand('start', 'start');
-          this.inMeeting = true;
+          this.meeting.status = this.meeting.enum.IN_MEETING;
+          break;
+        case 'NEWMEETING':
+          console.log('New Meeting clicked');
+          this.sendReset();
+          this.meeting.status = this.meeting.enum.BEFORE_MEETING;
           break;
         default:
           console.log(`ERROR: Button does not exist - ${buttonType}`);

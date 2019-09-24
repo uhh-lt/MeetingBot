@@ -118,7 +118,9 @@ export default {
       }],
     };
   },
-  computed: {
+  mounted() {
+    // Listen to events
+    this.$root.$on('onReset', this.resetAll);
   },
   methods: {
     resetAll() {

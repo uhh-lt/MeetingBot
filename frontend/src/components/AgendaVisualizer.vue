@@ -40,9 +40,9 @@
       },
       onReset() {
         this.currentAgendaPoint = 0;
-        this.agendaTitles = ["Agenda Punkt"];
-        this.agendaTime = ["10"];
-        this.agendaPoints = 1;
+        this.agendaTitles = ["Punkt 1", "Punkt 2", "Punkt 3", "Punkt 4"];
+        this.agendaTime = ["10", "10", "10", "10"];
+        this.agendaPoints = 4;
       },
       sendNextAgendaPoint() {
         if (this.currentAgendaPoint < this.agendaPoints) {
