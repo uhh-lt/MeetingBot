@@ -146,7 +146,7 @@ export default {
       this.usedTime = 0;
     },
     onCompleteUtterance(utterance, data, speaker) {
-      this.currentTime = utterance.time;
+      this.currentTime = utterance.time / 60;
       if (this.currentTime >= this.totalTime) {
         this.currentTime = this.totalTime;
       }
@@ -180,7 +180,7 @@ export default {
         let end = -1;
         if(i === this.currentAgendaPoint) {
           status = 'active';
-          start = 0;
+          start = this.agenda[i].start;
           end = -1;
         } else if (i < this.currentAgendaPoint) {
           status = 'finished';

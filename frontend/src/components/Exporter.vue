@@ -183,6 +183,8 @@ export default {
       this.editorAgendaTitles = this.editorAgendaTitles.slice();
       this.editorAgendaVisibility = this.editorAgendaVisibility.slice();
       this.editorUtterances = this.editorUtterances.slice();
+
+      this.calculateMailto();
     },
     visualizeUtterance(utterance) {
       let html = '';

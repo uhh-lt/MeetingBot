@@ -14,7 +14,7 @@
         <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
     </template>
     <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.AFTER_MEETING">
-      <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success">
+      <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success" :disabled="buttonStatus.newmeeting">
         Neues Meeting starten</button>
     </template>
 
@@ -59,6 +59,7 @@ export default {
         pause: false,
         stop: false,
         resume: false,
+        newmeeting: false,
       },
       meeting: Store.meeting,
     };
@@ -78,6 +79,7 @@ export default {
         this.status = this.StatusEnum.NOT_READY;
       } else if (streamStatus === 'DECODING') {
         this.status = this.StatusEnum.STARTED;
+        this.meeting.status = this.meeting.enum.IN_MEETING;
       } else if (streamStatus === 'NOT_DECODING') {
         if (this.meeting.status === this.meeting.enum.IN_MEETING) {
           this.status = this.StatusEnum.PAUSED;
@@ -115,6 +117,7 @@ export default {
         case 'NEWMEETING':
           console.log('New Meeting clicked');
           this.sendReset();
+          this.sendButtonCommand('newmeeting', 'reset_timer');
           this.meeting.status = this.meeting.enum.BEFORE_MEETING;
           break;
         default:

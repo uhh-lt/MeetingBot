@@ -150,7 +150,8 @@
                   <input v-model="agendaTitel[id]" class="form-control" type="text" :id="'agenda-' + index + '-titel-input'">
                 </div>
                 <fieldset class="form-group px-2">
-                  <label :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten):</label><br>
+                  <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten):</label><br>
+                  <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten) <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span>:</label><br>
                   <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="agendaTime[id]" class="form-control" type="number" :id="'agenda-' + index + '-time-input'">
                 </fieldset>
               </div>

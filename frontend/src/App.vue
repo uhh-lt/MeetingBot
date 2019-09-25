@@ -242,7 +242,7 @@ export default {
       return groupedUtterances;
     },
     sendFakeStream() {
-      this.fakeTime += 1;
+      this.fakeTime += 60;
       const utterances = [
         'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
         'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
