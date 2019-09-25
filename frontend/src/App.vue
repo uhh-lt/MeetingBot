@@ -266,6 +266,7 @@ export default {
         utterance: utterances[randomUtterance],
         time: this.fakeTime,
         confidences: confidences[randomUtterance],
+        speaker: "01234560",
       };
       const fakeEvent = {
         data: JSON.stringify(fakeEventData),

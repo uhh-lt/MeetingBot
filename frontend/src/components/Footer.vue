@@ -174,12 +174,30 @@ export default {
       let plannedSum = 0;
       for (let i = 0; i < settings.agendaPoints; i++) {
         const agendaTime = parseInt(settings.agendaTime[i], 10);
+
+        let status = '';
+        let start = -1;
+        let end = -1;
+        if(i === this.currentAgendaPoint) {
+          status = 'active';
+          start = 0;
+          end = -1;
+        } else if (i < this.currentAgendaPoint) {
+          status = 'finished';
+          start = this.agenda[i].start;
+          end = this.agenda[i].end;
+        } else {
+          status = 'pending';
+          start = -1;
+          end = -1;
+        }
+
         const agenda = {
           title: settings.agendaTitel[i],
           id: `a${i}`,
-          status: i === 0 ? 'active' : 'pending',
-          start: i === 0 ? 0 : -1,
-          end: -1,
+          status: status,
+          start: start,
+          end: end,
           planned: plannedSum + agendaTime,
           style: `width: ${(agendaTime / totalAgendaTime) * 100}%`,
         };

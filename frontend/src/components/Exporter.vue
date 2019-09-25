@@ -82,13 +82,34 @@ export default {
       editorUtterances: [],
       editorSpeakername: [],
       firstTime: true,
+      mailto: "",
     };
   },
-  computed: {
-    mailto() {
+  mounted() {
+    // listen to events
+    this.$root.$on('onSettingsSaved', this.onSettingsSaved);
+    this.$root.$on('onOpenExporter', this.onOpenExporter);
+    this.$root.$on('onReset', this.onReset);
+  },
+  methods: {
+    onReset() {
+      this.firstTime = true;
+    },
+    onSettingsSaved(settings) {
+      this.settings = settings;
+      this.editorSpeakername = this.settings.speakerName;
+      this.editorSpeakername = this.editorSpeakername.slice();
+      this.calculateMailto();
+    },
+    onOpenExporter() {
+      if (this.firstTime) {
+        this.updateEditorUtterances();
+      }
+      this.firstTime = false;
+    },
+    calculateMailto() {
       let mailto = 'mailto:';
       let firstCC = true;
-      let i = 0;
       if(this.settings.speakerMail !== undefined) {
         for(let i = 0; i < this.settings.speaker; i++) {
           let email = this.settings.speakerMail[i];
@@ -108,33 +129,10 @@ export default {
         }
         mailto += '&subject=Meeting%20vom%20' + this.editorAgendaDate;
         mailto += '&body=Hallo%20alle%20Zusammen'+escape(',')+escape('\r\n')+escape('\r\n')+'Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings'+escape('.')+escape('\r\n')+escape('\r\n')+'http://example.com/'+escape('\r\n')+escape('\r\n')+'Gruß'+escape('\r\n')+'MoM%20Bot';
-        return mailto;
+        this.mailto = mailto;
       } else {
-        return '';
+        this.mailto = '';
       }
-    },
-  },
-  mounted() {
-    // listen to events
-    this.$root.$on('onSettingsSaved', this.onSettingsSaved);
-    this.$root.$on('onOpenExporter', this.onOpenExporter);
-    this.$root.$on('onReset', this.onReset);
-  },
-  methods: {
-    onReset() {
-      this.firstTime = true;
-    },
-    onSettingsSaved(settings) {
-      this.settings = settings;
-      this.editorSpeakername = this.settings.speakerName;
-      this.editorSpeakername = this.editorSpeakername.slice();
-      this.$forceUpdate();
-    },
-    onOpenExporter() {
-      if (this.firstTime) {
-        this.updateEditorUtterances();
-      }
-      this.firstTime = false;
     },
     toggleEditorAgenda(element) {
       this.editorAgendaVisibility[element] = !this.editorAgendaVisibility[element];

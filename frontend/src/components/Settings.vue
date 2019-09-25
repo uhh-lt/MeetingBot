@@ -151,7 +151,7 @@
                 </div>
                 <fieldset class="form-group px-2">
                   <label :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten):</label><br>
-                  <input v-model="agendaTime[id]" class="form-control" type="number" :id="'agenda-' + index + '-time-input'">
+                  <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="agendaTime[id]" class="form-control" type="number" :id="'agenda-' + index + '-time-input'">
                 </fieldset>
               </div>
             </div>
