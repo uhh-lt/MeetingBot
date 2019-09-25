@@ -1,5 +1,5 @@
 <template>
-  <div class="form-inline">
+  <div>
 
     <template v-if="status === StatusEnum.CONNECTING">
       <button type="button" class="btn btn-outline-light disabled">CONNECTING TO ASR...</button>

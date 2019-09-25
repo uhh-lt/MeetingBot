@@ -103,14 +103,21 @@
             <!--              BEGIN SPEAKER SETTINGS-->
             <div class="tab-pane fade" id="speaker" role="tabpanel" aria-labelledby="speaker-tab">
               <div class="form-group px-2">
-                <label for="customRange1"># Sprecher: {{speakers}}</label>
-                <input v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
+                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1"># Sprecher: {{speakers}}</label>
+                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1"># Sprecher: {{speakers}} <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span></label>
+                <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
               </div>
               <div v-for="(speaker, id) in speakers" :key="'speaker-settings-'+speaker">
-                <div class="form-group px-2">
-                  <hr>
-                  <label :for="'speaker-' + speaker + '-name-input'">Sprecher {{speaker}} Name:</label>
-                  <input v-model="speakerName[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-name-input'">
+                <hr>
+                <div class="row" style="padding: 0 1rem;">
+                  <div class="col-sm-4 form-group px-2">
+                    <label :for="'speaker-' + speaker + '-name-input'">Sprecher {{speaker}} Name:</label>
+                    <input v-model="speakerName[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-name-input'">
+                  </div>
+                  <div class="col-sm-8 form-group px-2">
+                    <label :for="'speaker-' + speaker + '-email-input'">Sprecher {{speaker}} E-Mail:</label>
+                    <input v-model="speakerMail[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-email-input'">
+                  </div>
                 </div>
                 <fieldset class="form-group px-2">
                   <label>Sprecher {{speaker}} Avatar:</label><br>
@@ -128,8 +135,9 @@
             <!--              BEGIN AGENDA SETTINGS-->
             <div class="tab-pane fade" id="agenda" role="tabpanel" aria-labelledby="agenda-tab">
               <div class="form-group px-2">
-                <label for="customRange1"># Agendapunkte: {{agendas}}</label>
-                <input v-model="agendaPoints" type="range" class="custom-range" min="1" max="10" id="customRange2">
+                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1"># Agendapunkte: {{agendas}}</label>
+                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1"># Agendapunkte: {{agendas}} <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span></label>
+                <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="agendaPoints" type="range" class="custom-range" min="1" max="10" id="customRange2">
               </div>
               <fieldset class="form-group px-2">
                 <label for="agenda-warn-time-input">Warn Zeit (Wie viele Minuten vor Ende eines Agendapunkts soll gewarnt werden?):</label><br>
@@ -164,6 +172,7 @@
 import $ from 'jquery';
 import 'bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
+import Store from '../helper/Store';
 
 export default {
   name: 'Settings',
@@ -185,6 +194,7 @@ export default {
       agendaTitel: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4', '', '', '', '', '', ''],
       agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
       agendaWarnTime: '5',
+      meeting: Store.meeting,
     };
   },
   mounted() {

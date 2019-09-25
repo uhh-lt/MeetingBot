@@ -5,6 +5,6 @@ export default {
       IN_MEETING: 2,
       AFTER_MEETING: 3,
     },
-    status: 2,
+    status: 1,
   },
 }

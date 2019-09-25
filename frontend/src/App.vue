@@ -8,32 +8,36 @@
     <importer></importer>
 
 <!--    START NAVBAR-->
-    <nav id="navigation" class="navbar sticky-top navbar-dark bg-dark">
+    <nav id="navigation" class="justify-content-start navbar sticky-top navbar-dark bg-dark">
+
       <a class="navbar-brand" href="#">
         <img src="/mbot.svg" width="30" height="30" class="d-inline-block align-top" alt="">
         MoM Bot
       </a>
 
-      <div class="btn-group" role="group">
+      <div class="btn-group mr-auto ml-auto" role="group">
         <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">Alles</button>
         <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">Mittel</button>
         <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Kurz</button>
       </div>
 
-      <control-bar></control-bar>
+      <div class="mr-auto ml-auto" style="min-width: 300px; text-align: center;">
+        <control-bar></control-bar>
+      </div>
 
-      <div class="form-inline my-2 my-lg-0">
-        <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
+      <div class="ml-auto form-inline my-2 my-lg-0">
+        <button :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
           <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
-        <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
-          <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
-        <button v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#exportModal">
+                <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
+                  <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
+        <button :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
-        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>
+        <!--        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">-->
+        <!--        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>-->
       </div>
+
     </nav>
 <!--    END NAVBAR-->
 
@@ -104,6 +108,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { computeKeywords } from './helper/api';
 import { encodeHTML } from './helper/htmlencoder';
+import Store from './helper/Store';
 
 import TimelineBox from './components/TimelineBox.vue';
 import TimelineRow from './components/TimelineRow.vue';
@@ -174,6 +179,7 @@ export default {
       fakeUtteranceNum: 0,
       currentAgendaPoint: 0,
       fakeTime: 0,
+      meeting: Store.meeting,
     };
   },
   computed: {
@@ -328,8 +334,8 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          // speaker: parseInt(jsonEvent.speaker.charAt(7)),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
@@ -347,8 +353,8 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
-          // speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          speaker: parseInt(jsonEvent.speaker.charAt(7)),
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
