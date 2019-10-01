@@ -15,49 +15,48 @@
 </template>
 
 <script>
-  import $ from 'jquery';
+import $ from 'jquery';
 
-  export default {
-    name: 'AgendaVisualizer',
-    data() {
-      return {
-        currentAgendaPoint: 0,
-        agendaTitles: ["Punkt 1", "Punkt 2", "Punkt 3", "Punk 4"],
-        agendaTime: [10, 10, 10, 10],
-        agendaPoints: 4,
-      };
+export default {
+  name: 'AgendaVisualizer',
+  data() {
+    return {
+      currentAgendaPoint: 0,
+      agendaTitles: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punk 4'],
+      agendaTime: [10, 10, 10, 10],
+      agendaPoints: 4,
+    };
+  },
+  mounted() {
+    // listen to events
+    this.$root.$on('onSettingsSaved', this.onSettingsSaved);
+    this.$root.$on('onReset', this.onReset);
+  },
+  methods: {
+    onSettingsSaved(settings) {
+      this.agendaTitles = settings.agendaTitel;
+      this.agendaPoints = settings.agendaPoints;
+      this.agendaTime = settings.agendaTime;
     },
-    mounted() {
-      // listen to events
-      this.$root.$on('onSettingsSaved', this.onSettingsSaved);
-      this.$root.$on('onReset', this.onReset);
+    onReset() {
+      this.currentAgendaPoint = 0;
+      this.agendaTitles = ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'];
+      this.agendaTime = ['10', '10', '10', '10'];
+      this.agendaPoints = 4;
     },
-    methods: {
-      onSettingsSaved(settings) {
-        this.agendaTitles = settings.agendaTitel;
-        this.agendaPoints = settings.agendaPoints;
-        this.agendaTime = settings.agendaTime;
-      },
-      onReset() {
-        this.currentAgendaPoint = 0;
-        this.agendaTitles = ["Punkt 1", "Punkt 2", "Punkt 3", "Punkt 4"];
-        this.agendaTime = ["10", "10", "10", "10"];
-        this.agendaPoints = 4;
-      },
-      sendNextAgendaPoint() {
-        if (this.currentAgendaPoint < this.agendaPoints) {
-          this.currentAgendaPoint++;
-        }
-        let id = '#agendavisualizer-title-'+this.currentAgendaPoint;
-        let element = $(id);
-        if(element[0] !== undefined) {
-          $('#agenda-list').scrollTop(element[0].offsetTop);
-
-        }
-        this.$root.$emit('onNextAgenda');
-      },
+    sendNextAgendaPoint() {
+      if (this.currentAgendaPoint < this.agendaPoints) {
+        this.currentAgendaPoint += 1;
+      }
+      const id = `#agendavisualizer-title-${this.currentAgendaPoint}`;
+      const element = $(id);
+      if (element[0] !== undefined) {
+        $('#agenda-list').scrollTop(element[0].offsetTop);
+      }
+      this.$root.$emit('onNextAgenda');
     },
-  };
+  },
+};
 </script>
 
 <style scoped>

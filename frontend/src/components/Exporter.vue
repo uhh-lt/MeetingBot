@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import jsPDF from 'jspdf';
+import JSPDF from 'jspdf';
 
 export default {
   name: 'Exporter',
@@ -82,7 +82,7 @@ export default {
       editorUtterances: [],
       editorSpeakername: [],
       firstTime: true,
-      mailto: "",
+      mailto: '',
     };
   },
   mounted() {
@@ -110,10 +110,10 @@ export default {
     calculateMailto() {
       let mailto = 'mailto:';
       let firstCC = true;
-      if(this.settings.speakerMail !== undefined) {
-        for(let i = 0; i < this.settings.speaker; i++) {
-          let email = this.settings.speakerMail[i];
-          if(i === 0) {
+      if (this.settings.speakerMail !== undefined) {
+        for (let i = 0; i < this.settings.speaker; i += 1) {
+          const email = this.settings.speakerMail[i];
+          if (i === 0) {
             mailto += email;
           } else {
             if (firstCC) {
@@ -123,12 +123,12 @@ export default {
             if (i === this.settings.speakerMail.length - 1) {
               mailto += email;
             } else {
-              mailto += email + ";";
+              mailto += `${email};`;
             }
           }
         }
-        mailto += '&subject=Meeting%20vom%20' + this.editorAgendaDate;
-        mailto += '&body=Hallo%20alle%20Zusammen'+escape(',')+escape('\r\n')+escape('\r\n')+'Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings'+escape('.')+escape('\r\n')+escape('\r\n')+'http://example.com/'+escape('\r\n')+escape('\r\n')+'Gruß'+escape('\r\n')+'MoM%20Bot';
+        mailto += `&subject=Meeting%20vom%20${this.editorAgendaDate}`;
+        mailto += `&body=Hallo%20alle%20Zusammen${escape(',')}${escape('\r\n')}${escape('\r\n')}Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings${escape('.')}${escape('\r\n')}${escape('\r\n')}http://example.com/${escape('\r\n')}${escape('\r\n')}Gruß${escape('\r\n')}MoM%20Bot`;
         this.mailto = mailto;
       } else {
         this.mailto = '';
@@ -155,14 +155,14 @@ export default {
       this.editorAgendaPoints = this.settings.agendaPoints;
       this.editorAgendaTitles = [];
       this.editorAgendaVisibility = [];
-      for (let i = 0; i < this.settings.agendaPoints; i++) {
+      for (let i = 0; i < this.settings.agendaPoints; i += 1) {
         this.editorAgendaTitles.push(this.settings.agendaTitel[i]);
         this.editorAgendaVisibility.push(true);
       }
       this.editorAgendaVisibility.push(true);
 
       this.editorUtterances = [];
-      for (let i = 0; i < this.editorAgendaPoints + 1; i++) {
+      for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
         let utterances = this.utterances.filter(value => value.agenda === i);
         utterances = this.jsonCopy(utterances);
 
@@ -189,7 +189,7 @@ export default {
     visualizeUtterance(utterance) {
       let html = '';
       const tokens = utterance.text.split(' ');
-      for (let i = 0; i < tokens.length; i++) {
+      for (let i = 0; i < tokens.length; i += 1) {
         const token = tokens[i];
         const confidence = utterance.confidences[i];
         html += confidence > 0.25 ? `${token} ` : `<span class="confword">${token}</span> `;
@@ -197,7 +197,7 @@ export default {
       return html.trim();
     },
     createPDF() {
-      const pdf = new jsPDF('p', 'pt', 'letter');
+      const pdf = new JSPDF('p', 'pt', 'letter');
       // source can be HTML-formatted string, or a reference
       // to an actual DOM element from which the text will be scraped.
 
@@ -206,12 +206,12 @@ export default {
           + '<h2>Agenda</h2>';
 
       html += '<ol>';
-      for (let i = 0; i < this.editorAgendaPoints; i++) {
+      for (let i = 0; i < this.editorAgendaPoints; i += 1) {
         html += `<li>${this.editorAgendaTitles[i]}</li>`;
       }
       html += '</ol>';
 
-      for (let i = 0; i < this.editorAgendaPoints + 1; i++) {
+      for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
         const agendaTitle = i < this.editorAgendaPoints ? this.editorAgendaTitles[i] : 'Sonstiges';
         html += `<h2>${agendaTitle}</h2>`;
 
@@ -219,7 +219,7 @@ export default {
         let lastSpeaker = -1337;
         const utterances = this.editorUtterances[i];
         let utterance;
-        for (let uID = 0; uID < utterances.length; uID++) {
+        for (let uID = 0; uID < utterances.length; uID += 1) {
           utterance = utterances[uID];
           if (utterance.speaker !== lastSpeaker) {
             if (start) {
@@ -242,7 +242,7 @@ export default {
       // (class, of compound) at this time.
       const specialElementHandlers = {
         // element with id of "bypass" - jQuery style selector
-        '#bypassme': function (element, renderer) {
+        '#bypassme': function () {
           // true = "handled elsewhere, bypass text extraction"
           return true;
         },
@@ -253,7 +253,7 @@ export default {
         left: 40,
         width: 522,
       };
-        // all coords and widths are in jsPDF instance's declared units
+        // all coords and widths are in JSPDF instance's declared units
         // 'inches' in this case
 
       const filename = `Meeting_${this.editorAgendaDate.replace(/\./g, '-')}.pdf`;
@@ -264,7 +264,7 @@ export default {
           width: margins.width, // max width of content on PDF
           elementHandlers: specialElementHandlers,
         },
-        (dispose) => {
+        () => {
           // dispose: object with X, Y of the last line add to the PDF
           //          this allow the insertion of new lines after html
           pdf.save(filename);

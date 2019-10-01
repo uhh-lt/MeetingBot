@@ -37,9 +37,9 @@
 </template>
 
 <script>
-import BarChart from './BarChart';
-import WordCloud from './WordCloud';
-import AgendaVisualizer from './AgendaVisualizer';
+import BarChart from './BarChart.vue';
+import WordCloud from './WordCloud.vue';
+import AgendaVisualizer from './AgendaVisualizer.vue';
 
 export default {
   name: 'Sidebar',
@@ -80,7 +80,7 @@ export default {
         const activeElements = this.numOpenSidebarElements();
         const totalElements = this.sidebarElements.length;
         const margins = (2 + totalElements - 1) / activeElements;
-        for (let i = 0; i < this.sidebarElements.length; i++) {
+        for (let i = 0; i < this.sidebarElements.length; i += 1) {
           if (this.sidebarElements[i]) {
             result[i] = `height: calc(${(maxSidebarHeight - totalElements * sidebarHeaderHeight) / activeElements}px - ${margins}em)`;
           }

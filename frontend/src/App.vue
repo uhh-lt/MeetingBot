@@ -107,18 +107,17 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { computeKeywords } from './helper/api';
-import { encodeHTML } from './helper/htmlencoder';
+import encodeHTML from './helper/htmlencoder';
 import Store from './helper/Store';
 
 import TimelineBox from './components/TimelineBox.vue';
 import TimelineRow from './components/TimelineRow.vue';
 import Footer from './components/Footer.vue';
-import BarChart from './components/BarChart.vue';
-import Sidebar from './components/Sidebar';
-import ControlBar from './components/ControlBar';
-import Settings from './components/Settings';
-import Exporter from './components/Exporter';
-import Importer from './components/Importer';
+import Sidebar from './components/Sidebar.vue';
+import ControlBar from './components/ControlBar.vue';
+import Settings from './components/Settings.vue';
+import Exporter from './components/Exporter.vue';
+import Importer from './components/Importer.vue';
 
 require('@/assets/css/main.css');
 
@@ -143,11 +142,11 @@ export default {
     // Listen to stream
     const source = new EventSource('http://localhost:5000/stream');
     source.onmessage = this.handleStream;
-    source.onerror = (evt) => {
+    source.onerror = () => {
       console.log('STREAM: Error Event!');
       this.sendStreamStatus('ERROR');
     };
-    source.onopen = (evt) => {
+    source.onopen = () => {
       console.log('STREAM: Open Event!');
       this.sendStreamStatus('OPEN');
     };
@@ -202,7 +201,7 @@ export default {
     },
     onNextAgenda() {
       if (this.currentAgendaPoint < this.settings.agendaPoints) {
-        this.currentAgendaPoint++;
+        this.currentAgendaPoint += 1;
       }
     },
     sendStreamStatus(status) {
@@ -231,9 +230,9 @@ export default {
           const utteranceGroup = groupedUtterances.pop();
           utteranceGroup.push(utterance);
           groupedUtterances.push(utteranceGroup);
-        }
+
         // other speaker => create new utterance group
-        else {
+        } else {
           groupedUtterances.push([utterance]);
         }
         // update last speaker
@@ -266,7 +265,7 @@ export default {
         utterance: utterances[randomUtterance],
         time: this.fakeTime,
         confidences: confidences[randomUtterance],
-        speaker: "01234560",
+        speaker: '01234560',
       };
       const fakeEvent = {
         data: JSON.stringify(fakeEventData),
@@ -335,7 +334,7 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
           // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
@@ -355,7 +354,7 @@ export default {
           completed,
           text: encodeHTML(jsonEvent.utterance),
           // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
-          speaker: parseInt(jsonEvent.speaker.charAt(7)),
+          speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,

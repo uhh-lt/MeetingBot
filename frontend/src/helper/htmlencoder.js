@@ -1,5 +1,3 @@
-export { encodeHTML };
-
 const tagsToReplace = {
   '&': '&amp;',
   '<': '&lt;',
@@ -13,3 +11,5 @@ function replaceTag(tag) {
 function encodeHTML(str) {
   return str.replace(/[&<>]/g, replaceTag);
 }
+
+export default encodeHTML;

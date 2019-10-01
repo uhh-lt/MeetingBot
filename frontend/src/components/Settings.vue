@@ -226,13 +226,13 @@ export default {
       const event = this.jsonCopy(e);
       this.agendaPoints = event.agenda.agendaPoints;
 
-      for (let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i++) {
+      for (let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i += 1) {
         this.agendaTitel[i] = event.agenda.agendaTitle[i];
       }
-      for (let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i++) {
+      for (let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i += 1) {
         this.agendaTime[i] = event.agenda.agendaTime[i];
       }
-      for (let i = 0; i < Math.min(event.selectedAttendents, 4); i++) {
+      for (let i = 0; i < Math.min(event.selectedAttendents, 4); i += 1) {
         this.speakerName[i] = event.attendants[i].name;
         this.speakerMail[i] = event.attendants[i].email;
       }

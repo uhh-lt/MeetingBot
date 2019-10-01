@@ -19,7 +19,7 @@ export default {
       return this.data;
     },
     speakers() {
-      return parseInt(this.speakerCount);
+      return parseInt(this.speakerCount, 10);
     },
   },
   mounted() {

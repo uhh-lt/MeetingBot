@@ -1,10 +1,10 @@
 <template xmlns:height="http://www.w3.org/1999/xhtml">
   <footer v-on:click="fakeTick" id="footer" class="bg-light" style="position:relative;">
     <div class="progress absolute-progress">
-      <div v-for="(a, count) in agenda" class="progress-bar progress-bar-padding progress-bar-bg progress-bar-font" :key="'bg'+a.id" :style="a.style" role="progressbar" aria-valuemin="0" aria-valuemax="100">{{a.title}}</div>
+      <div v-for="a in agenda" class="progress-bar progress-bar-padding progress-bar-bg progress-bar-font" :key="'bg'+a.id" :style="a.style" role="progressbar" aria-valuemin="0" aria-valuemax="100">{{a.title}}</div>
     </div>
     <div class="progress absolute-progress-small" style="background-color: transparent !important;">
-      <div v-for="(a, count) in agenda"
+      <div v-for="a in agenda"
            v-if="a.status === 'finished' || a.status === 'active'"
            :style="'width:'+calcAgendaWidth(a)+'%;'"
            :class="{'finished': a.status === 'finished', 'active': a.status === 'active', 'error': a.status ==='active' && currentTime >= a.planned, 'warning': a.status ==='active' && currentTime >= (a.planned - warnTime)}"
@@ -145,7 +145,7 @@ export default {
       this.currentTime = 0;
       this.usedTime = 0;
     },
-    onCompleteUtterance(utterance, data, speaker) {
+    onCompleteUtterance(utterance) {
       this.currentTime = utterance.time / 60;
       if (this.currentTime >= this.totalTime) {
         this.currentTime = this.totalTime;
@@ -172,13 +172,13 @@ export default {
       const totalAgendaTime = settings.agendaTime.slice(0, settings.agendaPoints).map(x => parseInt(x, 10)).reduce((a, b) => a + b, 0);
       const newAgenda = [];
       let plannedSum = 0;
-      for (let i = 0; i < settings.agendaPoints; i++) {
+      for (let i = 0; i < settings.agendaPoints; i += 1) {
         const agendaTime = parseInt(settings.agendaTime[i], 10);
 
         let status = '';
         let start = -1;
         let end = -1;
-        if(i === this.currentAgendaPoint) {
+        if (i === this.currentAgendaPoint) {
           status = 'active';
           start = this.agenda[i].start;
           end = -1;
@@ -195,9 +195,9 @@ export default {
         const agenda = {
           title: settings.agendaTitel[i],
           id: `a${i}`,
-          status: status,
-          start: start,
-          end: end,
+          status,
+          start,
+          end,
           planned: plannedSum + agendaTime,
           style: `width: ${(agendaTime / totalAgendaTime) * 100}%`,
         };

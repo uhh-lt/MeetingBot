@@ -85,7 +85,7 @@ export default {
       let word;
       let conf;
       let calculatedConf;
-      for (let i = 0; i < text.length; i++) {
+      for (let i = 0; i < text.length; i += 1) {
         word = text[i];
         conf = utterance.confidences[i];
         calculatedConf = Math.max(conf * conf, 0.1);
@@ -108,7 +108,7 @@ export default {
 
       const isImportantWord = Array(text.length).fill(0);
       let word;
-      for (let i = 0; i < text.length; i++) {
+      for (let i = 0; i < text.length; i += 1) {
         word = text[i];
         if (keywordnessTokenMap.has(i)) {
           isImportantWord[i] = 1;
@@ -121,7 +121,7 @@ export default {
       let newText = '';
       let conf;
       let calculatedConf;
-      for (let i = 0; i < text.length; i++) {
+      for (let i = 0; i < text.length; i += 1) {
         word = text[i];
         switch (isImportantWord[i]) {
           case 0: // not important
@@ -158,7 +158,7 @@ export default {
       let conf;
       let calculatedConf;
       let token;
-      for (let i = 0; i < tokens.length; i++) {
+      for (let i = 0; i < tokens.length; i += 1) {
         token = tokens[i];
         conf = confidences[i];
         calculatedConf = Math.max(conf * conf, 0.1);
