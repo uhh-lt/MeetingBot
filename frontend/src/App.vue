@@ -161,7 +161,9 @@ export default {
     // document.getElementById("timelineContainer").addEventListener('scroll', this.onScroll);
 
     // this.$refs.timelineContainer.addEventListener('scroll', this.onScroll);
-    this.$refs.timelineRef.addEventListener('scroll', this.onScroll);
+    this.$refs.timelineRef.addEventListener('scroll', () => {
+      this.onScroll(false);
+    });
 
     console.log(this.$refs);
   },
@@ -177,6 +179,7 @@ export default {
         showKeywords: 'true',
         keywordColor: 'rgb(255, 255, 0)',
         range: 5,
+        randomSpeaker: false,
       },
       utterances: [],
       startNewUtt: true,
@@ -204,10 +207,10 @@ export default {
     },
   },
   methods: {
-    onScroll() {
+    onScroll(forceUpdateIfTop) {
 
       // force update if scroll is top
-      if(this.$refs.timelineRef.scrollTop === 0) {
+      if(forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
         // force update by setting this.currentUtterance to -1
         this.currentUtterance = -1;
       }
@@ -233,6 +236,7 @@ export default {
 
 
       let newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
+      let inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
       if(this.currentUtterance !== newUtterance) {
         this.currentUtterance = newUtterance;
         console.log("NEW BUBBLE!");
@@ -240,7 +244,7 @@ export default {
         // collect keywords from utterances around current utterance
         let keywords = [];
         let minRange = Math.max(this.currentUtterance - this.settings.range, 0);
-        let maxRange = Math.min(this.currentUtterance + this.settings.range, this.utterances.length - 1);
+        let maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
         for(let i = minRange; i <= maxRange; i += 1) {
           let utt = this.utterances[i];
           keywords = keywords.concat(utt.keywords);
@@ -385,12 +389,17 @@ export default {
     },
     addUtterance(jsonEvent, completed) {
       let utterance;
+      let spkr;
+      if(this.settings.randomSpeaker) {
+        spkr = Math.floor(Math.random() * this.settings.speaker);
+      } else {
+        spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
+      }
       if (completed) {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          // speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          speaker: spkr,
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
@@ -404,14 +413,13 @@ export default {
         computeKeywords(utterance).then((keywords) => {
           utterance.keywords = keywords;
           this.sendKeywords(keywords);
-          this.onScroll();
+          this.onScroll(true);
         });
       } else {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
-          // speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
+          speaker: spkr,
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
@@ -443,7 +451,7 @@ export default {
         computeKeywords(utterance).then((keywords) => {
           utterance.keywords = keywords;
           this.sendKeywords(keywords);
-          this.onScroll();
+          this.onScroll(true);
         });
       } else {
         const lastUtterance = this.utterances.pop();

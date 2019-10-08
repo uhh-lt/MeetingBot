@@ -101,6 +101,22 @@
                 <label for="wordcloudrange">Anzahl Aussagen vor und nach aktueller Aussage für Word Cloud: {{rangeNum}}</label>
                 <input v-model="rangeNum" type="range" class="custom-range" min="0" max="10" id="wordcloudrange">
               </div>
+              <hr>
+              <fieldset class="form-group px-2">
+                <label>Zufälliger Sprecher:</label><br>
+                <div class="form-check form-check-inline">
+                  <label for="random-speaker-yes" class="form-check-label">
+                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="visualize-confidence" id="random-speaker-yes" value="true">
+                    Ja
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label for="random-speaker-no" class="form-check-label">
+                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="visualize-confidence" id="random-speaker-no" value="false">
+                    Nein
+                  </label>
+                </div>
+              </fieldset>
             </div>
             <!--              END GENERAL SETTINGS -->
 
@@ -200,7 +216,8 @@ export default {
       agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
       agendaWarnTime: '5',
       meeting: Store.meeting,
-      rangeNum: '5'
+      rangeNum: '5',
+      randomSpeaker: false,
     };
   },
   mounted() {
@@ -263,6 +280,7 @@ export default {
       this.agendaTime = this.oldSettings.agendaTime;
       this.agendaWarnTime = this.oldSettings.agendaWarnTime;
       this.rangeNum = this.oldSettings.range;
+      this.randomSpeaker = this.oldSettings.randomSpeaker;
     },
     saveSettings() {
       const settings = {
@@ -281,6 +299,7 @@ export default {
         agendaTime: this.agendaTime,
         agendaWarnTime: this.agendaWarnTime,
         range: this.range,
+        randomSpeaker: this.randomSpeaker,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
