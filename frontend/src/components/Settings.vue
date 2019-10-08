@@ -97,6 +97,10 @@
                 <label for="example-number-input">Maximale Wörter in der Wort Wolke:</label><br>
                   <input v-model="wordCloudWords" class="form-control" type="number" id="example-number-input">
               </fieldset>
+              <div class="form-group px-2">
+                <label for="wordcloudrange">Anzahl Aussagen vor und nach aktueller Aussage für Word Cloud: {{rangeNum}}</label>
+                <input v-model="rangeNum" type="range" class="custom-range" min="0" max="10" id="wordcloudrange">
+              </div>
             </div>
             <!--              END GENERAL SETTINGS -->
 
@@ -196,6 +200,7 @@ export default {
       agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
       agendaWarnTime: '5',
       meeting: Store.meeting,
+      rangeNum: '5'
     };
   },
   mounted() {
@@ -219,6 +224,9 @@ export default {
     },
     agendas() {
       return parseInt(this.agendaPoints, 10);
+    },
+    range() {
+      return parseInt(this.rangeNum, 10);
     },
   },
   methods: {
@@ -254,6 +262,7 @@ export default {
       this.agendaTitel = this.oldSettings.agendaTitel;
       this.agendaTime = this.oldSettings.agendaTime;
       this.agendaWarnTime = this.oldSettings.agendaWarnTime;
+      this.rangeNum = this.oldSettings.range;
     },
     saveSettings() {
       const settings = {
@@ -271,6 +280,7 @@ export default {
         agendaTitel: this.agendaTitel,
         agendaTime: this.agendaTime,
         agendaWarnTime: this.agendaWarnTime,
+        range: this.range,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));

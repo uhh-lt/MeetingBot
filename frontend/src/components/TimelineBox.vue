@@ -1,5 +1,5 @@
 <template>
-  <div class="tl-container tl-left">
+  <div class="timelinecontainer tl-container tl-left" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
     <div class="tl-content">
       <div class="d-flex">
         <div class="p-2" style="position:relative;">
@@ -28,6 +28,11 @@ export default {
   name: 'TimelineBox',
   components: { TimelineUtterance },
   props: ['utterance', 'name', 'img', 'mode', 'showConfidence', 'showKeywords', 'keywordColor'],
+  computed: {
+    utteranceID() {
+      return this.utterance[0].id;
+    },
+  },
 };
 </script>
 

@@ -35,8 +35,9 @@ export default {
   mounted() {
     // listen to events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
-    this.$root.$on('onNewKeywords', this.handleNewKeywords);
+    // this.$root.$on('onNewKeywords', this.handleNewKeywords);
     this.$root.$on('onReset', this.onReset);
+    this.$root.$on('onCurrentUtteranceChanged', this.onCurrentUtteranceChanged);
   },
   methods: {
     onReset() {
@@ -50,9 +51,28 @@ export default {
     onSettingsSaved(settings) {
       this.maxKeywords = parseInt(settings.wordCloudWords, 10);
     },
+    onCurrentUtteranceChanged(keywords) {
+      console.log("Recieved new keywords!");
+      console.log(keywords);
+
+      let newKeywordMap = new Map();
+      // const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
+      const lowKeywords = keywords.flatMap(value => value.word).map(value => value.toLowerCase());
+      lowKeywords.forEach((word) => {
+        if (newKeywordMap.has(word)) {
+          newKeywordMap.set(word, newKeywordMap.get(word) + 1);
+        } else {
+          newKeywordMap.set(word, 1);
+        }
+      });
+
+      this.keywordMap = new Map([...newKeywordMap.entries()].sort((a, b) => b[1] - a[1]));
+      this.computeAllKeywords();
+    },
     handleNewKeywords(keywords) {
       console.log('Recieved new keywords!');
-      const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
+      // const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
+      const lowKeywords = keywords.flatMap(value => value.word).map(value => value.toLowerCase());
       lowKeywords.forEach((word) => {
         if (this.keywordMap.has(word)) {
           this.keywordMap.set(word, this.keywordMap.get(word) + 1);

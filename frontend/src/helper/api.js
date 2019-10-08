@@ -46,7 +46,6 @@ async function computeKeywords(utterance) {
   //     }
   // }).map(value => value.toLowerCase());
 
-  utterance.keywords = keywords;
   return keywords;
 }
 

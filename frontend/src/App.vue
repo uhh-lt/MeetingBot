@@ -53,7 +53,7 @@
             <h5 class="card-header" style="height: 50px;"><span>Gesprächs-Verlauf</span></h5>
             <div class="card-body" style="padding:0;">
 
-              <div v-if="settings.timelineView === 'LINE'" id="timeline" class="disable-scrollbars">
+              <div v-if="settings.timelineView === 'LINE'" id="timeline" ref="timelineRef" class="disable-scrollbars">
                 <template v-if="settings.timelineSorting === 'DESC'">
                   <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-reversed-' + utt[0].id"></TimelineBox>
                 </template>
@@ -62,7 +62,7 @@
                 </template>
               </div>
 
-              <div v-if="settings.timelineView === 'LANES'" id="timeline" class="disable-scrollbars">
+              <div v-if="settings.timelineView === 'LANES'" id="timeline" ref="timelineRef" class="disable-scrollbars">
                 <div class="d-flex stickytimelineheader">
                   <div v-for="(n, id) in settings.speaker" :key="'speaker-'+id" class="p-1 flex-even bg-light" style="border-bottom: 1px solid rgba(0,0,0,.125);">
                     <div class="p-1" style="position:relative;">
@@ -131,8 +131,7 @@ export default {
     Sidebar,
     Footer,
     TimelineBox,
-    TimelineRow,
-    BarChart,
+    TimelineRow
   },
   created() {
     // Execute methods on create
@@ -158,6 +157,13 @@ export default {
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onReset', this.onReset);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
+
+    // document.getElementById("timelineContainer").addEventListener('scroll', this.onScroll);
+
+    // this.$refs.timelineContainer.addEventListener('scroll', this.onScroll);
+    this.$refs.timelineRef.addEventListener('scroll', this.onScroll);
+
+    console.log(this.$refs);
   },
   data() {
     return {
@@ -170,6 +176,7 @@ export default {
         showConfidence: 'false',
         showKeywords: 'true',
         keywordColor: 'rgb(255, 255, 0)',
+        range: 5,
       },
       utterances: [],
       startNewUtt: true,
@@ -179,6 +186,7 @@ export default {
       currentAgendaPoint: 0,
       fakeTime: 0,
       meeting: Store.meeting,
+      currentUtterance: -1,
     };
   },
   computed: {
@@ -196,6 +204,50 @@ export default {
     },
   },
   methods: {
+    onScroll() {
+
+      // force update if scroll is top
+      if(this.$refs.timelineRef.scrollTop === 0) {
+        // force update by setting this.currentUtterance to -1
+        this.currentUtterance = -1;
+      }
+
+      let middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
+      let allContainers = this.$refs.timelineRef.getElementsByClassName("timelinecontainer");
+
+      let container;
+      let nearestContainer;
+      let distance = -1;
+      let minDistance = 10000000;
+      for(let id = 0; id < allContainers.length; id++) {
+        container = allContainers[id];
+        container.style.backgroundColor = "";
+        distance = Math.abs(container.offsetTop - middle);
+        if(distance < minDistance) {
+          minDistance = distance;
+          nearestContainer = id;
+        }
+      }
+
+      allContainers[nearestContainer].style.backgroundColor = "red";
+
+
+      let newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
+      if(this.currentUtterance !== newUtterance) {
+        this.currentUtterance = newUtterance;
+        console.log("NEW BUBBLE!");
+
+        // collect keywords from utterances around current utterance
+        let keywords = [];
+        let minRange = Math.max(this.currentUtterance - this.settings.range, 0);
+        let maxRange = Math.min(this.currentUtterance + this.settings.range, this.utterances.length - 1);
+        for(let i = minRange; i <= maxRange; i += 1) {
+          let utt = this.utterances[i];
+          keywords = keywords.concat(utt.keywords);
+        }
+        this.sendOnCurrentUtteranceChanged(keywords);
+      }
+    },
     sendOpenExporter() {
       this.$root.$emit('onOpenExporter');
     },
@@ -212,6 +264,9 @@ export default {
     },
     sendKeywords(keywords) {
       this.$root.$emit('onNewKeywords', keywords);
+    },
+    sendOnCurrentUtteranceChanged(keywords) {
+      this.$root.$emit('onCurrentUtteranceChanged', keywords);
     },
     onReset() {
       this.utterances = [];
@@ -334,31 +389,33 @@ export default {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
-          // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          // speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
-          id: `${jsonEvent.time.toFixed(4)}`,
+          id: this.utterances.length,
           keywords: [],
           confidences: jsonEvent.confidences,
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then((data) => {
-          this.sendKeywords(data);
+        computeKeywords(utterance).then((keywords) => {
+          utterance.keywords = keywords;
+          this.sendKeywords(keywords);
+          this.onScroll();
         });
       } else {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
-          // speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
-          speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
+          speaker: Math.floor(Math.random() * this.settings.speaker), // later on: jsonEvent.speaker
+          // speaker: parseInt(jsonEvent.speaker.charAt(7), 10),
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
-          id: `${jsonEvent.time.toFixed(4)}`,
+          id: this.utterances.length,
           keywords: [],
           confidences: [],
           agenda: this.currentAgendaPoint,
@@ -383,8 +440,10 @@ export default {
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then((data) => {
-          this.sendKeywords(data);
+        computeKeywords(utterance).then((keywords) => {
+          utterance.keywords = keywords;
+          this.sendKeywords(keywords);
+          this.onScroll();
         });
       } else {
         const lastUtterance = this.utterances.pop();
