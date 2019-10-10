@@ -52,10 +52,10 @@ export default {
       this.maxKeywords = parseInt(settings.wordCloudWords, 10);
     },
     onCurrentUtteranceChanged(keywords) {
-      console.log("Recieved new keywords!");
+      console.log('Recieved new keywords!');
       console.log(keywords);
 
-      let newKeywordMap = new Map();
+      const newKeywordMap = new Map();
       // const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
       const lowKeywords = keywords.flatMap(value => value.word).map(value => value.toLowerCase());
       lowKeywords.forEach((word) => {

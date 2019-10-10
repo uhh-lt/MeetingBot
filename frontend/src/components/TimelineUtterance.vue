@@ -247,8 +247,8 @@ export default {
       keywordScore = keywordScore.sort((a, b) => b.score - a.score);
 
       // then just use the top 3 keywords
-      const maximum = Math.min(3, keywordScore.length);
-      keywordScore = keywordScore.slice(0, maximum);
+      // const maximum = Math.min(3, keywordScore.length);
+      // keywordScore = keywordScore.slice(0, maximum);
 
       // remap top keyword phrases as f.e.
       // { involved: [0, 1, 2], score: 10 }

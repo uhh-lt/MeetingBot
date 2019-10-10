@@ -131,7 +131,7 @@ export default {
     Sidebar,
     Footer,
     TimelineBox,
-    TimelineRow
+    TimelineRow,
   },
   created() {
     // Execute methods on create
@@ -208,45 +208,44 @@ export default {
   },
   methods: {
     onScroll(forceUpdateIfTop) {
-
       // force update if scroll is top
-      if(forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
+      if (forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
         // force update by setting this.currentUtterance to -1
         this.currentUtterance = -1;
       }
 
-      let middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
-      let allContainers = this.$refs.timelineRef.getElementsByClassName("timelinecontainer");
+      const middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
+      const allContainers = this.$refs.timelineRef.getElementsByClassName('timelinecontainer');
 
       let container;
       let nearestContainer;
       let distance = -1;
       let minDistance = 10000000;
-      for(let id = 0; id < allContainers.length; id++) {
+      for (let id = 0; id < allContainers.length; id++) {
         container = allContainers[id];
-        container.style.backgroundColor = "";
+        container.style.backgroundColor = '';
         distance = Math.abs(container.offsetTop - middle);
-        if(distance < minDistance) {
+        if (distance < minDistance) {
           minDistance = distance;
           nearestContainer = id;
         }
       }
 
-      allContainers[nearestContainer].style.backgroundColor = "red";
+      allContainers[nearestContainer].style.backgroundColor = 'red';
 
 
-      let newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
-      let inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
-      if(this.currentUtterance !== newUtterance) {
+      const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
+      const inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
+      if (this.currentUtterance !== newUtterance) {
         this.currentUtterance = newUtterance;
-        console.log("NEW BUBBLE!");
+        console.log('NEW BUBBLE!');
 
         // collect keywords from utterances around current utterance
         let keywords = [];
-        let minRange = Math.max(this.currentUtterance - this.settings.range, 0);
-        let maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
-        for(let i = minRange; i <= maxRange; i += 1) {
-          let utt = this.utterances[i];
+        const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
+        const maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
+        for (let i = minRange; i <= maxRange; i += 1) {
+          const utt = this.utterances[i];
           keywords = keywords.concat(utt.keywords);
         }
         this.sendOnCurrentUtteranceChanged(keywords);
@@ -390,7 +389,7 @@ export default {
     addUtterance(jsonEvent, completed) {
       let utterance;
       let spkr;
-      if(this.settings.randomSpeaker) {
+      if (this.settings.randomSpeaker) {
         spkr = Math.floor(Math.random() * this.settings.speaker);
       } else {
         spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
