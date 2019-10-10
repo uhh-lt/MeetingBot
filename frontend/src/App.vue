@@ -26,13 +26,15 @@
       </div>
 
       <div class="ml-auto form-inline my-2 my-lg-0">
-        <button :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
+<!--        <button :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">-->
+        <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
           <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
                 <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
                   <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
-        <button :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
+<!--        <button :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">-->
+        <button v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
         <!--        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">-->
         <!--        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>-->
@@ -241,14 +243,14 @@ export default {
         console.log('NEW BUBBLE!');
 
         // collect keywords from utterances around current utterance
-        let keywords = [];
+        let keywordInfos = [];
         const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
         const maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
         for (let i = minRange; i <= maxRange; i += 1) {
           const utt = this.utterances[i];
-          keywords = keywords.concat(utt.keywords);
+          keywordInfos = keywordInfos.concat(utt.keywordInfo);
         }
-        this.sendOnCurrentUtteranceChanged(keywords);
+        this.sendOnCurrentUtteranceChanged(keywordInfos);
       }
     },
     sendOpenExporter() {
@@ -403,15 +405,18 @@ export default {
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: this.utterances.length,
-          keywords: [],
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
           confidences: jsonEvent.confidences,
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          utterance.keywords = keywords;
-          this.sendKeywords(keywords);
+          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
+          utterance.keywordnessTokenMap = keywordnessTokenMap;
+          utterance.keywordInfo = keywordInfo;
+          this.sendKeywords(keywordInfo);
           this.onScroll(true);
         });
       } else {
@@ -423,7 +428,8 @@ export default {
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
           id: this.utterances.length,
-          keywords: [],
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
           confidences: [],
           agenda: this.currentAgendaPoint,
         };
@@ -441,15 +447,18 @@ export default {
           startTime: lastUtterance.startTime,
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           id: lastUtterance.id,
-          keywords: [],
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
           confidences: jsonEvent.confidences,
           agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          utterance.keywords = keywords;
-          this.sendKeywords(keywords);
+          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
+          utterance.keywordnessTokenMap = keywordnessTokenMap;
+          utterance.keywordInfo = keywordInfo;
+          this.sendKeywords(keywordInfo);
           this.onScroll(true);
         });
       } else {
@@ -462,7 +471,8 @@ export default {
           startTime: lastUtterance.startTime,
           endTime: 0,
           id: lastUtterance.id,
-          keywords: [],
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
           confidences: [],
           agenda: lastUtterance.agenda,
         };
@@ -478,6 +488,106 @@ export default {
     onSettingsSaved(settings) {
       console.log('Settings saved!');
       this.settings = settings;
+    },
+    calculateKeywordnessTokenMap(utterance, keywords) {
+      const { confidences } = utterance;
+      const { text } = utterance;
+      const tokens = utterance.text.split(' ');
+
+      console.log('TL_UTT Text');
+      console.log(text);
+      console.log('TL_UTT Tokens');
+      console.log(tokens);
+      console.log('TL_UTT Keywords');
+      console.log(keywords);
+      console.log('TL_UTT Confidences');
+      console.log(confidences);
+
+      // map that stores a keywordScore for each array of involved tokenIndices
+      // [
+      //   { involved: [1, 2, 3], score: 10, word: "tim ist toll"},
+      //   { involved: [6, 7, 8], score: 10, word: "tim ist super"},
+      // ]
+      let keywordInfo = [];
+
+      // TOKENS:       0   1   2
+      // CHAR OFFSET: 0123456789
+      // STRING:      Tim ist to
+      let offset = 0;
+      const characterOffset2TokenID = new Map();
+      // build characterOffset2TokenMap
+      for (let i = 0; i < tokens.length; i += 1) {
+        const token = tokens[i];
+        for (let j = 0; j < token.length; j += 1) {
+          characterOffset2TokenID.set(offset, i);
+          offset += 1;
+        }
+        offset += 1;
+      }
+      console.log('TL_UTT Character2TokenID');
+      console.log(characterOffset2TokenID);
+
+      // perform regex search for each keyword in the list
+      keywords.forEach((keyword) => {
+        const numWords = keyword.word.split(' ').length;
+        let match;
+        const re = new RegExp(`${keyword.word}`, 'gi');
+        match = re.exec(text);
+        while (match != null) {
+          // using match.index to find token index
+          const tokenIndex = characterOffset2TokenID.get(match.index);
+
+          // calculate average confidence for the keyword phrase
+          // also calculated an array of involved tokenIds in the keyword phrase
+          let avgConfidence = 0;
+          const confis = [];
+          const involvedTokenIDs = [];
+          for (let i = 0; i < numWords; i += 1) {
+            const realIndex = tokenIndex + i;
+            const confidence = confidences[realIndex];
+            avgConfidence += confidence;
+            confis.push(confidence);
+            involvedTokenIDs.push(realIndex);
+          }
+
+          // save keywordness for keyword phrase (as token ids)
+          keywordInfo.push({
+            involved: involvedTokenIDs,
+            score: keyword.score * avgConfidence * avgConfidence,
+            phrase: keyword.word,
+            words: keyword.word.split(' '),
+            confs: confis,
+            avgConf: avgConfidence,
+            kwScore: keyword.score,
+          });
+
+          match = re.exec(text);
+        }
+      });
+
+      console.log('TL_UTT keywordInfo');
+      console.log(keywordInfo);
+
+      // filter the keywordInfo so that only the "REAL" keywords are processed further
+      keywordInfo = keywordInfo.filter(info => info.score > 10.0);
+
+      // remap top keyword phrases as f.e.
+      // { involved: [0, 1, 2], score: 10 }
+      // to
+      // [ { token: 0, score: 10 },
+      //   { token: 1, score: 10 },
+      //   { token: 2, score: 10 } ]
+      const keywordnessTokenMap = new Map();
+      keywordInfo.forEach((obj) => {
+        obj.involved.forEach((tokenId) => {
+          keywordnessTokenMap.set(tokenId, obj.score);
+        });
+      });
+
+      console.log('TL_UTT ProcessedKeywordScores');
+      console.log(keywordnessTokenMap);
+
+      return { keywordnessTokenMap, keywordInfo };
     },
   },
 };
@@ -739,3 +849,4 @@ export default {
     }
   }
 </style>
+                 

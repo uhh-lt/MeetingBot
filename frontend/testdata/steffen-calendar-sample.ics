@@ -18,6 +18,7 @@ LOCATION:F433
 LAST-MODIFIED:20170109T155427Z
 SEQUENCE:1
 SUMMARY:LT Group meeting
+DESCRIPTION:1. Agendapunkt [10];2. Agendapunkt [15];3. Agendapunkt [30];4. Agendapunkt [5]
 DTSTART;TZID=Europe/Paris:20170119T113000
 X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC
 CREATED:20170106T150512Z
@@ -34,8 +35,7 @@ LOCATION:tba
 SEQUENCE:2
 X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC
 SUMMARY:show and tell JCM-LT: part II
-DESCRIPTION:Born February 12\, 1809\nSixteenth President (1861-1865)\n\n\n
- \nhttp://AmericanHistoryCalendar.com
+DESCRIPTION:1. Agendapunkt [5];2. Agendapunkt [30];3. Agendapunkt [15];4. Agendapunkt [10]
 URL:http://americanhistorycalendar.com/peoplecalendar/1,328-abraham-lincol
  n
 DTSTART;VALUE=DATE:20170410

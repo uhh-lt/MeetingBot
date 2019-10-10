@@ -51,13 +51,13 @@ export default {
     onSettingsSaved(settings) {
       this.maxKeywords = parseInt(settings.wordCloudWords, 10);
     },
-    onCurrentUtteranceChanged(keywords) {
+    onCurrentUtteranceChanged(keywordInfos) {
       console.log('Recieved new keywords!');
-      console.log(keywords);
+      console.log(keywordInfos);
 
       const newKeywordMap = new Map();
       // const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
-      const lowKeywords = keywords.flatMap(value => value.word).map(value => value.toLowerCase());
+      const lowKeywords = keywordInfos.flatMap(value => value.phrase).map(value => value.toLowerCase());
       lowKeywords.forEach((word) => {
         if (newKeywordMap.has(word)) {
           newKeywordMap.set(word, newKeywordMap.get(word) + 1);

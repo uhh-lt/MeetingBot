@@ -106,13 +106,13 @@
                 <label>Zufälliger Sprecher:</label><br>
                 <div class="form-check form-check-inline">
                   <label for="random-speaker-yes" class="form-check-label">
-                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="visualize-confidence" id="random-speaker-yes" value="true">
+                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="random-speaker" id="random-speaker-yes" value="true">
                     Ja
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="random-speaker-no" class="form-check-label">
-                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="visualize-confidence" id="random-speaker-no" value="false">
+                    <input v-model="randomSpeaker" class="form-check-input" type="radio" name="random-speaker" id="random-speaker-no" value="false">
                     Nein
                   </label>
                 </div>

@@ -228,11 +228,12 @@ export default {
               html += `</p><p><b>${this.editorSpeakername[utterance.speaker]} (${utterance.startTime}):</b> ${this.getEditedUtteranceText(i, uID)}`;
             }
           } else {
-            html += this.getEditedUtteranceText(i, uID);
+            html += ` ${this.getEditedUtteranceText(i, uID)}`;
           }
           start = false;
           lastSpeaker = utterance.speaker;
         }
+        html = html.trim();
         html += '</p>';
       }
 
