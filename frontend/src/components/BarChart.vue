@@ -53,8 +53,8 @@ export default {
 
       // compute redeanteil in percent
       const totalRedeanteil = this.redeanteil.reduce((total, num) => total + num);
-      for (let speaker = 0; speaker < this.redeanteil.length; speaker++) {
-        this.redeanteilInProzent[speaker] = (this.redeanteil[speaker] / totalRedeanteil) * 100;
+      for (let spkr = 0; spkr < this.redeanteil.length; spkr += 1) {
+        this.redeanteilInProzent[spkr] = (this.redeanteil[spkr] / totalRedeanteil) * 100;
       }
 
       // visualize redeanteile in percent

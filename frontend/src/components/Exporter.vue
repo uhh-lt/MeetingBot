@@ -14,19 +14,19 @@
           <br>
           <h2>Agenda</h2>
           <ol>
-            <li v-for="(title, id) in editorAgendaTitles"><a :href="'#a'+id">{{title}}</a></li>
+            <li v-for="(title, id) in editorAgendaTitles" :key="'editor-agenda-title-'+id"><a :href="'#a'+id">{{title}}</a></li>
           </ol>
           <br>
 
           <template v-for="(title, id) in editorAgendaTitles">
-            <h2 :id="'a'+id">
+            <h2 :id="'a'+id" :key="'editor-agenda-headline-'+id">
               <i v-if="!editorAgendaVisibility[id]" v-on:click="toggleEditorAgenda(id)" class="fas fa-chevron-down"></i>
               <i v-if="editorAgendaVisibility[id]" v-on:click="toggleEditorAgenda(id)" class="fas fa-chevron-up"></i>
               {{title}}
             </h2>
-            <div :style="editorAgendaVisibility[id] ? '' : 'display:none'" class="form-group">
+            <div :style="editorAgendaVisibility[id] ? '' : 'display:none'" class="form-group" :key="'editor-agenda-container-'+id">
               <template v-for="(utterance, uID) in editorUtterances[id]">
-                <div class="row">
+                <div class="row" :key="'editor-agenda-'+id+'-utterance-'+uID">
                   <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
                   <div :id="'agenda-'+id+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
@@ -35,7 +35,7 @@
                 </div>
               </template>
             </div>
-            <hr>
+            <hr :key="'editor-agenda-line-'+id">
           </template>
           <h2>
             <i v-if="!editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-down"></i>
@@ -44,7 +44,7 @@
           </h2>
           <div :style="editorAgendaVisibility[editorAgendaTitles.length] ? '' : 'display:none'" class="form-group">
             <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
-              <div class="row">
+              <div class="row" :key="'editor-agenda-sonstige-'+uID">
                 <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
                 <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                 <div class="col-sm-1 col-form-label" style="text-align: center;">
@@ -168,14 +168,14 @@ export default {
 
         let lastSpeaker = -1337;
         let numConfidences = 0;
-        utterances.forEach((utterance) => {
+        for (let j = 0; j < utterances.length; j += 1) {
+          const utterance = utterances[j];
           utterance.showSpeaker = utterance.speaker !== lastSpeaker;
           numConfidences = utterance.confidences.length;
           utterance.score = utterance.confidences.reduce((a, b) => a + b) / numConfidences;
           lastSpeaker = utterance.speaker;
           utterance.html = this.visualizeUtterance(utterance);
-        });
-
+        }
         this.editorUtterances.push(utterances);
       }
 
@@ -236,17 +236,6 @@ export default {
         html += '</p>';
       }
 
-      // we support special element handlers. Register them with jQuery-style
-      // ID selector for either ID or node name. ("#iAmID", "div", "span" etc.)
-      // There is no support for any other type of selectors
-      // (class, of compound) at this time.
-      const specialElementHandlers = {
-        // element with id of "bypass" - jQuery style selector
-        '#bypassme': function () {
-          // true = "handled elsewhere, bypass text extraction"
-          return true;
-        },
-      };
       const margins = {
         top: 30,
         bottom: 40,
@@ -262,7 +251,6 @@ export default {
         margins.left, // x coord
         margins.top, { // y coord
           width: margins.width, // max width of content on PDF
-          elementHandlers: specialElementHandlers,
         },
         () => {
           // dispose: object with X, Y of the last line add to the PDF

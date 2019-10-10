@@ -33,9 +33,7 @@ export default {
           text += `${this.renderUtterance(utterance)} `;
         }
       });
-      setTimeout(() => {
-        $('[data-toggle="tooltip"]').tooltip();
-      }, 100);
+      $('[data-toggle="tooltip"]').tooltip();
       return text.trim();
     },
   },
@@ -193,7 +191,7 @@ export default {
       //   { involved: [1, 2, 3], score: 10 },
       //   { involved: [6, 7, 8], score: 10 },
       // ]
-      let keywordScore = [];
+      const keywordScore = [];
 
       // TOKENS:       0   1   2
       // CHAR OFFSET: 0123456789
@@ -217,7 +215,8 @@ export default {
         const numWords = keyword.word.split(' ').length;
         let match;
         const re = new RegExp(`${keyword.word}`, 'gi');
-        while ((match = re.exec(text)) != null) {
+        match = re.exec(text);
+        while (match != null) {
           // using match.index to find token index
           const tokenIndex = characterOffset2TokenID.get(match.index);
 
@@ -237,6 +236,8 @@ export default {
             involved: involvedTokenIDs,
             score: keyword.score * avgConfidence,
           });
+
+          match = re.exec(text);
         }
       });
 
@@ -244,7 +245,7 @@ export default {
       console.log(keywordScore);
 
       // sort the keywordScores by value
-      keywordScore = keywordScore.sort((a, b) => b.score - a.score);
+      // keywordScore = keywordScore.sort((a, b) => b.score - a.score);
 
       // then just use the top 3 keywords
       // const maximum = Math.min(3, keywordScore.length);

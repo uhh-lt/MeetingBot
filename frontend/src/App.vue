@@ -221,7 +221,7 @@ export default {
       let nearestContainer;
       let distance = -1;
       let minDistance = 10000000;
-      for (let id = 0; id < allContainers.length; id++) {
+      for (let id = 0; id < allContainers.length; id += 1) {
         container = allContainers[id];
         container.style.backgroundColor = '';
         distance = Math.abs(container.offsetTop - middle);

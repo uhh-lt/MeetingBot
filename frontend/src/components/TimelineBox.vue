@@ -3,7 +3,7 @@
     <div class="tl-content">
       <div class="d-flex">
         <div class="p-2" style="position:relative;">
-          <img v-on:click="counter++" :src="'/avatars/'+img" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
+          <img :src="'/avatars/'+img" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
           <h6 style="margin-top:74px; white-space: nowrap; text-align:center; min-width:64px;">{{name}}</h6>
         </div>
         <div class="p-2 flex-grow-1">
@@ -28,11 +28,6 @@ export default {
   name: 'TimelineBox',
   components: { TimelineUtterance },
   props: ['utterance', 'name', 'img', 'mode', 'showConfidence', 'showKeywords', 'keywordColor'],
-  computed: {
-    utteranceID() {
-      return this.utterance[0].id;
-    },
-  },
 };
 </script>
 

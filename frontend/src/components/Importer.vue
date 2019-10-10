@@ -29,7 +29,7 @@
           <template v-if="successfulImport">
 
             <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-bottom: 10px;">
-              <li v-for="(event, id) in events"  class="nav-item">
+              <li v-for="(event, id) in events"  class="nav-item" :key="'successfulImport-'+id">
                 <a v-on:click="selectTab(id)" class="nav-link" :class="{'show': id === 0, 'active': id === 0}" :id="'importer-tab-'+id" data-toggle="tab" :href="'#importer2-tab-'+id" role="tab" :aria-controls="'importer2-tab-'+id" aria-selected="false">{{event.title}}</a>
               </li>
             </ul>
@@ -38,7 +38,7 @@
 
               <template v-for="(event, id) in events">
 
-                <div class="tab-pane fade" :class="{'show': id === 0, 'active': id === 0}" :id="'importer2-tab-'+id" role="tabpanel" :aria-labelledby="'importer-tab-'+id">
+                <div class="tab-pane fade" :class="{'show': id === 0, 'active': id === 0}" :id="'importer2-tab-'+id" role="tabpanel" :aria-labelledby="'importer-tab-'+id" :key="'event-content-'+id">
 
                   <div class="form-group px-2">
                     <label :for="'numAttendants-'+id"># Teilnehmer: {{event.selectedAttendents}}</label>

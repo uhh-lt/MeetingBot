@@ -4,8 +4,7 @@
       <div v-for="a in agenda" class="progress-bar progress-bar-padding progress-bar-bg progress-bar-font" :key="'bg'+a.id" :style="a.style" role="progressbar" aria-valuemin="0" aria-valuemax="100">{{a.title}}</div>
     </div>
     <div class="progress absolute-progress-small" style="background-color: transparent !important;">
-      <div v-for="a in agenda"
-           v-if="a.status === 'finished' || a.status === 'active'"
+      <div v-for="a in finishedOrActiveAgendaPoints"
            :style="'width:'+calcAgendaWidth(a)+'%;'"
            :class="{'finished': a.status === 'finished', 'active': a.status === 'active', 'error': a.status ==='active' && currentTime >= a.planned, 'warning': a.status ==='active' && currentTime >= (a.planned - warnTime)}"
            :key="a.id"
@@ -99,6 +98,9 @@ export default {
     totalTime() {
       return this.agenda[this.agenda.length - 1].planned;
     },
+    finishedOrActiveAgendaPoints() {
+      return this.agenda.filter(agenda => agenda.status === 'finished' || agenda.status === 'active');
+    },
   },
   methods: {
     calcAgendaWidth(agenda) {
@@ -176,16 +178,12 @@ export default {
         const agendaTime = parseInt(settings.agendaTime[i], 10);
 
         let status = '';
-        let start = -1;
-        let end = -1;
+        let { start, end } = this.agenda[i];
         if (i === this.currentAgendaPoint) {
           status = 'active';
-          start = this.agenda[i].start;
           end = -1;
         } else if (i < this.currentAgendaPoint) {
           status = 'finished';
-          start = this.agenda[i].start;
-          end = this.agenda[i].end;
         } else {
           status = 'pending';
           start = -1;

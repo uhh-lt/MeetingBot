@@ -2,7 +2,7 @@
   <div style="height: 100%;" class="row">
     <div class="col-8 disable-scrollbars" style="height: 100%; overflow-y: scroll;" id="agenda-list">
       <ul class="list-group">
-        <li v-for="(title, id) in agendaTitles" v-if="id < agendaPoints" :key="'agendavisualizer-title-'+id" :id="'agendavisualizer-title-'+id" :class="{active: id === currentAgendaPoint, disabled: id < currentAgendaPoint}" class="list-group-item">
+        <li v-for="(title, id) in filteredAgendaTitles" :key="'agendavisualizer-title-'+id" :id="'agendavisualizer-title-'+id" :class="{active: id === currentAgendaPoint, disabled: id < currentAgendaPoint}" class="list-group-item">
           {{title}} <span style="text-align:right;">({{agendaTime[id]}} min)</span>
         </li>
       </ul>
@@ -26,6 +26,11 @@ export default {
       agendaTime: [10, 10, 10, 10],
       agendaPoints: 4,
     };
+  },
+  computed: {
+    filteredAgendaTitles() {
+      return this.agendaTitles.slice(0, this.agendaPoints);
+    },
   },
   mounted() {
     // listen to events
