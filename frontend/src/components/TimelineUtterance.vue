@@ -51,7 +51,7 @@ export default {
     confword2HTML(word, confidence) {
       let confidenceSpan;
       if (this.showConfidence === 'true') {
-        confidenceSpan = `<span style="color:rgba(0,0,0,${confidence * confidence});" title="C: ${confidence.toFixed(4)}">`;
+        confidenceSpan = `<span style="color:rgba(0,0,0,${Math.max(confidence * confidence, 0.1)});" title="C: ${confidence.toFixed(4)}">`;
       } else if (this.showConfidence === 'false') {
         confidenceSpan = `<span class="forceColor" title="C: ${confidence.toFixed(4)}">`;
       }
@@ -61,7 +61,7 @@ export default {
       let confidenceSpan;
       let keywordSpan;
       if (this.showConfidence === 'true') {
-        confidenceSpan = `<span style="color:rgba(0,0,0,${confidence * confidence});">`;
+        confidenceSpan = `<span style="color:rgba(0,0,0,${Math.max(confidence * confidence, 0.1)});">`;
       } else if (this.showConfidence === 'false') {
         confidenceSpan = '<span class="forceColor">';
       }
@@ -133,20 +133,50 @@ export default {
     visualizeConfidenceAndKeywordsFull(utterance) {
       const { confidences } = utterance;
       const tokens = utterance.text.split(' ');
-      const { keywordnessTokenMap } = utterance;
+      let { keywordInfo } = utterance;
+
+      if (keywordInfo.length > 0) {
+        keywordInfo = keywordInfo.sort((a, b) => a.involved[0] - b.involved[0]);
+      }
 
       // Build the final text
       let newText = '';
-      let conf;
-      let token;
+      let nextKeywordToken = -1;
+      let currentKeywordInfo = 0;
+      if (keywordInfo.length > currentKeywordInfo) {
+        nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
+      }
       for (let i = 0; i < tokens.length; i += 1) {
-        token = tokens[i];
-        conf = confidences[i];
-        // if token is in this map, it has to be a keyword!
-        if (keywordnessTokenMap.has(i)) {
-          newText += this.keyword2HTML(token, conf, keywordnessTokenMap.get(i));
+        // keyword phrase
+        if (i === nextKeywordToken) {
+          // visualize keyword
+          if (this.showKeywords === 'true') {
+            newText += `<span class='DISPLAYKEYWORD KEYWORD' style='background:${this.keywordColor}'>`;
+          } else if (this.showKeywords === 'false') {
+            newText += '<span class="KEYWORD">';
+          }
+          for (let j = 0; j < keywordInfo[currentKeywordInfo].involved.length; j += 1) {
+            if (this.showConfidence === 'true') {
+              newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i + j] * confidences[i + j], 0.1)});" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].kwScore.toFixed(2)} | S ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
+            } else if (this.showConfidence === 'false') {
+              newText += `<span class="forceColor" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].kwScore.toFixed(2)} | S ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
+            }
+            newText += tokens[i + j];
+            newText += '</span> ';
+          }
+          newText += '</span>';
+
+          // update i
+          i += keywordInfo[currentKeywordInfo].involved.length - 1;
+
+          // update currentKeyword info & next KeywordToken
+          currentKeywordInfo += 1;
+          if (keywordInfo.length > currentKeywordInfo) {
+            nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
+          }
+        // something else
         } else {
-          newText += this.confword2HTML(token, conf);
+          newText += this.confword2HTML(tokens[i], confidences[i]);
         }
       }
       return newText.trim();

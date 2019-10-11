@@ -192,6 +192,7 @@ export default {
       fakeTime: 0,
       meeting: Store.meeting,
       currentUtterance: -1,
+      currentBubble: -1,
     };
   },
   computed: {
@@ -214,6 +215,7 @@ export default {
       if (forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
         // force update by setting this.currentUtterance to -1
         this.currentUtterance = -1;
+        this.currentBubble = -1;
       }
 
       const middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
@@ -225,7 +227,7 @@ export default {
       let minDistance = 10000000;
       for (let id = 0; id < allContainers.length; id += 1) {
         container = allContainers[id];
-        container.style.backgroundColor = '';
+        container.getElementsByClassName('timelinecontainer2')[0].style.borderColor = '';
         distance = Math.abs(container.offsetTop - middle);
         if (distance < minDistance) {
           minDistance = distance;
@@ -233,25 +235,46 @@ export default {
         }
       }
 
-      allContainers[nearestContainer].style.backgroundColor = 'red';
+      allContainers[nearestContainer].getElementsByClassName('timelinecontainer2')[0].style.borderColor = 'grey';
 
-
-      const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
-      const inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
-      if (this.currentUtterance !== newUtterance) {
-        this.currentUtterance = newUtterance;
+      // BASED ON BUBBLES
+      if (this.currentBubble !== nearestContainer) {
+        this.currentBubble = nearestContainer;
         console.log('NEW BUBBLE!');
 
         // collect keywords from utterances around current utterance
         let keywordInfos = [];
-        const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
-        const maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
+        const minRange = Math.max(this.currentBubble - this.settings.range, 0);
+        const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
+        console.log(`Min${minRange} Max${maxRange}`);
         for (let i = minRange; i <= maxRange; i += 1) {
-          const utt = this.utterances[i];
-          keywordInfos = keywordInfos.concat(utt.keywordInfo);
+          const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
+          const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
+
+          for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
+            const utt = this.utterances[j];
+            keywordInfos = keywordInfos.concat(utt.keywordInfo);
+          }
         }
         this.sendOnCurrentUtteranceChanged(keywordInfos);
       }
+      // BASED ON UTTERANCES
+      // const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
+      // const inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
+      // if (this.currentUtterance !== newUtterance) {
+      //   this.currentUtterance = newUtterance;
+      //   console.log('NEW BUBBLE!');
+      //
+      //   // collect keywords from utterances around current utterance
+      //   let keywordInfos = [];
+      //   const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
+      //   const maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
+      //   for (let i = minRange; i <= maxRange; i += 1) {
+      //     const utt = this.utterances[i];
+      //     keywordInfos = keywordInfos.concat(utt.keywordInfo);
+      //   }
+      //   this.sendOnCurrentUtteranceChanged(keywordInfos);
+      // }
     },
     sendOpenExporter() {
       this.$root.$emit('onOpenExporter');
@@ -307,7 +330,7 @@ export default {
         'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
         'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
-        'Genau und deshalb überrreiche ich jetzt das Wort direkt an Mark weiter, der uns über IT Sicherheit berichten wird',
+        'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
       ];
       const confidences = [
         Array(utterances[0].split(' ').length).fill(Math.random()),
@@ -531,7 +554,7 @@ export default {
       keywords.forEach((keyword) => {
         const numWords = keyword.word.split(' ').length;
         let match;
-        const re = new RegExp(`${keyword.word}`, 'gi');
+        const re = new RegExp(`\\b${keyword.word}\\b`, 'gi');
         match = re.exec(text);
         while (match != null) {
           // using match.index to find token index
@@ -549,6 +572,7 @@ export default {
             confis.push(confidence);
             involvedTokenIDs.push(realIndex);
           }
+          avgConfidence /= numWords;
 
           // save keywordness for keyword phrase (as token ids)
           keywordInfo.push({
@@ -849,4 +873,3 @@ export default {
     }
   }
 </style>
-                 

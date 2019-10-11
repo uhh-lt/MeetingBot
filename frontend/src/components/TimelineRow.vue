@@ -2,7 +2,7 @@
   <div class="d-flex">
     <div v-for="n in parseInt(speakers)" class="flex-even" :key="'timeline-row-'+n">
       <div v-if="n === (utterance[0].speaker + 1)" class="timelinecontainer tl-container2 tl-left2" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
-        <div class="tl-content" style="position:relative;">
+        <div class="timelinecontainer2 tl-content" style="position:relative;">
           <div style="display:table; height:100%;">
             <div style="display:table-cell; vertical-align:middle;">
               <timeline-utterance :utterance="utterance" :mode="mode" :show-confidence="showConfidence" :show-keywords="showKeywords" :keyword-color="keywordColor"></timeline-utterance>

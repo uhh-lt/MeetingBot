@@ -59,6 +59,7 @@ export default {
       // const lowKeywords = keywords.flatMap(value => value.word.split(' ')).map(value => value.toLowerCase());
       const lowKeywords = keywordInfos.flatMap(value => value.phrase).map(value => value.toLowerCase());
       lowKeywords.forEach((word) => {
+        console.log(word);
         if (newKeywordMap.has(word)) {
           newKeywordMap.set(word, newKeywordMap.get(word) + 1);
         } else {

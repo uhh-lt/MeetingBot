@@ -1,6 +1,6 @@
 <template>
   <div class="timelinecontainer tl-container tl-left" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
-    <div class="tl-content">
+    <div class="timelinecontainer2 tl-content">
       <div class="d-flex">
         <div class="p-2" style="position:relative;">
           <img :src="'/avatars/'+img" style="position:absolute; margin:auto; left:0; right:0;" class="rounded-circle" alt="speaker-img" width="64" height="64">
