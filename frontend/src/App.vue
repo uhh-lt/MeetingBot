@@ -26,15 +26,17 @@
       </div>
 
       <div class="ml-auto form-inline my-2 my-lg-0">
-<!--        <button :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">-->
-        <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
+        <button v-if="settings.controlButtonsStateDependent === 'true'" :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
+          <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
+        <button v-if="settings.controlButtonsStateDependent === 'false'" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
           <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
-                <button v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
-                  <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
-<!--        <button :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">-->
-        <button v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
+        <button v-if="settings.controlButtonsStateDependent === 'false'" v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
+            <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
+        <button v-if="settings.controlButtonsStateDependent === 'true'" :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
+          <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
+        <button v-if="settings.controlButtonsStateDependent === 'false'"  v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
         <!--        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">-->
         <!--        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>-->
@@ -181,7 +183,8 @@ export default {
         showKeywords: 'true',
         keywordColor: 'rgb(255, 255, 0)',
         range: 5,
-        randomSpeaker: false,
+        randomSpeaker: 'false',
+        controlButtonsStateDependent: 'false',
       },
       utterances: [],
       startNewUtt: true,
@@ -414,9 +417,9 @@ export default {
     addUtterance(jsonEvent, completed) {
       let utterance;
       let spkr;
-      if (this.settings.randomSpeaker) {
+      if (this.settings.randomSpeaker === 'true') {
         spkr = Math.floor(Math.random() * this.settings.speaker);
-      } else {
+      } else if (this.settings.randomSpeaker === 'false') {
         spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
       }
       if (completed) {

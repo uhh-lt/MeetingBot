@@ -117,6 +117,22 @@
                   </label>
                 </div>
               </fieldset>
+              <hr>
+              <fieldset class="form-group px-2">
+                <label>Kontroll-Buttons Status-abhängig?</label><br>
+                <div class="form-check form-check-inline">
+                  <label for="control-buttons-yes" class="form-check-label">
+                    <input v-model="controlButtonsStateDependent" class="form-check-input" type="radio" name="control-button" id="control-buttons-yes" value="true">
+                    Ja
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label for="control-buttons-no" class="form-check-label">
+                    <input v-model="controlButtonsStateDependent" class="form-check-input" type="radio" name="control-button" id="control-buttons-no" value="false">
+                    Nein
+                  </label>
+                </div>
+              </fieldset>
             </div>
             <!--              END GENERAL SETTINGS -->
 
@@ -217,7 +233,8 @@ export default {
       agendaWarnTime: '5',
       meeting: Store.meeting,
       rangeNum: '5',
-      randomSpeaker: false,
+      randomSpeaker: 'false',
+      controlButtonsStateDependent: 'true',
     };
   },
   mounted() {
@@ -281,6 +298,7 @@ export default {
       this.agendaWarnTime = this.oldSettings.agendaWarnTime;
       this.rangeNum = this.oldSettings.range;
       this.randomSpeaker = this.oldSettings.randomSpeaker;
+      this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
     },
     saveSettings() {
       const settings = {
@@ -300,6 +318,7 @@ export default {
         agendaWarnTime: this.agendaWarnTime,
         range: this.range,
         randomSpeaker: this.randomSpeaker,
+        controlButtonsStateDependent: this.controlButtonsStateDependent,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
