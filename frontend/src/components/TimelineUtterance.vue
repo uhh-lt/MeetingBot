@@ -26,11 +26,14 @@ export default {
               html = '';
               break;
           }
-          text += `${html}<br>`;
+          if (html !== '...') {
+            text += `${html}<br>`;
+          }
         } else {
           text += `${this.renderUtterance(utterance)} `;
         }
       });
+      this.$parent.updateLetterCount(text.trim());
       return text.trim();
     },
   },
@@ -43,9 +46,9 @@ export default {
     },
     mergeFiller(string) {
       let result = string;
-      const find = '-+(\\s*-*)*';
+      const find = '\\.+(\\s*\\.*)*';
       const re = new RegExp(find, 'g');
-      result = result.replace(re, ' --- ');
+      result = result.replace(re, ' ... ');
       return result;
     },
     confword2HTML(word, confidence) {
@@ -85,7 +88,7 @@ export default {
         if (keywordnessTokenMap.has(i)) {
           newText += this.keyword2HTML(word, conf, keywordnessTokenMap.get(i));
         } else {
-          newText += `${this.fillArray('-', word.length).join('')} `;
+          newText += `${this.fillArray('.', word.length).join('')} `;
         }
       }
       newText = this.mergeFiller(newText);
@@ -113,7 +116,7 @@ export default {
         word = text[i];
         switch (isImportantWord[i]) {
           case 0: // not important
-            newText += `${this.fillArray('-', word.length).join('')} `;
+            newText += `${this.fillArray('.', word.length).join('')} `;
             break;
           case 1: // keyword
             conf = utterance.confidences[i];

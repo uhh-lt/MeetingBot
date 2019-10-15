@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex">
+  <div class="d-flex" :class="{nodisplay: numLetters === 0}">
     <div v-for="n in parseInt(speakers)" class="flex-even" :key="'timeline-row-'+n">
       <div v-if="n === (utterance[0].speaker + 1)" class="timelinecontainer tl-container2 tl-left2" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
         <div class="timelinecontainer2 tl-content" style="position:relative;">
@@ -26,9 +26,21 @@ export default {
   name: 'TimelineRow',
   components: { TimelineUtterance },
   props: ['utterance', 'mode', 'showConfidence', 'showKeywords', 'keywordColor', 'speakers'],
+  data() {
+    return {
+      numLetters: 0,
+    };
+  },
+  methods: {
+    updateLetterCount(text) {
+      this.numLetters = text.length;
+    },
+  },
 };
 </script>
 
 <style scoped>
-
+  .nodisplay {
+    display: none !important;
+  }
 </style>

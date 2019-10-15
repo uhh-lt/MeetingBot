@@ -1,5 +1,5 @@
 <template>
-  <div class="timelinecontainer tl-container tl-left" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
+  <div class="timelinecontainer tl-container tl-left" :class="{nodisplay: numLetters === 0}" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
     <div class="timelinecontainer2 tl-content">
       <div class="d-flex">
         <div class="p-2" style="position:relative;">
@@ -28,9 +28,21 @@ export default {
   name: 'TimelineBox',
   components: { TimelineUtterance },
   props: ['utterance', 'name', 'img', 'mode', 'showConfidence', 'showKeywords', 'keywordColor'],
+  data() {
+    return {
+      numLetters: 0,
+    };
+  },
+  methods: {
+    updateLetterCount(text) {
+      this.numLetters = text.length;
+    },
+  },
 };
 </script>
 
 <style scoped>
-
+  .nodisplay {
+    display: none;
+  }
 </style>
