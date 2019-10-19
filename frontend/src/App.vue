@@ -8,6 +8,9 @@
     <importer></importer>
 
 <!--    START NAVBAR-->
+
+    <word-graph></word-graph>
+
     <nav id="navigation" class="justify-content-start navbar sticky-top navbar-dark bg-dark">
 
       <a class="navbar-brand" href="#">
@@ -122,12 +125,14 @@ import ControlBar from './components/ControlBar.vue';
 import Settings from './components/Settings.vue';
 import Exporter from './components/Exporter.vue';
 import Importer from './components/Importer.vue';
+import WordGraph from "./components/WordGraph";
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
+    WordGraph,
     Importer,
     Exporter,
     Settings,
