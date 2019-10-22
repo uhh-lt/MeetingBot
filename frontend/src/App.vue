@@ -261,7 +261,8 @@ export default {
 
           for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
             const utt = this.utterances[j];
-            keywordInfos = keywordInfos.concat(utt.keywordInfo);
+            // keywordInfos = keywordInfos.concat(utt.keywordInfo);
+            keywordInfos.push(utt.keywordInfo);
           }
         }
         this.sendOnCurrentUtteranceChanged(keywordInfos);

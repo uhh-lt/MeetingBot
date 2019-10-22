@@ -37,7 +37,7 @@ export default {
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     // this.$root.$on('onNewKeywords', this.handleNewKeywords);
     this.$root.$on('onReset', this.onReset);
-    this.$root.$on('onCurrentUtteranceChanged', this.onCurrentUtteranceChanged);
+    // this.$root.$on('onCurrentUtteranceChanged', this.onCurrentUtteranceChanged);
   },
   methods: {
     onReset() {
