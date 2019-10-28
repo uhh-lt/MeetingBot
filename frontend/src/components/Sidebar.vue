@@ -18,7 +18,8 @@
         <span style="margin-left:0.5em;">Wort Wolke</span>
       </h5>
       <div id="wordcloud-container" :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
-        <WordCloud :width="wordCloudSize.width" :height="wordCloudSize.height"></WordCloud>
+<!--        <WordCloud :width="wordCloudSize.width" :height="wordCloudSize.height"></WordCloud>-->
+        <WordGraph :width="wordCloudSize.width" :height="wordCloudSize.height"></WordGraph>
       </div>
     </div>
 
@@ -38,13 +39,13 @@
 
 <script>
 import BarChart from './BarChart.vue';
-import WordCloud from './WordCloud.vue';
 import AgendaVisualizer from './AgendaVisualizer.vue';
+import WordGraph from "./WordGraph";
 
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
-  components: { AgendaVisualizer, WordCloud, BarChart },
+  components: {WordGraph, AgendaVisualizer, BarChart },
   data() {
     return {
       sidebarElements: [false, false, false],

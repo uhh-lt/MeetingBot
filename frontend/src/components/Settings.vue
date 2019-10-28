@@ -101,6 +101,21 @@
                 <label for="wordcloudrange">Anzahl Aussagen vor und nach aktueller Aussage für Word Cloud: {{rangeNum}}</label>
                 <input v-model="rangeNum" type="range" class="custom-range" min="0" max="10" id="wordcloudrange">
               </div>
+              <fieldset class="form-group px-2">
+                <label>Visualisiere Kanten im Word Graph?</label><br>
+                <div class="form-check form-check-inline">
+                  <label for="visualize-links-yes" class="form-check-label">
+                    <input v-model="visualizeLinks" class="form-check-input" type="radio" name="visualize-links" id="visualize-links-yes" value="true">
+                    Ja
+                  </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label for="visualize-links-no" class="form-check-label">
+                    <input v-model="visualizeLinks" class="form-check-input" type="radio" name="visualize-links" id="visualize-links-no" value="false">
+                    Nein
+                  </label>
+                </div>
+              </fieldset>
               <hr>
               <fieldset class="form-group px-2">
                 <label>Zufälliger Sprecher:</label><br>
@@ -235,6 +250,7 @@ export default {
       rangeNum: '5',
       randomSpeaker: 'false',
       controlButtonsStateDependent: 'true',
+      visualizeLinks: 'false',
     };
   },
   mounted() {
@@ -299,6 +315,7 @@ export default {
       this.rangeNum = this.oldSettings.range;
       this.randomSpeaker = this.oldSettings.randomSpeaker;
       this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
+      this.visualizeLinks = this.oldSettings.visualizeLinks;
     },
     saveSettings() {
       const settings = {
@@ -319,6 +336,7 @@ export default {
         range: this.range,
         randomSpeaker: this.randomSpeaker,
         controlButtonsStateDependent: this.controlButtonsStateDependent,
+        visualizeLinks: this.visualizeLinks,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));

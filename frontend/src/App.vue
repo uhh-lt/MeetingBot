@@ -9,8 +9,6 @@
 
 <!--    START NAVBAR-->
 
-    <word-graph></word-graph>
-
     <nav id="navigation" class="justify-content-start navbar sticky-top navbar-dark bg-dark">
 
       <a class="navbar-brand" href="#">
@@ -125,14 +123,12 @@ import ControlBar from './components/ControlBar.vue';
 import Settings from './components/Settings.vue';
 import Exporter from './components/Exporter.vue';
 import Importer from './components/Importer.vue';
-import WordGraph from "./components/WordGraph";
 
 require('@/assets/css/main.css');
 
 export default {
   name: 'app',
   components: {
-    WordGraph,
     Importer,
     Exporter,
     Settings,
@@ -251,7 +247,7 @@ export default {
         console.log('NEW BUBBLE!');
 
         // collect keywords from utterances around current utterance
-        let keywordInfos = [];
+        const keywordInfos = [];
         const minRange = Math.max(this.currentBubble - this.settings.range, 0);
         const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
         console.log(`Min${minRange} Max${maxRange}`);
@@ -260,12 +256,13 @@ export default {
           const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
 
           for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-            const utt = this.utterances[j];
-            // keywordInfos = keywordInfos.concat(utt.keywordInfo);
-            keywordInfos.push(utt.keywordInfo);
+            const { keywordInfo } = this.utterances[j];
+            // eslint-disable-next-line no-param-reassign
+            keywordInfo.forEach((info) => { info.age = i; });
+            keywordInfos.push(keywordInfo);
           }
         }
-        this.sendOnCurrentUtteranceChanged(keywordInfos);
+        this.sendOnCurrentUtteranceChanged(keywordInfos, minRange, this.currentBubble + this.settings.range);
       }
       // BASED ON UTTERANCES
       // const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
@@ -302,8 +299,8 @@ export default {
     sendKeywords(keywords) {
       this.$root.$emit('onNewKeywords', keywords);
     },
-    sendOnCurrentUtteranceChanged(keywords) {
-      this.$root.$emit('onCurrentUtteranceChanged', keywords);
+    sendOnCurrentUtteranceChanged(keywords, minRange, maxRange) {
+      this.$root.$emit('onCurrentUtteranceChanged', keywords, minRange, maxRange);
     },
     onReset() {
       this.utterances = [];

@@ -10,6 +10,7 @@ function Graph() {
       const updatedNode = this.nodeIDMap.get(node.id);
       updatedNode.count = node.count;
       updatedNode.group = node.group;
+      updatedNode.age = node.age;
       addedNode = updatedNode;
     } else {
       addedNode = node;
@@ -85,6 +86,36 @@ function Graph() {
         node2Edges.splice(index2, 1);
       }
     }
+  };
+
+  this.DFSUTIL = (v, visited, partialResult) => {
+    visited.set(v, true);
+    partialResult.push(v);
+    console.log(`${v} `);
+    // Recur for all the vertices
+    // adjacent to this vertex
+    this.edges.get(v).forEach((connectedNode) => {
+      if (!visited.get(connectedNode)) {
+        this.DFSUTIL(connectedNode, visited, partialResult);
+      }
+    });
+  };
+
+  this.connectedComponents = () => {
+    const visited = new Map();
+    const result = [];
+    this.nodes.forEach((nodeID) => {
+      visited.set(nodeID, false);
+    });
+    this.nodes.forEach((nodeID) => {
+      if (!visited.get(nodeID)) {
+        const partialResult = [];
+        this.DFSUTIL(nodeID, visited, partialResult);
+        console.log('-------');
+        result.push(partialResult);
+      }
+    });
+    return result.map(partialResult => partialResult.map(nodeID => this.nodeIDMap.get(nodeID)));
   };
 
   this.getNodeList = () => this.nodes.map(nodeID => this.nodeIDMap.get(nodeID));
