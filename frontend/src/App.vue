@@ -3,7 +3,8 @@
 
     <settings></settings>
 
-    <exporter :utterances="utterances"></exporter>
+<!--    <exporter :utterances="utterances"></exporter>-->
+    <exporter v-model="utterances"></exporter>
 
     <importer></importer>
 
@@ -197,6 +198,7 @@ export default {
       meeting: Store.meeting,
       currentUtterance: -1,
       currentBubble: -1,
+      newUtteranceID: 0,
     };
   },
   computed: {
@@ -246,6 +248,9 @@ export default {
         this.currentBubble = nearestContainer;
         console.log('NEW BUBBLE!');
 
+        // TODO: NEED MAP!
+        const utteranceIDList = this.utterances.map(utterance => utterance.id);
+
         // collect keywords from utterances around current utterance
         const keywordInfos = [];
         const minRange = Math.max(this.currentBubble - this.settings.range, 0);
@@ -256,7 +261,7 @@ export default {
           const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
 
           for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-            const { keywordInfo } = this.utterances[j];
+            const { keywordInfo } = this.utterances[utteranceIDList.indexOf(utteranceID)];
             // eslint-disable-next-line no-param-reassign
             keywordInfo.forEach((info) => { info.age = i; });
             keywordInfos.push(keywordInfo);
@@ -437,7 +442,7 @@ export default {
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
-          id: this.utterances.length,
+          id: this.newUtteranceID,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
           confidences: jsonEvent.confidences,
@@ -460,7 +465,7 @@ export default {
           time: jsonEvent.time,
           startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
           endTime: 0,
-          id: this.utterances.length,
+          id: this.newUtteranceID,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
           confidences: [],
@@ -468,6 +473,7 @@ export default {
         };
         this.utterances.push(utterance);
       }
+      this.newUtteranceID += 1;
     },
     replaceLastUtterance(jsonEvent, completedUtterance) {
       if (completedUtterance) {

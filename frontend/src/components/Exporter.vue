@@ -18,26 +18,26 @@
           </ol>
           <br>
 
-          <template v-for="(title, id) in editorAgendaTitles">
-            <h2 :id="'a'+id" :key="'editor-agenda-headline-'+id">
-              <i v-if="!editorAgendaVisibility[id]" v-on:click="toggleEditorAgenda(id)" class="fas fa-chevron-down"></i>
-              <i v-if="editorAgendaVisibility[id]" v-on:click="toggleEditorAgenda(id)" class="fas fa-chevron-up"></i>
+          <template v-for="(title, agendaID) in editorAgendaTitles">
+            <h2 :id="'a'+agendaID" :key="'editor-agenda-headline-'+agendaID">
+              <i v-if="!editorAgendaVisibility[agendaID]" v-on:click="toggleEditorAgenda(agendaID)" class="fas fa-chevron-down"></i>
+              <i v-if="editorAgendaVisibility[agendaID]" v-on:click="toggleEditorAgenda(agendaID)" class="fas fa-chevron-up"></i>
               {{title}}
             </h2>
-            <div :style="editorAgendaVisibility[id] ? '' : 'display:none'" class="form-group" :key="'editor-agenda-container-'+id">
-              <template v-for="(utterance, uID) in editorUtterances[id]">
-                <div class="row" :key="'editor-agenda-'+id+'-utterance-'+uID">
-                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
+            <div :style="editorAgendaVisibility[agendaID] ? '' : 'display:none'" class="form-group" :key="'editor-agenda-container-'+agendaID">
+              <template v-for="(utterance, utteranceID) in editorUtterances[agendaID]">
+                <div class="row" :key="'editor-agenda-'+agendaID+'-utterance-'+utteranceID">
+<!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
+                  <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[agendaID][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
+                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
-                    <i style="font-size: 24px;" class="fas fa-trash" v-on:click="deleteUtterance(agendaId, utteranceID)"></i></div>
-                  <div :id="'agenda-'+id+'-utterance-'+uID" class="col-sm-8 form-control-plaintext" contenteditable v-html="utterance.html"></div>
-                  <div class="col-sm-1 col-form-label" style="text-align: center;">
-                    <i style="font-size: 24px;" class="fas"
+                    <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(agendaID, utteranceID)"></i>
+                    <i style="font-size: 24px; float:right;" class="fas"
                        :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
                 </div>
               </template>
             </div>
-            <hr :key="'editor-agenda-line-'+id">
+            <hr :key="'editor-agenda-line-'+agendaID">
           </template>
           <h2>
             <i v-if="!editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-down"></i>
@@ -48,18 +48,17 @@
             <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
               <div class="row" :key="'editor-agenda-sonstige-'+uID">
                 <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                <div class="col-sm-1 col-form-label" style="text-align: center;">
-                  <i style="font-size: 24px;" class="fas fa-trash"></i></div>
-                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-8 form-control-plaintext" contenteditable v-html="utterance.html"></div>
-                <div class="col-sm-1 col-form-label" style="text-align: center;">
-                  <i style="font-size: 24px;" class="fas"
+                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
+                <div class="col-sm-1 col-form-label">
+                  <i style="font-size: 24px; float:left;" class="fas fa-trash"></i>
+                  <i style="font-size: 24px; float:right" class="fas"
                      :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
               </div>
             </template>
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button v-on:click="updateEditorUtterances" type="button" class="btn btn-primary mr-auto">Aussagen aktualisieren</button>
+          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" title="ACHTUNG: Konfidenz Informationen gehen verloren!">Gesprächsverlauf aktualisieren</button>
           <button type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
           <a class="btn btn-primary" :href="mailto">E-Mail schreiben</a>
           <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">PDF herunterladen</button>
@@ -75,7 +74,7 @@ import JSPDF from 'jspdf';
 
 export default {
   name: 'Exporter',
-  props: ['utterances'],
+  props: ['value'],
   data() {
     return {
       setttings: {},
@@ -87,6 +86,7 @@ export default {
       editorSpeakername: [],
       firstTime: true,
       mailto: '',
+      utterances: this.value,
     };
   },
   mounted() {
@@ -96,6 +96,9 @@ export default {
     this.$root.$on('onReset', this.onReset);
   },
   methods: {
+    updateValue(newValue) {
+      this.$emit('input', newValue);
+    },
     onReset() {
       this.firstTime = true;
     },
@@ -143,12 +146,25 @@ export default {
       this.editorAgendaVisibility = this.editorAgendaVisibility.slice(0);
     },
     getEditedUtteranceText(agendaID, utteranceID) {
-      const elementID = `agenda-${agendaID}-utterance-${utteranceID}`;
-      const text = document.getElementById(elementID).innerHTML;
-      return text;
+      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent;
     },
     deleteUtterance(agendaId, utteranceID) {
-      this.editorUtterances[agendaId][utteranceID].html = 'Tim ist toll';
+      this.editorUtterances[agendaId].splice(utteranceID, 1);
+    },
+    applyChanges() {
+      const result = [];
+      for (let agendaID = 0; agendaID < this.editorAgendaPoints + 1; agendaID += 1) {
+        const utterances = this.editorUtterances[agendaID];
+        let utterance;
+        for (let uID = 0; uID < utterances.length; uID += 1) {
+          utterance = utterances[uID];
+          utterance.text = this.getEditedUtteranceText(agendaID, uID);
+          utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
+          result.push(utterance);
+        }
+      }
+      console.log(result);
+      this.updateValue(result.slice());
     },
     updateEditorUtterances() {
       const today = new Date();
@@ -170,17 +186,13 @@ export default {
 
       this.editorUtterances = [];
       for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
-        let utterances = this.utterances.filter(value => value.agenda === i);
-        utterances = this.jsonCopy(utterances);
+        const utterances = this.jsonCopy(this.utterances.filter(value => value.agenda === i));
 
-        let lastSpeaker = -1337;
         let numConfidences = 0;
         for (let j = 0; j < utterances.length; j += 1) {
           const utterance = utterances[j];
-          utterance.showSpeaker = utterance.speaker !== lastSpeaker;
           numConfidences = utterance.confidences.length;
           utterance.score = utterance.confidences.reduce((a, b) => a + b) / numConfidences;
-          lastSpeaker = utterance.speaker;
           utterance.html = this.visualizeUtterance(utterance);
         }
         this.editorUtterances.push(utterances);
