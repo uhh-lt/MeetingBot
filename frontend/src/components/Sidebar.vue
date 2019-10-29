@@ -40,12 +40,12 @@
 <script>
 import BarChart from './BarChart.vue';
 import AgendaVisualizer from './AgendaVisualizer.vue';
-import WordGraph from "./WordGraph";
+import WordGraph from './WordGraph.vue';
 
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
-  components: {WordGraph, AgendaVisualizer, BarChart },
+  components: { WordGraph, AgendaVisualizer, BarChart },
   data() {
     return {
       sidebarElements: [false, false, false],

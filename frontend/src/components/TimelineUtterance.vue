@@ -147,6 +147,7 @@ export default {
       let nextKeywordToken = -1;
       let currentKeywordInfo = 0;
       if (keywordInfo.length > currentKeywordInfo) {
+        // eslint-disable-next-line prefer-destructuring
         nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
       }
       for (let i = 0; i < tokens.length; i += 1) {
@@ -175,6 +176,7 @@ export default {
           // update currentKeyword info & next KeywordToken
           currentKeywordInfo += 1;
           if (keywordInfo.length > currentKeywordInfo) {
+            // eslint-disable-next-line prefer-destructuring
             nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
           }
         // something else
