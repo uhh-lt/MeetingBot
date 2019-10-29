@@ -28,7 +28,9 @@
               <template v-for="(utterance, uID) in editorUtterances[id]">
                 <div class="row" :key="'editor-agenda-'+id+'-utterance-'+uID">
                   <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                  <div :id="'agenda-'+id+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
+                  <div class="col-sm-1 col-form-label" style="text-align: center;">
+                    <i style="font-size: 24px;" class="fas fa-trash" v-on:click="deleteUtterance(agendaId, utteranceID)"></i></div>
+                  <div :id="'agenda-'+id+'-utterance-'+uID" class="col-sm-8 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
                     <i style="font-size: 24px;" class="fas"
                        :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
@@ -46,7 +48,9 @@
             <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
               <div class="row" :key="'editor-agenda-sonstige-'+uID">
                 <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
+                <div class="col-sm-1 col-form-label" style="text-align: center;">
+                  <i style="font-size: 24px;" class="fas fa-trash"></i></div>
+                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-8 form-control-plaintext" contenteditable v-html="utterance.html"></div>
                 <div class="col-sm-1 col-form-label" style="text-align: center;">
                   <i style="font-size: 24px;" class="fas"
                      :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
@@ -142,6 +146,9 @@ export default {
       const elementID = `agenda-${agendaID}-utterance-${utteranceID}`;
       const text = document.getElementById(elementID).innerHTML;
       return text;
+    },
+    deleteUtterance(agendaId, utteranceID) {
+      this.editorUtterances[agendaId][utteranceID].html = 'Tim ist toll';
     },
     updateEditorUtterances() {
       const today = new Date();
