@@ -15,7 +15,8 @@ export default {
   props: ['height', 'width'],
   data() {
     return {
-      colorScale: d3.scaleOrdinal(d3.schemeCategory10),
+      colorScale: d3.scaleLinear(d3.schemeCategory10),
+      colorScaleNEW: d3.schemeCategory10,
       svg: null,
       g: null,
       currentNodeID: 0,
@@ -32,6 +33,7 @@ export default {
       simulation: null,
       newNodeID: 0,
       graph: new Graph(),
+      settings: null,
     };
   },
   watch: {
@@ -77,14 +79,15 @@ export default {
       }
     },
     onSettingsSaved(settings) {
+      this.settings = settings;
       this.visualizeLinks(settings.visualizeLinks === 'true');
     },
     onCurrentUtteranceChanged(keywordInfos, minAge, maxAge) {
-      console.log('Recieved new keywords!');
-      console.log(keywordInfos);
+      // console.log('Recieved new keywords!');
+      // console.log(keywordInfos);
 
       // build a map that contains all new keywords
-      const newKeywordMap = new Map();
+      let newKeywordMap = new Map();
       const newLinks = [];
 
       // loop over keyword infos for utterance
@@ -132,14 +135,15 @@ export default {
         }
       });
 
-      // // normalize ages
+      // normalize ages
       const maxMinDif = maxAge - minAge;
       const scaleFactor = 9 / 10;
       newKeywordMap.forEach((word) => {
         word.age = scaleFactor * ((word.age - minAge) / maxMinDif);
       });
 
-      console.log(newKeywordMap);
+      // limit node count to settings: sort by age, ascending, then only take first n elements
+      newKeywordMap = new Map([...newKeywordMap.entries()].sort((a, b) => a[1].age - b[1].age).slice(0, this.settings.wordCloudWords));
 
       // remove nodes that are not needed anymore
       this.graph.nodeIDMap.forEach((node) => {
@@ -168,7 +172,11 @@ export default {
       this.restart();
     },
     color(d) {
-      const color = d3.color(this.colorScale(d.group));
+      // const color = d3.color(this.colorScale(d.group));
+      let color = d3.color('black');
+      if (d.group < this.colorScaleNEW.length) {
+        color = d3.color(this.colorScaleNEW[d.group]);
+      }
       return `rgb(${color.r + d.age * (255 - color.r)},${color.g + d.age * (255 - color.g)},${color.b + d.age * (255 - color.b)})`;
     },
     drag(simulation) {
@@ -251,15 +259,34 @@ export default {
       this.simulation.force('link').links(this.links);
       this.simulation.alpha(1).restart();
 
+      // assign groups depending on connected nodes
       const result = this.graph.connectedComponents();
+      const groups = [];
       let group = 0;
       result.forEach((connectedComponent) => {
+        const groupCounter = new Map();
         connectedComponent.forEach((node) => {
-          node.group = group;
+          groupCounter.set(node.group, groupCounter.has(node.group) ? groupCounter.get(node.group) + 1 : 1);
         });
-        group += 1;
+        // console.log('Connected Components:');
+        // console.log(connectedComponent);
+        // console.log(groupCounter);
+        const maxGroup = [...groupCounter.entries()].sort((a, b) => b[1] - a[1]).slice(0, 1)[0][0];
+        // console.log(maxGroup);
+        let assignGroup = 0;
+        if (groups.indexOf(maxGroup) < 0) {
+          assignGroup = maxGroup;
+        } else {
+          while (groups.indexOf(group) >= 0) {
+            group += 1;
+          }
+          assignGroup = group;
+        }
+        groups.push(assignGroup);
+        connectedComponent.forEach((node) => {
+          node.group = assignGroup;
+        });
       });
-      console.log(result);
     },
   },
 };

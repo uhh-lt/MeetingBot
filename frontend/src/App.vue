@@ -223,7 +223,7 @@ export default {
       }
 
       const middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
-      const allContainers = this.$refs.timelineRef.getElementsByClassName('timelinecontainer');
+      const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
 
       let container;
       let nearestContainer;
@@ -262,7 +262,11 @@ export default {
             keywordInfos.push(keywordInfo);
           }
         }
-        this.sendOnCurrentUtteranceChanged(keywordInfos, minRange, this.currentBubble + this.settings.range);
+
+        const totalRange = 2 * this.settings.range + 1;
+        const newMinRange = Math.max(this.currentBubble - this.settings.range, 0);
+        const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
+        this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
       }
       // BASED ON UTTERANCES
       // const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
@@ -523,14 +527,14 @@ export default {
       const { text } = utterance;
       const tokens = utterance.text.split(' ');
 
-      console.log('TL_UTT Text');
-      console.log(text);
-      console.log('TL_UTT Tokens');
-      console.log(tokens);
-      console.log('TL_UTT Keywords');
-      console.log(keywords);
-      console.log('TL_UTT Confidences');
-      console.log(confidences);
+      // console.log('TL_UTT Text');
+      // console.log(text);
+      // console.log('TL_UTT Tokens');
+      // console.log(tokens);
+      // console.log('TL_UTT Keywords');
+      // console.log(keywords);
+      // console.log('TL_UTT Confidences');
+      // console.log(confidences);
 
       // map that stores a keywordScore for each array of involved tokenIndices
       // [
@@ -553,8 +557,8 @@ export default {
         }
         offset += 1;
       }
-      console.log('TL_UTT Character2TokenID');
-      console.log(characterOffset2TokenID);
+      // console.log('TL_UTT Character2TokenID');
+      // console.log(characterOffset2TokenID);
 
       // perform regex search for each keyword in the list
       keywords.forEach((keyword) => {
@@ -595,8 +599,8 @@ export default {
         }
       });
 
-      console.log('TL_UTT keywordInfo');
-      console.log(keywordInfo);
+      // console.log('TL_UTT keywordInfo');
+      // console.log(keywordInfo);
 
       // filter the keywordInfo so that only the "REAL" keywords are processed further
       keywordInfo = keywordInfo.filter(info => info.score > 10.0);
@@ -614,8 +618,8 @@ export default {
         });
       });
 
-      console.log('TL_UTT ProcessedKeywordScores');
-      console.log(keywordnessTokenMap);
+      // console.log('TL_UTT ProcessedKeywordScores');
+      // console.log(keywordnessTokenMap);
 
       return { keywordnessTokenMap, keywordInfo };
     },

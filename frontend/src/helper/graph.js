@@ -9,7 +9,7 @@ function Graph() {
     if (this.nodeIDMap.has(node.id)) {
       const updatedNode = this.nodeIDMap.get(node.id);
       updatedNode.count = node.count;
-      updatedNode.group = node.group;
+      // updatedNode.group = node.group;
       updatedNode.age = node.age;
       addedNode = updatedNode;
     } else {
@@ -91,7 +91,6 @@ function Graph() {
   this.DFSUTIL = (v, visited, partialResult) => {
     visited.set(v, true);
     partialResult.push(v);
-    console.log(`${v} `);
     // Recur for all the vertices
     // adjacent to this vertex
     this.edges.get(v).forEach((connectedNode) => {
@@ -111,7 +110,6 @@ function Graph() {
       if (!visited.get(nodeID)) {
         const partialResult = [];
         this.DFSUTIL(nodeID, visited, partialResult);
-        console.log('-------');
         result.push(partialResult);
       }
     });
