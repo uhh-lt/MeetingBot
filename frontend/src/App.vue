@@ -395,11 +395,27 @@ export default {
             this.startNewUtt = true;
           }
 
-          // scroll to bottom if order is DESC
-          if (this.timelineSorting === 'ASC') {
-            $('#timeline')
-              .scrollTop($('#timeline')[0].scrollHeight);
-          }
+          setTimeout(() => {
+            const timeline = $('#timeline');
+            const timelinecontainer = $('.timelinecontainer');
+
+            // scroll to bottom if order is ASC
+            if (this.settings.timelineSorting === 'ASC') {
+              timeline.animate({ scrollTop: timeline[0].scrollHeight }, '500');
+            }
+
+            // scroll to bottom if order is ASC
+            if (this.settings.timelineSorting === 'DESC' && this.settings.timelineView === 'LINE') {
+              const value = timelinecontainer[0].offsetHeight > timeline[0].offsetHeight ? timelinecontainer[0].offsetHeight - timeline[0].offsetHeight : 0;
+              timeline.animate({ scrollTop: value }, '500');
+            }
+
+            if (this.settings.timelineSorting === 'DESC' && this.settings.timelineView === 'LANES') {
+              const sticky = $('.stickytimelineheader');
+              const value = timelinecontainer[0].offsetHeight > (timeline[0].offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline[0].offsetHeight - sticky[0].offsetHeight) : 0;
+              timeline.animate({ scrollTop: value }, '500');
+            }
+          }, 1);
 
           // set last utterance type
           this.lastUtteranceType = jsonEvent.handle;
@@ -426,6 +442,22 @@ export default {
         console.log('ERROR STREAM COMMAND UNKNOWN!!');
       }
     },
+    getTimeString(time) {
+      const timeString = new Date(Math.round(time) * 1000).toISOString();
+      const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
+      const seconds = parseInt(timeString.substr(17, 2), 10);
+
+      if (minutes > 9 && seconds > 9) {
+        return `${minutes}:${seconds}`;
+      }
+      if (minutes > 9 && seconds <= 9) {
+        return `${minutes}:0${seconds}`;
+      }
+      if (minutes <= 9 && seconds > 9) {
+        return `0${minutes}:${seconds}`;
+      }
+      return `0${minutes}:0${seconds}`;
+    },
     addUtterance(jsonEvent, completed) {
       let utterance;
       let spkr;
@@ -434,14 +466,15 @@ export default {
       } else if (this.settings.randomSpeaker === 'false') {
         spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
       }
+      const timeString = this.getTimeString(jsonEvent.time);
       if (completed) {
         utterance = {
           completed,
           text: encodeHTML(jsonEvent.utterance),
           speaker: spkr,
           time: jsonEvent.time,
-          startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
-          endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
+          startTime: timeString,
+          endTime: timeString,
           id: this.newUtteranceID,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
@@ -463,7 +496,7 @@ export default {
           text: encodeHTML(jsonEvent.utterance),
           speaker: spkr,
           time: jsonEvent.time,
-          startTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
+          startTime: timeString,
           endTime: 0,
           id: this.newUtteranceID,
           keywordInfo: [],
@@ -484,7 +517,7 @@ export default {
           speaker: lastUtterance.speaker,
           time: lastUtterance.time,
           startTime: lastUtterance.startTime,
-          endTime: new Date(Math.round(jsonEvent.time) * 1000).toISOString().substr(14, 5),
+          endTime: this.getTimeString(jsonEvent.time),
           id: lastUtterance.id,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
@@ -690,15 +723,15 @@ export default {
 
   .tlcircle {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 58px;
+    height: 58px;
     right: 0;
     background-color: white;
     border: 4px solid #28a745;
     border-radius: 50%;
     z-index: 3;
     text-align: center;
-    padding-top: 10px;
+    padding-top: 13px;
     left: 0;
     margin: auto;
     top: 0;
@@ -753,16 +786,16 @@ export default {
   /* The circles on the timeline */
   .timelinecircle {
     position: absolute;
-    width: 50px;
-    height: 50px;
-    right: -28px;
+    width: 58px;
+    height: 58px;
+    right: -32px;
     background-color: white;
     border: 4px solid #28a745;
-    top: 5px;
+    top: 1px;
     border-radius: 50%;
     z-index: 1;
     text-align:center;
-    padding-top:10px;
+    padding-top:13px;
   }
 
   /* Place the container to the left */
