@@ -83,8 +83,8 @@ export default {
       this.visualizeLinks(settings.visualizeLinks === 'true');
     },
     onCurrentUtteranceChanged(keywordInfos, minAge, maxAge) {
-      // console.log('Recieved new keywords!');
-      // console.log(keywordInfos);
+      console.log('Recieved new keywords!');
+      console.log(keywordInfos);
 
       // build a map that contains all new keywords
       let newKeywordMap = new Map();
@@ -136,7 +136,10 @@ export default {
       });
 
       // normalize ages
-      const maxMinDif = maxAge - minAge;
+      let maxMinDif = maxAge - minAge;
+      if (maxMinDif === 0) {
+        maxMinDif = 1;
+      }
       const scaleFactor = 9 / 10;
       newKeywordMap.forEach((word) => {
         word.age = scaleFactor * ((word.age - minAge) / maxMinDif);

@@ -252,19 +252,35 @@ export default {
         const utteranceIDList = this.utterances.map(utterance => utterance.id);
 
         // collect keywords from utterances around current utterance
+        // richtig für descending
         const keywordInfos = [];
         const minRange = Math.max(this.currentBubble - this.settings.range, 0);
         const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
         console.log(`Min${minRange} Max${maxRange}`);
-        for (let i = minRange; i <= maxRange; i += 1) {
-          const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
-          const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
 
-          for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-            const { keywordInfo } = this.utterances[utteranceIDList.indexOf(utteranceID)];
-            // eslint-disable-next-line no-param-reassign
-            keywordInfo.forEach((info) => { info.age = i; });
-            keywordInfos.push(keywordInfo);
+        if (this.settings.timelineSorting === 'DESC') {
+          for (let i = minRange; i <= maxRange; i += 1) {
+            const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
+            const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
+
+            for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
+              const { keywordInfo } = this.utterances[utteranceIDList.indexOf(j)];
+              // eslint-disable-next-line no-param-reassign
+              keywordInfo.forEach((info) => { info.age = i; }); // TODO: stimmt das auch für asc desc??
+              keywordInfos.push(keywordInfo);
+            }
+          }
+        } else if (this.settings.timelineSorting === 'ASC') {
+          for (let i = minRange; i <= maxRange; i += 1) {
+            const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
+            const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
+
+            for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
+              const { keywordInfo } = this.utterances[utteranceIDList.indexOf(j)];
+              // eslint-disable-next-line no-param-reassign
+              keywordInfo.forEach((info) => { info.age = minRange + maxRange - i; }); // TODO: stimmt das auch für asc desc??
+              keywordInfos.push(keywordInfo);
+            }
           }
         }
 
