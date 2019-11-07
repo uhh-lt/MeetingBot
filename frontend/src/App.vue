@@ -648,6 +648,7 @@ export default {
             confs: confis,
             avgConf: avgConfidence,
             kwScore: keyword.score,
+            spacy: keyword.spacy,
           });
 
           match = re.exec(text);

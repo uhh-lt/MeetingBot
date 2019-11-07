@@ -46,4 +46,12 @@ services:
       - anet
   # END: TEXTRANK
 
+  # BEGIN: spacy
+  spacy:
+    image: bigabig/german_spacy_api:latest
+    ports:
+      - 9000:9000
+    networks:
+      - anet
+
 
