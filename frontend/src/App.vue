@@ -474,7 +474,7 @@ export default {
       }
       return `0${minutes}:0${seconds}`;
     },
-    addUtterance(jsonEvent, completed) {
+    addUtterance: function (jsonEvent, completed) {
       let utterance;
       let spkr;
       if (this.settings.randomSpeaker === 'true') {
@@ -484,9 +484,18 @@ export default {
       }
       const timeString = this.getTimeString(jsonEvent.time);
       if (completed) {
+        let confidences = jsonEvent.confidences;
+        const text = encodeHTML(jsonEvent.utterance);
+        const textLen = text.split(' ').length;
+        if (confidences.length < textLen) {
+          const filler = new Array(textLen - confidences.length).fill(1.0);
+          confidences = confidences.concat(filler);
+          console.log("FIX FIX FIX : " + confidences + " TARGET: " + textLen);
+        }
+        console.log(`Complete Utterance (add): ${jsonEvent.utterance}`);
         utterance = {
           completed,
-          text: encodeHTML(jsonEvent.utterance),
+          text,
           speaker: spkr,
           time: jsonEvent.time,
           startTime: timeString,
@@ -494,13 +503,13 @@ export default {
           id: this.newUtteranceID,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
-          confidences: jsonEvent.confidences,
+          confidences,
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
+          const {keywordnessTokenMap, keywordInfo} = this.calculateKeywordnessTokenMap(utterance, keywords);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
           this.sendKeywords(keywordInfo);
@@ -526,6 +535,15 @@ export default {
     },
     replaceLastUtterance(jsonEvent, completedUtterance) {
       if (completedUtterance) {
+        let confidences = jsonEvent.confidences;
+        const text = encodeHTML(jsonEvent.utterance);
+        const textLen = text.split(' ').length;
+        if (confidences.length < textLen) {
+          const filler = new Array(textLen - confidences.length).fill(1.0);
+          confidences = confidences.concat(filler);
+          console.log("FIX FIX FIX : " + confidences + " TARGET: " + textLen);
+        }
+        console.log(`Complete Utterance (replace): ${jsonEvent.utterance}`);
         const lastUtterance = this.utterances.pop();
         const utterance = {
           completed: true,
@@ -537,7 +555,7 @@ export default {
           id: lastUtterance.id,
           keywordInfo: [],
           keywordnessTokenMap: new Map(),
-          confidences: jsonEvent.confidences,
+          confidences,
           agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);

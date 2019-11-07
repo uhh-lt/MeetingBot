@@ -135,6 +135,10 @@ export default {
     },
     visualizeConfidenceAndKeywordsFull(utterance) {
       const { confidences } = utterance;
+      if(confidences === undefined) {
+        console.log("UNDEFINED!!!");
+        console.log(utterance);
+      }
       const tokens = utterance.text.split(' ');
       let { keywordInfo } = utterance;
 
@@ -181,6 +185,10 @@ export default {
           }
         // something else
         } else {
+          if(confidences[i] === undefined) {
+            console.log("UNDEFINED LOL!!!");
+            console.log(utterance);
+          }
           newText += this.confword2HTML(tokens[i], confidences[i]);
         }
       }
