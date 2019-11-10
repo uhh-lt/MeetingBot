@@ -46,7 +46,7 @@ export default {
       this.data = [0, 0, 0, 0];
     },
     onCompleteUtterance(utterance, data, speaker) {
-      console.log(`recieved utterance:${data}`);
+      // console.log(`recieved utterance:${data}`);
 
       // update redeanteil
       this.redeanteil[speaker] += data.length;

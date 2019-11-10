@@ -60,15 +60,10 @@
             <div class="card-body" style="padding:0;">
 
               <div v-if="settings.timelineView === 'LINE'" id="timeline" ref="timelineRef" class="disable-scrollbars">
-                <template v-if="settings.timelineSorting === 'DESC'">
-                  <TimelineBox v-for="utt in reversedUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-reversed-' + utt[0].id"></TimelineBox>
-                </template>
-                <template v-if="settings.timelineSorting === 'ASC'">
-                  <TimelineBox v-for="utt in normalUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-normal-' + utt[0].id"></TimelineBox>
-                </template>
+                  <TimelineBox v-for="utt in displayUtterances" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :img="settings.selectedAvatar[utt[0].speaker]" :key="'line-' + utt[0].id"></TimelineBox>
               </div>
 
-              <div v-if="settings.timelineView === 'LANES'" id="timeline" ref="timelineRef" class="disable-scrollbars">
+              <div v-if="settings.timelineView === 'LANES'" id="timeline2" ref="timelineRef" class="disable-scrollbars">
                 <div class="d-flex stickytimelineheader">
                   <div v-for="(n, id) in settings.speaker" :key="'speaker-'+id" class="p-1 flex-even bg-light" style="border-bottom: 1px solid rgba(0,0,0,.125);">
                     <div class="p-1" style="position:relative;">
@@ -80,12 +75,7 @@
                     <div class="tlline"></div>
                   </div>
                 </div>
-                <template v-if="settings.timelineSorting === 'DESC'">
-                  <TimelineRow  v-for="utt in reversedUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :key="'lanes-reversed-' + utt[0].id"></TimelineRow>
-                </template>
-                <template v-if="settings.timelineSorting === 'ASC'">
-                  <TimelineRow  v-for="utt in normalUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :key="'lanes-reversed-' + utt[0].id"></TimelineRow>
-                </template>
+                <TimelineRow v-for="utt in displayUtterances" :speakers="settings.speaker" :mode="utteranceMode" :show-confidence="settings.showConfidence" :show-keywords="settings.showKeywords" :keyword-color="settings.keywordColor" :utterance="utt" :name="settings.speakerName[utt[0].speaker]" :key="'lanes-' + utt[0].id"></TimelineRow>
               </div>
 
             </div>
@@ -156,22 +146,20 @@ export default {
       this.sendStreamStatus('OPEN');
     };
 
-    // update height
-    setTimeout(this.onResize(), 100);
-
-    // listen to events
+    // listen to vue events
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onReset', this.onReset);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
+    this.$root.$on('onIntersection', this.onIntersection);
 
-    // document.getElementById("timelineContainer").addEventListener('scroll', this.onScroll);
-
-    // this.$refs.timelineContainer.addEventListener('scroll', this.onScroll);
-    this.$refs.timelineRef.addEventListener('scroll', () => {
-      this.onScroll(false);
+    // listen to html events
+    this.$refs.timelineRef.addEventListener('wheel', () => {
+      this.lastRealScroll = Date.now();
+      this.getTimeline().stop();
     });
 
-    console.log(this.$refs);
+    // update height
+    setTimeout(this.onResize(), 100);
   },
   data() {
     return {
@@ -189,6 +177,7 @@ export default {
         controlButtonsStateDependent: 'false',
       },
       utterances: [],
+      utteranceIDMap: new Map(),
       startNewUtt: true,
       utteranceMode: 'FULL', // OR 'MEDIUM' OR 'SHORT'
       lastUtteranceType: 'completeUtterance',
@@ -199,24 +188,37 @@ export default {
       currentUtterance: -1,
       currentBubble: -1,
       newUtteranceID: 0,
+      lastRealScroll: 0,
+      lastFakeScroll: 0,
+      scrollAnimationTime: 100,
+      scrollIdleTime: 1000,
+      intersectingElements: new Map(),
     };
   },
   computed: {
-    normalUtterances() {
-      return this.calcGroupedUtterances();
-    },
-    reversedUtterances() {
+    displayUtterances() {
+      if (this.settings.timelineSorting === 'ASC') {
+        return this.calcGroupedUtterances();
+      }
       return this.calcGroupedUtterances().reverse();
     },
   },
-  watch: {
-    timelineSorting(newValue) {
-      // scroll to bot if timeline sorting changed to ASC
-      if (newValue === 'ASC') $('#timeline').scrollTop($('#timeline')[0].scrollHeight);
-    },
-  },
   methods: {
+    onIntersection(entries) {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.intersectingElements.set(entry.target.id, entry.target);
+        } else {
+          this.intersectingElements.delete(entry.target.id);
+        }
+      });
+      // visible containers have changed, therefore, check if currentUtterance has changed and new keywords should be sent
+      this.onScroll(false);
+    },
     onScroll(forceUpdateIfTop) {
+      // this method checks if the current bubble has changed
+      // if the current bubble has changed, all keywords surrounding the current bubble are collected & sent
+
       // force update if scroll is top
       if (forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
         // force update by setting this.currentUtterance to -1
@@ -225,86 +227,89 @@ export default {
       }
 
       const middle = this.$refs.timelineRef.scrollTop + this.$refs.timelineRef.clientHeight / 2 - 100;
-      const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
+      const allVisibleContainers = Array.from(this.intersectingElements.values()).filter(container => !container.classList.contains('nodisplay'));
 
       let container;
-      let nearestContainer;
+      let nearestContainer = -1;
+      let nearestUtterance = -1;
       let distance = -1;
       let minDistance = 10000000;
-      for (let id = 0; id < allContainers.length; id += 1) {
-        container = allContainers[id];
+      for (let id = 0; id < allVisibleContainers.length; id += 1) {
+        container = allVisibleContainers[id];
         container.getElementsByClassName('timelinecontainer2')[0].style.borderColor = '';
         distance = Math.abs(container.offsetTop - middle);
         if (distance < minDistance) {
           minDistance = distance;
           nearestContainer = id;
+          nearestUtterance = parseInt(container.dataset.utteranceid, 10);
         }
       }
 
-      allContainers[nearestContainer].getElementsByClassName('timelinecontainer2')[0].style.borderColor = 'grey';
+      if (nearestContainer === -1 || nearestUtterance === -1) {
+        return;
+      }
 
-      // BASED ON BUBBLES
-      if (this.currentBubble !== nearestContainer) {
-        this.currentBubble = nearestContainer;
-        console.log('NEW BUBBLE!');
+      allVisibleContainers[nearestContainer].getElementsByClassName('timelinecontainer2')[0].style.borderColor = 'grey';
 
-        // TODO: NEED MAP!
-        const utteranceIDList = this.utterances.map(utterance => utterance.id);
-
+      if (this.currentUtterance !== nearestUtterance) {
+        this.currentUtterance = nearestUtterance;
         // collect keywords from utterances around current utterance
-        // richtig für descending
         const keywordInfos = [];
-        const minRange = Math.max(this.currentBubble - this.settings.range, 0);
-        const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
-        console.log(`Min${minRange} Max${maxRange}`);
-
-        if (this.settings.timelineSorting === 'DESC') {
-          for (let i = minRange; i <= maxRange; i += 1) {
-            const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
-            const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
-
-            for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-              const { keywordInfo } = this.utterances[utteranceIDList.indexOf(j)];
-              // eslint-disable-next-line no-param-reassign
-              keywordInfo.forEach((info) => { info.age = i; }); // TODO: stimmt das auch für asc desc??
-              keywordInfos.push(keywordInfo);
-            }
-          }
-        } else if (this.settings.timelineSorting === 'ASC') {
-          for (let i = minRange; i <= maxRange; i += 1) {
-            const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
-            const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
-
-            for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-              const { keywordInfo } = this.utterances[utteranceIDList.indexOf(j)];
-              // eslint-disable-next-line no-param-reassign
-              keywordInfo.forEach((info) => { info.age = minRange + maxRange - i; }); // TODO: stimmt das auch für asc desc??
-              keywordInfos.push(keywordInfo);
-            }
-          }
+        const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
+        const maxRange = Math.min(this.currentUtterance + this.settings.range, this.utterances.length - 1);
+        for (let utteranceID = minRange; utteranceID <= maxRange; utteranceID += 1) {
+          const { keywordInfo } = this.utteranceIDMap.get(utteranceID);
+          // eslint-disable-next-line no-param-reassign
+          keywordInfo.forEach((info) => { info.age = minRange + maxRange - utteranceID; });
+          keywordInfos.push(keywordInfo);
         }
-
         const totalRange = 2 * this.settings.range + 1;
-        const newMinRange = Math.max(this.currentBubble - this.settings.range, 0);
+        const newMinRange = Math.max(this.currentUtterance - this.settings.range, 0);
         const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
         this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
       }
-      // BASED ON UTTERANCES
-      // const newUtterance = parseInt(allContainers[nearestContainer].dataset.utteranceid, 10);
-      // const inBubbleUtterances = parseInt(allContainers[nearestContainer].dataset.numutterances, 10) - 1;
-      // if (this.currentUtterance !== newUtterance) {
-      //   this.currentUtterance = newUtterance;
-      //   console.log('NEW BUBBLE!');
+      // // BASED ON BUBBLES
+      // if (this.currentBubble !== nearestContainer) {
+      //   this.currentBubble = nearestContainer;
+      //
+      //   const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
       //
       //   // collect keywords from utterances around current utterance
-      //   let keywordInfos = [];
-      //   const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
-      //   const maxRange = Math.min(this.currentUtterance + this.settings.range + inBubbleUtterances, this.utterances.length - 1);
-      //   for (let i = minRange; i <= maxRange; i += 1) {
-      //     const utt = this.utterances[i];
-      //     keywordInfos = keywordInfos.concat(utt.keywordInfo);
+      //   // richtig für descending
+      //   const keywordInfos = [];
+      //   const minRange = Math.max(this.currentBubble - this.settings.range, 0);
+      //   const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
+      //
+      //   if (this.settings.timelineSorting === 'DESC') {
+      //     for (let i = minRange; i <= maxRange; i += 1) {
+      //       const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
+      //       const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
+      //
+      //       for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
+      //         const { keywordInfo } = this.utteranceIDMap.get(j);
+      //         // eslint-disable-next-line no-param-reassign
+      //         keywordInfo.forEach((info) => { info.age = i; });
+      //         keywordInfos.push(keywordInfo);
+      //       }
+      //     }
+      //   } else if (this.settings.timelineSorting === 'ASC') {
+      //     for (let i = minRange; i <= maxRange; i += 1) {
+      //       const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
+      //       const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
+      //
+      //       for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
+      //         const { keywordInfo } = this.utteranceIDMap.get(j);
+      //         // eslint-disable-next-line no-param-reassign
+      //         keywordInfo.forEach((info) => { info.age = minRange + maxRange - i; });
+      //         keywordInfos.push(keywordInfo);
+      //       }
+      //     }
       //   }
-      //   this.sendOnCurrentUtteranceChanged(keywordInfos);
+      //
+      //   const totalRange = 2 * this.settings.range + 1;
+      //   const newMinRange = Math.max(this.currentBubble - this.settings.range, 0);
+      //   const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
+      //   this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
       // }
     },
     sendOpenExporter() {
@@ -321,19 +326,18 @@ export default {
     sendCompleteUtterance(fullutterance, utterance, speaker) {
       this.$root.$emit('onCompleteUtterance', fullutterance, utterance, speaker);
     },
-    sendKeywords(keywords) {
-      this.$root.$emit('onNewKeywords', keywords);
-    },
     sendOnCurrentUtteranceChanged(keywords, minRange, maxRange) {
       this.$root.$emit('onCurrentUtteranceChanged', keywords, minRange, maxRange);
     },
     onReset() {
       this.utterances = [];
+      this.utteranceIDMap = new Map();
       this.startNewUtt = true;
       this.lastUtteranceType = 'completeUtterance';
       this.currentAgendaPoint = 0;
       this.fakeTime = 0;
       this.fakeUtteranceNum = 0;
+      this.intersectingElements = new Map();
     },
     calcGroupedUtterances() {
       const groupedUtterances = [];
@@ -411,27 +415,36 @@ export default {
             this.startNewUtt = true;
           }
 
-          setTimeout(() => {
-            const timeline = $('#timeline');
-            const timelinecontainer = $('.timelinecontainer');
+          console.log(`CHECK SCROLLLING :D ${Date.now() - this.lastRealScroll}`);
 
-            // scroll to bottom if order is ASC
-            if (this.settings.timelineSorting === 'ASC') {
-              timeline.animate({ scrollTop: timeline[0].scrollHeight }, '500');
-            }
-
-            // scroll to bottom if order is ASC
-            if (this.settings.timelineSorting === 'DESC' && this.settings.timelineView === 'LINE') {
-              const value = timelinecontainer[0].offsetHeight > timeline[0].offsetHeight ? timelinecontainer[0].offsetHeight - timeline[0].offsetHeight : 0;
-              timeline.animate({ scrollTop: value }, '500');
-            }
-
-            if (this.settings.timelineSorting === 'DESC' && this.settings.timelineView === 'LANES') {
-              const sticky = $('.stickytimelineheader');
-              const value = timelinecontainer[0].offsetHeight > (timeline[0].offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline[0].offsetHeight - sticky[0].offsetHeight) : 0;
-              timeline.animate({ scrollTop: value }, '500');
-            }
-          }, 1);
+          // scrolling
+          if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
+            window.requestAnimationFrame(() => {
+              // scroll to bottom if order is ASC
+              if (this.settings.timelineSorting === 'ASC') {
+                // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
+                this.getTimeline().stop().animate({ scrollTop: this.$refs.timelineRef.scrollHeight }, 500);
+              }
+              // scroll to bottom if order is DESC
+              if (this.settings.timelineSorting === 'DESC') {
+                const timelinecontainer = $('.timelinecontainer');
+                if (timelinecontainer[0] !== undefined) {
+                  if (this.settings.timelineView === 'LINE') {
+                    const value = timelinecontainer[0].offsetHeight > this.$refs.timelineRef.offsetHeight ? timelinecontainer[0].offsetHeight - this.$refs.timelineRef.offsetHeight : 0;
+                    // this.$refs.timelineRef.scrollTop = value;
+                    $('#timeline').stop().animate({ scrollTop: value }, 500);
+                  }
+                  if (this.settings.timelineView === 'LANES') {
+                    const sticky = $('.stickytimelineheader');
+                    const value = timelinecontainer[0].offsetHeight > (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) : 0;
+                    // this.$refs.timelineRef.scrollTop = value;
+                    $('#timeline2').stop().animate({ scrollTop: value }, 500);
+                  }
+                }
+              }
+              this.lastFakeScroll = Date.now();
+            });
+          }
 
           // set last utterance type
           this.lastUtteranceType = jsonEvent.handle;
@@ -458,6 +471,12 @@ export default {
         console.log('ERROR STREAM COMMAND UNKNOWN!!');
       }
     },
+    getTimeline() {
+      if (this.settings.timelineView === 'LINE') {
+        return $('#timeline');
+      }
+      return $('#timeline2');
+    },
     getTimeString(time) {
       const timeString = new Date(Math.round(time) * 1000).toISOString();
       const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
@@ -474,7 +493,7 @@ export default {
       }
       return `0${minutes}:0${seconds}`;
     },
-    addUtterance: function (jsonEvent, completed) {
+    addUtterance(jsonEvent, completed) {
       let utterance;
       let spkr;
       if (this.settings.randomSpeaker === 'true') {
@@ -484,15 +503,14 @@ export default {
       }
       const timeString = this.getTimeString(jsonEvent.time);
       if (completed) {
-        let confidences = jsonEvent.confidences;
+        let { confidences } = jsonEvent;
         const text = encodeHTML(jsonEvent.utterance);
         const textLen = text.split(' ').length;
         if (confidences.length < textLen) {
           const filler = new Array(textLen - confidences.length).fill(1.0);
           confidences = confidences.concat(filler);
-          console.log("FIX FIX FIX : " + confidences + " TARGET: " + textLen);
+          console.log(`FIX FIX FIX : ${confidences} TARGET: ${textLen}`);
         }
-        console.log(`Complete Utterance (add): ${jsonEvent.utterance}`);
         utterance = {
           completed,
           text,
@@ -507,12 +525,13 @@ export default {
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
+        this.utteranceIDMap.set(utterance.id, utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          const {keywordnessTokenMap, keywordInfo} = this.calculateKeywordnessTokenMap(utterance, keywords);
+          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
-          this.sendKeywords(keywordInfo);
+          // keywords have changed, therefore, check if new keywords should be sent
           this.onScroll(true);
         });
       } else {
@@ -530,20 +549,19 @@ export default {
           agenda: this.currentAgendaPoint,
         };
         this.utterances.push(utterance);
+        this.utteranceIDMap.set(utterance.id, utterance);
       }
       this.newUtteranceID += 1;
     },
     replaceLastUtterance(jsonEvent, completedUtterance) {
       if (completedUtterance) {
-        let confidences = jsonEvent.confidences;
+        let { confidences } = jsonEvent;
         const text = encodeHTML(jsonEvent.utterance);
         const textLen = text.split(' ').length;
         if (confidences.length < textLen) {
           const filler = new Array(textLen - confidences.length).fill(1.0);
           confidences = confidences.concat(filler);
-          console.log("FIX FIX FIX : " + confidences + " TARGET: " + textLen);
         }
-        console.log(`Complete Utterance (replace): ${jsonEvent.utterance}`);
         const lastUtterance = this.utterances.pop();
         const utterance = {
           completed: true,
@@ -559,12 +577,13 @@ export default {
           agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
+        this.utteranceIDMap.set(utterance.id, utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
           const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
-          this.sendKeywords(keywordInfo);
+          // keywords have changed, therefore, check if new keywords should be sent
           this.onScroll(true);
         });
       } else {
@@ -583,16 +602,20 @@ export default {
           agenda: lastUtterance.agenda,
         };
         this.utterances.push(utterance);
+        this.utteranceIDMap.set(utterance.id, utterance);
       }
     },
     onResize() {
       const navbarHeight = document.getElementById('navigation').clientHeight;
       const footerHeight = document.getElementById('footer').clientHeight;
       const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
-      document.getElementById('timeline').style.height = `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)`;
+      this.getTimeline().css({ height: `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)` });
+      // this.getTimeline().style.height = ;
     },
     onSettingsSaved(settings) {
       console.log('Settings saved!');
+      this.onSortingChanged(this.settings, settings);
+      this.onTimelineViewChanged(this.settings, settings);
       this.settings = settings;
     },
     calculateKeywordnessTokenMap(utterance, keywords) {
@@ -697,6 +720,46 @@ export default {
 
       return { keywordnessTokenMap, keywordInfo };
     },
+    onSortingChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
+        window.requestAnimationFrame(() => {
+          // scroll to bot if timeline sorting changed to ASC
+          if (newSettings.timelineSorting === 'ASC') {
+            this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
+            // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
+          }
+          // scroll to top if timeline sorting changed to DESC
+          if (newSettings.timelineSorting === 'DESC') {
+            this.getTimeline().stop().animate({ scrollTop: 0 }, 500);
+            // this.$refs.timelineRef.scrollTop = 0;
+          }
+        });
+      }
+    },
+    onTimelineViewChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineView !== newSettings.timelineView) {
+        this.intersectingElements = new Map();
+        // find current utterance bubble and then scroll to this element
+        window.requestAnimationFrame(() => {
+          const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          const currentUtterance = this.currentUtterance.toString(10);
+          let currentContainer = null;
+          for (let id = 0; id < allContainers.length; id += 1) {
+            const container = allContainers[id];
+            if (container.dataset.utteranceid === currentUtterance) {
+              currentContainer = container;
+              break;
+            }
+          }
+          if (currentContainer !== null) {
+            const timeline = this.getTimeline();
+            const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
+            timeline.stop().animate({ scrollTop: value }, 500);
+            // document.getElementById("timeline").scrollTop = document.getElementById("timelinebox-21").offsetTop - document.getElementById("timeline").offsetHeight / 2 + document.getElementById("timelinebox-21").offsetHeight / 2
+          }
+        });
+      }
+    },
   },
 };
 </script>
@@ -786,6 +849,12 @@ export default {
 
   /* The actual timeline (the vertical ruler) */
   #timeline {
+    position: relative;
+    margin: 0 auto;
+    overflow-y: scroll;
+  }
+
+  #timeline2 {
     position: relative;
     margin: 0 auto;
     overflow-y: scroll;

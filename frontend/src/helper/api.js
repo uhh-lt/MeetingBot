@@ -1,6 +1,7 @@
 const serverURL = 'http://localhost:8888/mbot';
 const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
+const activateLogger = false;
 
 function postData(url = '', data = {}) {
   return fetch(url, {
@@ -19,27 +20,29 @@ function postData(url = '', data = {}) {
 }
 
 async function fetchKeywords(text) {
-  console.log('Fetching Keywords');
+  if (activateLogger) console.log('Fetching Keywords');
   const data = await postData(`${serverURL}/keywords`, {
     count: 3,
     lang: 'deu',
     text,
   });
-  console.log('Success fetching keywords');
+  if (activateLogger) console.log('Success fetching keywords');
   if (data.keywords !== null && data.keywords.length > 0) {
     return data.keywords;
   }
-  console.log('Keywords are empty!');
+  if (activateLogger) console.log('Keywords are empty!');
   return [];
 }
 
 async function fetchSpacy(text) {
-  console.log('Fetching Spacy Output');
+  if (activateLogger) console.log('Fetching Spacy Output');
   const data = await postData(`${spacyURL}/process`, {
     text,
   });
-  console.log('Success fetching spacy output');
-  console.log(data);
+  if (activateLogger) {
+    console.log('Success fetching spacy output');
+    console.log(data);
+  }
   return data;
 }
 
@@ -49,15 +52,18 @@ async function computeKeywords(utterance) {
   keywords = keywords.filter(value => value.word !== 'UNK');
 
   const result = await Promise.resolve(
-    Promise.all(keywords.map(k => new Promise((resolve, reject) => {
+    Promise.all(keywords.map(k => new Promise((resolve) => {
       fetchSpacy(k.word).then((data) => {
+        // eslint-disable-next-line no-param-reassign
         k.spacy = data;
         return resolve(k);
       });
     }))),
   );
-  console.log('Promise result:');
-  console.log(result);
+  if (activateLogger) {
+    console.log('Final Keywords:');
+    console.log(result);
+  }
   return result;
 }
 
@@ -78,9 +84,9 @@ function getDataNoJSON(url = '') {
 }
 
 async function sendCommand(command) {
-  console.log('Sending Command...');
+  if (activateLogger) console.log('Sending Command...');
   const data = await getDataNoJSON(`${asrURL}/${command}`);
-  console.log(`Success Sending Command ${command}. Answer: ${data}`);
+  if (activateLogger) console.log(`Success Sending Command ${command}. Answer: ${data}`);
 }
 
 export { computeKeywords, sendCommand };

@@ -1,5 +1,5 @@
 <template>
-  <div class="timelinecontainer tl-container tl-left" :class="{nodisplay: numLetters === 0}" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
+  <div :id="'timelinebox-'+utterance[0].id" class="timelinecontainer tl-container tl-left" :class="{nodisplay: numLetters === 0}" :data-utteranceid="utterance[0].id" :data-numutterances="utterance.length">
     <div class="timelinecontainer2 tl-content">
       <div class="d-flex">
         <div class="p-2" style="position:relative;">
@@ -32,6 +32,18 @@ export default {
     return {
       numLetters: 0,
     };
+  },
+  mounted() {
+    const callback = (entries) => {
+      this.$root.$emit('onIntersection', entries);
+    };
+    const options = {
+      root: document.querySelector('#timeline'),
+      rootMargin: '0px',
+      threshold: 0,
+    };
+    const observer = new IntersectionObserver(callback, options);
+    observer.observe(document.querySelector(`#timelinebox-${this.utterance[0].id}`));
   },
   methods: {
     updateLetterCount(text) {
