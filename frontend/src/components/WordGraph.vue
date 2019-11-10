@@ -95,13 +95,14 @@ export default {
         const wordsInUtterance = [];
 
         // aggregate keywords
-        const lowKeywords = info.flatMap((value) => {
-          const newValue = value;
-          newValue.phrase = value.phrase.toLowerCase();
-          return newValue;
-        });
-        lowKeywords.forEach((keyword) => {
-          const word = keyword.phrase;
+        // const lowKeywords = info.flatMap((value) => {
+        //   const newValue = value;
+        //   newValue.phrase = value.phrase.toLowerCase();
+        //   return newValue;
+        // });
+        info.forEach((keyword) => {
+          // const word = keyword.phrase;
+          const word = keyword.lemma;
           if (newKeywordMap.has(word)) {
             const updatedWord = newKeywordMap.get(word);
             const age1 = updatedWord.age;

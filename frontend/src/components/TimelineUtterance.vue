@@ -75,6 +75,64 @@ export default {
       }
       return `${keywordSpan}${confidenceSpan}${word} </span></span>`;
     },
+    visualizeConfidenceAndKeywordsFull(utterance) {
+      const { confidences } = utterance;
+      const tokens = utterance.text.split(' ');
+      let { keywordInfo } = utterance;
+
+      // if (keywordInfo.length > 0) {
+      //   keywordInfo = keywordInfo.sort((a, b) => a.involved[0] - b.involved[0]);
+      // }
+      if (keywordInfo.length > 0) {
+        keywordInfo = keywordInfo.sort((a, b) => a.tokenIndex - b.tokenIndex);
+      }
+
+      // Build the final text
+      let newText = '';
+      let nextKeywordToken = -1;
+      let currentKeywordInfo = 0;
+      if (keywordInfo.length > currentKeywordInfo) {
+        // eslint-disable-next-line prefer-destructuring
+        nextKeywordToken = keywordInfo[currentKeywordInfo].tokenIndex;
+      }
+      for (let i = 0; i < tokens.length; i += 1) {
+        // keyword phrase
+        if (i === nextKeywordToken) {
+          // visualize keyword
+          if (this.showKeywords === 'true') {
+            newText += `<span class='DISPLAYKEYWORD KEYWORD' style='background:${this.keywordColor}'>`;
+          } else if (this.showKeywords === 'false') {
+            newText += '<span class="KEYWORD">';
+          }
+          // for (let j = 0; j < keywordInfo[currentKeywordInfo].involved.length; j += 1) {
+          if (this.showConfidence === 'true') {
+            // newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i + j] * confidences[i + j], 0.1)});" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
+            newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i] * confidences[i], 0.1)});" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
+          } else if (this.showConfidence === 'false') {
+            // newText += `<!--<span class="forceColor" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>-->`;
+            newText += `<span class="forceColor" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
+          }
+          newText += tokens[i];
+          newText += '</span> ';
+          // }
+          newText += '</span>';
+
+          // update i
+          // i += keywordInfo[currentKeywordInfo].involved.length - 1;
+
+          // update currentKeyword info & next KeywordToken
+          currentKeywordInfo += 1;
+          if (keywordInfo.length > currentKeywordInfo) {
+            // eslint-disable-next-line prefer-destructuring
+            nextKeywordToken = keywordInfo[currentKeywordInfo].tokenIndex;
+          }
+          // something else
+        } else {
+          newText += this.confword2HTML(tokens[i], confidences[i]);
+        }
+      }
+      return newText.trim();
+    },
     visualizeConfidenceAndKeywordsShort(utterance) {
       const { keywordnessTokenMap } = utterance;
 
@@ -104,10 +162,18 @@ export default {
         word = text[i];
         if (keywordnessTokenMap.has(i)) {
           isImportantWord[i] = 1;
-          if (i > 0 && isImportantWord[i - 1] === 0) { isImportantWord[i - 1] = 2; }
-          if (i > 1 && isImportantWord[i - 2] === 0) { isImportantWord[i - 2] = 2; }
-          if (i < isImportantWord.length - 1 && isImportantWord[i + 1] === 0) { isImportantWord[i + 1] = 2; }
-          if (i < isImportantWord.length - 2 && isImportantWord[i + 2] === 0) { isImportantWord[i + 2] = 2; }
+          if (i > 0 && isImportantWord[i - 1] === 0) {
+            isImportantWord[i - 1] = 2;
+          }
+          if (i > 1 && isImportantWord[i - 2] === 0) {
+            isImportantWord[i - 2] = 2;
+          }
+          if (i < isImportantWord.length - 1 && isImportantWord[i + 1] === 0) {
+            isImportantWord[i + 1] = 2;
+          }
+          if (i < isImportantWord.length - 2 && isImportantWord[i + 2] === 0) {
+            isImportantWord[i + 2] = 2;
+          }
         }
       }
       let newText = '';
@@ -133,61 +199,9 @@ export default {
       newText = this.mergeFiller(newText);
       return newText.trim();
     },
-    visualizeConfidenceAndKeywordsFull(utterance) {
-      const { confidences } = utterance;
-      const tokens = utterance.text.split(' ');
-      let { keywordInfo } = utterance;
-
-      if (keywordInfo.length > 0) {
-        keywordInfo = keywordInfo.sort((a, b) => a.involved[0] - b.involved[0]);
-      }
-
-      // Build the final text
-      let newText = '';
-      let nextKeywordToken = -1;
-      let currentKeywordInfo = 0;
-      if (keywordInfo.length > currentKeywordInfo) {
-        // eslint-disable-next-line prefer-destructuring
-        nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
-      }
-      for (let i = 0; i < tokens.length; i += 1) {
-        // keyword phrase
-        if (i === nextKeywordToken) {
-          // visualize keyword
-          if (this.showKeywords === 'true') {
-            newText += `<span class='DISPLAYKEYWORD KEYWORD' style='background:${this.keywordColor}'>`;
-          } else if (this.showKeywords === 'false') {
-            newText += '<span class="KEYWORD">';
-          }
-          for (let j = 0; j < keywordInfo[currentKeywordInfo].involved.length; j += 1) {
-            if (this.showConfidence === 'true') {
-              newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i + j] * confidences[i + j], 0.1)});" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].kwScore.toFixed(2)} | S ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
-            } else if (this.showConfidence === 'false') {
-              newText += `<span class="forceColor" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].kwScore.toFixed(2)} | S ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
-            }
-            newText += tokens[i + j];
-            newText += '</span> ';
-          }
-          newText += '</span>';
-
-          // update i
-          i += keywordInfo[currentKeywordInfo].involved.length - 1;
-
-          // update currentKeyword info & next KeywordToken
-          currentKeywordInfo += 1;
-          if (keywordInfo.length > currentKeywordInfo) {
-            // eslint-disable-next-line prefer-destructuring
-            nextKeywordToken = keywordInfo[currentKeywordInfo].involved[0];
-          }
-        // something else
-        } else {
-          newText += this.confword2HTML(tokens[i], confidences[i]);
-        }
-      }
-      return newText.trim();
-    },
   },
 };
+
 </script>
 
 <style scoped>

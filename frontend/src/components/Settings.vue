@@ -99,7 +99,7 @@
               </fieldset>
               <div class="form-group px-2">
                 <label for="wordcloudrange">Anzahl Aussagen vor und nach aktueller Aussage für Word Cloud: {{rangeNum}}</label>
-                <input v-model="rangeNum" type="range" class="custom-range" min="0" max="10" id="wordcloudrange">
+                <input v-model="rangeNum" type="range" class="custom-range" min="0" max="20" id="wordcloudrange">
               </div>
               <fieldset class="form-group px-2">
                 <label>Visualisiere Kanten im Word Graph?</label><br>
@@ -247,7 +247,7 @@ export default {
       agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
       agendaWarnTime: '5',
       meeting: Store.meeting,
-      rangeNum: '5',
+      rangeNum: '10',
       randomSpeaker: 'false',
       controlButtonsStateDependent: 'true',
       visualizeLinks: 'false',

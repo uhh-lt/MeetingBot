@@ -1,7 +1,7 @@
 const serverURL = 'http://localhost:8888/mbot';
 const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
-const activateLogger = false;
+const activateLogger = true;
 
 function postData(url = '', data = {}) {
   return fetch(url, {
@@ -50,7 +50,6 @@ async function computeKeywords(utterance) {
   let keywords = await fetchKeywords(utterance.text);
   // utterance.keywords = keywords.map(value => value.word).join(" ");
   keywords = keywords.filter(value => value.word !== 'UNK');
-
   const result = await Promise.resolve(
     Promise.all(keywords.map(k => new Promise((resolve) => {
       fetchSpacy(k.word).then((data) => {
