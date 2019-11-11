@@ -191,7 +191,7 @@ export default {
       lastRealScroll: 0,
       lastFakeScroll: 0,
       scrollAnimationTime: 100,
-      scrollIdleTime: 1000,
+      scrollIdleTime: 3000,
       intersectingElements: new Map(),
     };
   },
