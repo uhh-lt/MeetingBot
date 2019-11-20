@@ -9,7 +9,10 @@ export default {
   computed: {
     html() {
       let text = '';
-      this.utterance.forEach((utterance) => {
+      for (let i = 0; i < this.utterance.length; i += 1) {
+        const isFirst = i === 0;
+        const isLast = i === this.utterance.length - 1;
+        const utterance = this.utterance[i];
         if (utterance.completed) {
           let html;
           switch (this.mode) {
@@ -17,22 +20,26 @@ export default {
               html = this.visualizeConfidenceAndKeywordsFull(utterance);
               break;
             case 'MEDIUM':
-              html = this.visualizeConfidenceAndKeywordsMedium(utterance);
+              html = this.visualizeConfidenceAndKeywordsMedium(utterance, isFirst, isLast);
               break;
             case 'SHORT':
-              html = this.visualizeConfidenceAndKeywordsShort(utterance);
+              html = this.visualizeConfidenceAndKeywordsShort(utterance, isFirst, isLast);
               break;
             default:
               html = '';
               break;
           }
           if (html !== '...') {
-            text += `${html}<br>`;
+            if (this.mode === 'FULL') {
+              text += `${html}<br>`;
+            } else {
+              text += `${html} `;
+            }
           }
         } else {
           text += `${this.renderUtterance(utterance)} `;
         }
-      });
+      }
       this.$parent.updateLetterCount(text.trim());
       return text.trim();
     },
@@ -109,7 +116,7 @@ export default {
             // newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i + j] * confidences[i + j], 0.1)});" title='C: ${confidences[i + j].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
             newText += `<span style="color:rgba(0,0,0,${Math.max(confidences[i] * confidences[i], 0.1)});" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
           } else if (this.showConfidence === 'false') {
-            // newText += `<!--<span class="forceColor" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>-->`;
+            // newText += `<span class="forceColor" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
             newText += `<span class="forceColor" title='C: ${confidences[i].toFixed(4)} | KW: ${keywordInfo[currentKeywordInfo].score.toFixed(2)}'>`;
           }
           newText += tokens[i];
@@ -133,10 +140,13 @@ export default {
       }
       return newText.trim();
     },
-    visualizeConfidenceAndKeywordsShort(utterance) {
+    visualizeConfidenceAndKeywordsShort(utterance, isFirst, isLast) {
       const { keywordnessTokenMap } = utterance;
 
       let newText = '';
+      if (!isFirst) {
+        newText += '... ';
+      }
       const text = utterance.text.split(' ');
       let word;
       let conf;
@@ -149,10 +159,20 @@ export default {
           newText += `${this.fillArray('.', word.length).join('')} `;
         }
       }
+      newText = newText.trim();
+      if (isFirst && !isLast) {
+        newText += ' ...';
+      }
       newText = this.mergeFiller(newText);
-      return newText.trim();
+      newText = newText.trim();
+      if (!isLast && newText.substr(newText.length - 3, newText.length) === '...') {
+        newText = newText.substr(0, newText.length - 3);
+      }
+      return newText;
     },
-    visualizeConfidenceAndKeywordsMedium(utterance) {
+    visualizeConfidenceAndKeywordsMedium(utterance, isFirst, isLast) {
+      // make sure that first utterance does not end with "..."
+      // make sure that all other utterances start with "..."
       const text = utterance.text.split(' ');
       const { keywordnessTokenMap } = utterance;
 
@@ -177,6 +197,9 @@ export default {
         }
       }
       let newText = '';
+      if (!isFirst) {
+        newText += '... ';
+      }
       let conf;
       for (let i = 0; i < text.length; i += 1) {
         word = text[i];
@@ -196,8 +219,16 @@ export default {
             break;
         }
       }
+      newText = newText.trim();
+      if (isFirst && !isLast) {
+        newText += ' ...';
+      }
       newText = this.mergeFiller(newText);
-      return newText.trim();
+      newText = newText.trim();
+      if (!isLast && newText.substr(newText.length - 3, newText.length) === '...') {
+        newText = newText.substr(0, newText.length - 3);
+      }
+      return newText;
     },
   },
 };

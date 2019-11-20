@@ -114,6 +114,7 @@ import ControlBar from './components/ControlBar.vue';
 import Settings from './components/Settings.vue';
 import Exporter from './components/Exporter.vue';
 import Importer from './components/Importer.vue';
+import calculateKeywordnessTokenMap from './helper/keyword';
 
 require('@/assets/css/main.css');
 
@@ -255,18 +256,67 @@ export default {
         this.currentUtterance = nearestUtterance;
         // collect keywords from utterances around current utterance
         const keywordInfos = [];
-        const minRange = Math.max(this.currentUtterance - this.settings.range, 0);
-        const maxRange = Math.min(this.currentUtterance + this.settings.range, this.utterances.length - 1);
-        for (let utteranceID = minRange; utteranceID <= maxRange; utteranceID += 1) {
+        let minRange = 0;
+        let maxRange = 0;
+
+        if (this.utteranceMode === 'FULL') {
+          minRange = Math.max(this.currentUtterance - this.settings.range, 0);
+          maxRange = Math.min(this.currentUtterance + this.settings.range, this.utterances.length - 1);
+          for (let utteranceID = minRange; utteranceID <= maxRange; utteranceID += 1) {
+            const { keywordInfo } = this.utteranceIDMap.get(utteranceID);
+            // eslint-disable-next-line no-param-reassign
+            keywordInfo.forEach((info) => { info.age = utteranceID; });
+            keywordInfos.push(keywordInfo);
+          }
+        } else {
+          let utteranceID = this.currentUtterance;
           const { keywordInfo } = this.utteranceIDMap.get(utteranceID);
           // eslint-disable-next-line no-param-reassign
-          keywordInfo.forEach((info) => { info.age = minRange + maxRange - utteranceID; });
+          keywordInfo.forEach((info) => { info.age = utteranceID; });
           keywordInfos.push(keywordInfo);
+
+          let i = 0;
+          utteranceID = this.currentUtterance + 1;
+          while (i < this.settings.range && utteranceID <= this.utterances.length - 1) {
+            // eslint-disable-next-line no-shadow
+            const { keywordInfo } = this.utteranceIDMap.get(utteranceID);
+            // if there are keywords in this utterance ...
+            if (keywordInfo.length > 0) {
+              // ... add this keywords to the word graph
+              // eslint-disable-next-line no-param-reassign
+              keywordInfo.forEach((info) => { info.age = utteranceID; });
+              keywordInfos.push(keywordInfo);
+              i += 1;
+            }
+            utteranceID += 1;
+            console.log('iteration ->');
+          }
+          maxRange = utteranceID - 1;
+
+          i = 0;
+          utteranceID = this.currentUtterance - 1;
+          while (i < this.settings.range && utteranceID >= 0) {
+            // eslint-disable-next-line no-shadow
+            const { keywordInfo } = this.utteranceIDMap.get(utteranceID);
+            // if there are keywords in this utterance ...
+            if (keywordInfo.length > 0) {
+              // ... add this keywords to the word graph
+              // eslint-disable-next-line no-param-reassign
+              keywordInfo.forEach((info) => { info.age = utteranceID; });
+              keywordInfos.push(keywordInfo);
+              i += 1;
+            }
+            utteranceID -= 1;
+            console.log('iteration <-');
+          }
+          minRange = utteranceID + 1;
         }
-        const totalRange = 2 * this.settings.range + 1;
-        const newMinRange = Math.max(this.currentUtterance - this.settings.range, 0);
-        const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
-        this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
+
+        const standardRange = 2 * this.settings.range + 1;
+        const adaptiveRange = maxRange - minRange + 1;
+        const totalRange = Math.max(standardRange, adaptiveRange);
+        const newMaxRange = totalRange + minRange - 1; // upscaled max range
+        this.sendOnCurrentUtteranceChanged(keywordInfos, minRange, newMaxRange);
       }
       // // BASED ON BUBBLES
       // if (this.currentBubble !== nearestContainer) {
@@ -338,6 +388,7 @@ export default {
       this.fakeTime = 0;
       this.fakeUtteranceNum = 0;
       this.intersectingElements = new Map();
+      this.utterances = this.utterances.slice();
     },
     calcGroupedUtterances() {
       const groupedUtterances = [];
@@ -362,8 +413,9 @@ export default {
       this.fakeTime += 60;
       const utterances = [
         'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
-        'Ich möchte noch einmal kurz für unsere Gäste wiederholen',
+        'Ich möchte noch einmal kurz für unsere',
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
+        'Ich möchte noch einmal kurz für unsere',
         'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
         'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
       ];
@@ -373,6 +425,7 @@ export default {
         Array(utterances[2].split(' ').length).fill(Math.random()),
         Array(utterances[3].split(' ').length).fill(Math.random()),
         Array(utterances[4].split(' ').length).fill(Math.random()),
+        Array(utterances[5].split(' ').length).fill(Math.random()),
       ];
       // let randomUtterance = Math.floor(Math.random() * utterances.length);
       const randomUtterance = this.fakeUtteranceNum;
@@ -528,7 +581,8 @@ export default {
         this.utteranceIDMap.set(utterance.id, utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
+          utterance.keywords = keywords;
+          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
           // keywords have changed, therefore, check if new keywords should be sent
@@ -618,153 +672,6 @@ export default {
       this.onTimelineViewChanged(this.settings, settings);
       this.settings = settings;
     },
-    calculateKeywordnessTokenMap(utterance, keywords) {
-      const { confidences } = utterance;
-      const { text } = utterance;
-      const tokens = utterance.text.split(' ');
-
-      // console.log('TL_UTT Text');
-      // console.log(text);
-      // console.log('TL_UTT Tokens');
-      // console.log(tokens);
-      // console.log('TL_UTT Keywords');
-      // console.log(keywords);
-      // console.log('TL_UTT Confidences');
-      // console.log(confidences);
-
-      // const confidenceSum = confidences.reduce((a, b) => a + b, 0);
-
-
-      // map that stores a keywordScore for each array of involved tokenIndices
-      // [
-      //   { involved: [1, 2, 3], score: 10, word: "tim ist toll"},
-      //   { involved: [6, 7, 8], score: 10, word: "tim ist super"},
-      // ]
-      let keywordInfo = [];
-
-      // TOKENS:       0   1   2
-      // CHAR OFFSET: 0123456789
-      // STRING:      Tim ist to
-      let offset = 0;
-      const characterOffset2TokenID = new Map();
-      // build characterOffset2TokenMap
-      for (let i = 0; i < tokens.length; i += 1) {
-        const token = tokens[i];
-        for (let j = 0; j < token.length; j += 1) {
-          characterOffset2TokenID.set(offset, i);
-          offset += 1;
-        }
-        offset += 1;
-      }
-      // console.log('TL_UTT Character2TokenID');
-      // console.log(characterOffset2TokenID);
-
-      // perform regex search for each keyword in the list
-      keywords.forEach((keyword) => {
-        const words = keyword.word.split(' ');
-        const numWords = words.length;
-        const { spacy } = keyword;
-        // let newWords = '';
-        // let newLemmas = '';
-        for (let i = 0; i < numWords; i += 1) {
-          const word = words[i];
-          const lemma = spacy[i][2];
-          const pos = spacy[i][1];
-          const isStopword = spacy[i][4];
-          if (pos === 'NOUN' && !isStopword) {
-            // newWords += `${word} `;
-            // newLemmas += `${lemma} `;
-
-            let match;
-            const re = new RegExp(`\\b${word}\\b`, 'gi');
-            match = re.exec(text);
-            while (match != null) {
-              // using match.index to find token index
-              const tokenIndex = characterOffset2TokenID.get(match.index);
-              // save keywordness for keyword phrase (as token ids)
-              const score = keyword.score * confidences[tokenIndex];
-              keywordInfo.push({
-                tokenIndex,
-                score,
-                word,
-                lemma,
-                pos,
-                confidence: confidences[tokenIndex],
-              });
-
-              match = re.exec(text);
-            }
-          }
-        }
-        // newWords = newWords.trim();
-        // newLemmas = newLemmas.trim();
-
-        //
-        // let match;
-        // const re = new RegExp(`\\b${keyword.word}\\b`, 'gi');
-        // match = re.exec(text);
-        // while (match != null) {
-        //   // using match.index to find token index
-        //   const tokenIndex = characterOffset2TokenID.get(match.index);
-        //
-        //   // calculate average confidence for the keyword phrase
-        //   // also calculated an array of involved tokenIds in the keyword phrase
-        //   let avgConfidence = 0;
-        //   const confis = [];
-        //   const involvedTokenIDs = [];
-        //   for (let i = 0; i < numWords; i += 1) {
-        //     const realIndex = tokenIndex + i;
-        //     const confidence = confidences[realIndex];
-        //     avgConfidence += confidence;
-        //     confis.push(confidence);
-        //     involvedTokenIDs.push(realIndex);
-        //   }
-        //   avgConfidence /= numWords;
-        //
-        //   // save keywordness for keyword phrase (as token ids)
-        //   keywordInfo.push({
-        //     involved: involvedTokenIDs,
-        //     score: keyword.score * avgConfidence * avgConfidence,
-        //     phrase: keyword.word,
-        //     words: keyword.word.split(' '),
-        //     confs: confis,
-        //     avgConf: avgConfidence,
-        //     kwScore: keyword.score,
-        //     spacy: keyword.spacy,
-        //   });
-        //
-        //   match = re.exec(text);
-        // }
-      });
-
-      console.log('TL_UTT keywordInfo');
-      console.log(keywordInfo);
-
-      // filter the keywordInfo so that only the "REAL" keywords are processed further
-      keywordInfo = keywordInfo.filter(info => info.score > 1.0);
-
-      // remap top keyword phrases as f.e.
-      // { involved: [0, 1, 2], score: 10 }
-      // to
-      // [ { token: 0, score: 10 },
-      //   { token: 1, score: 10 },
-      //   { token: 2, score: 10 } ]
-      // const keywordnessTokenMap = new Map();
-      // keywordInfo.forEach((obj) => {
-      //   obj.involved.forEach((tokenId) => {
-      //     keywordnessTokenMap.set(tokenId, obj.score);
-      //   });
-      // });
-      const keywordnessTokenMap = new Map();
-      keywordInfo.forEach((obj) => {
-        keywordnessTokenMap.set(obj.tokenIndex, obj.score);
-      });
-
-      console.log('TL_UTT ProcessedKeywordScores');
-      console.log(keywordnessTokenMap);
-
-      return { keywordnessTokenMap, keywordInfo };
-    },
     onSortingChanged(oldSettings, newSettings) {
       if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
         window.requestAnimationFrame(() => {
@@ -786,7 +693,8 @@ export default {
         this.intersectingElements = new Map();
         // find current utterance bubble and then scroll to this element
         window.requestAnimationFrame(() => {
-          const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          // const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          const allContainers = this.getTimeline().querySelectorAll('.timelinecontainer:not(.nodisplay)');
           const currentUtterance = this.currentUtterance.toString(10);
           let currentContainer = null;
           for (let id = 0; id < allContainers.length; id += 1) {

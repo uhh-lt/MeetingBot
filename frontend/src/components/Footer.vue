@@ -178,7 +178,14 @@ export default {
         const agendaTime = parseInt(settings.agendaTime[i], 10);
 
         let status = '';
-        let { start, end } = this.agenda[i];
+        let start = -1;
+        let end = -1;
+        if (i < this.agenda.length) {
+          // eslint-disable-next-line prefer-destructuring
+          start = this.agenda[i].start;
+          // eslint-disable-next-line prefer-destructuring
+          end = this.agenda[i].end;
+        }
         if (i === this.currentAgendaPoint) {
           status = 'active';
           end = -1;

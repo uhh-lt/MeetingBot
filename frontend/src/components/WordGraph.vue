@@ -18,7 +18,6 @@ export default {
       colorScale: d3.scaleLinear(d3.schemeCategory10),
       colorScaleNEW: d3.schemeCategory10,
       svg: null,
-      g: null,
       currentNodeID: 0,
       nodeIDMap: new Map(),
       nodeLinkMap: new Map(),
@@ -51,6 +50,7 @@ export default {
   mounted() {
     this.$root.$on('onCurrentUtteranceChanged', this.onCurrentUtteranceChanged);
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
+    this.$root.$on('onReset', this.onReset);
 
     this.svg = d3.select('svg')
       .attr('viewBox', [0, 0, this.width, this.height]);
@@ -71,6 +71,20 @@ export default {
     this.restart();
   },
   methods: {
+    onReset() {
+      this.currentNodeID = 0;
+      this.nodeIDMap = new Map();
+      this.nodeLinkMap = new Map();
+      this.nodesMap = new Map();
+      this.nodeMapChangeTracker = 0;
+      this.nodes = [];
+      this.links = [];
+      this.newNodeID = 0;
+      this.graph = new Graph();
+      this.nodes = this.nodes.slice();
+      this.links = this.links.slice();
+      this.restart();
+    },
     visualizeLinks(show) {
       if (show) {
         this.link_g.attr('stroke-width', 2);
@@ -83,8 +97,14 @@ export default {
       this.visualizeLinks(settings.visualizeLinks === 'true');
     },
     onCurrentUtteranceChanged(keywordInfos, minAge, maxAge) {
-      console.log('Recieved new keywords!');
-      console.log(keywordInfos);
+      let log = 'Recieved new keywords!\n';
+      keywordInfos.forEach((info) => {
+        info.forEach((kw) => {
+          log += `${kw.word} age: ${kw.age}\n`;
+        });
+      });
+      log += `Min: ${minAge} Max: ${maxAge}`;
+      console.log(log);
 
       // build a map that contains all new keywords
       let newKeywordMap = new Map();
@@ -108,7 +128,7 @@ export default {
             const age1 = updatedWord.age;
             const age2 = keyword.age;
             updatedWord.count += 1;
-            updatedWord.age = age1 < age2 ? age1 : age2;
+            updatedWord.age = age1 > age2 ? age1 : age2;
             newKeywordMap.set(word, updatedWord);
             if (wordsInUtterance.indexOf(updatedWord) < 0) {
               wordsInUtterance.push(updatedWord);
@@ -141,13 +161,13 @@ export default {
       if (maxMinDif === 0) {
         maxMinDif = 1;
       }
-      const scaleFactor = 9 / 10;
+      const scaleFactor = 0.8;
       newKeywordMap.forEach((word) => {
-        word.age = scaleFactor * ((word.age - minAge) / maxMinDif);
+        word.age = scaleFactor * ((word.age - minAge) / maxMinDif) + 0.2;
       });
 
-      // limit node count to settings: sort by age, ascending, then only take first n elements
-      newKeywordMap = new Map([...newKeywordMap.entries()].sort((a, b) => a[1].age - b[1].age).slice(0, this.settings.wordCloudWords));
+      // limit node count to settings: sort by age, descending, then only take first n elements
+      newKeywordMap = new Map([...newKeywordMap.entries()].sort((a, b) => b[1].age - a[1].age).slice(0, this.settings.wordCloudWords));
 
       // remove nodes that are not needed anymore
       this.graph.nodeIDMap.forEach((node) => {
@@ -181,7 +201,7 @@ export default {
       if (d.group < this.colorScaleNEW.length) {
         color = d3.color(this.colorScaleNEW[d.group]);
       }
-      return `rgb(${color.r + d.age * (255 - color.r)},${color.g + d.age * (255 - color.g)},${color.b + d.age * (255 - color.b)})`;
+      return `rgb(${color.r + (1 - d.age) * (255 - color.r)},${color.g + (1 - d.age) * (255 - color.g)},${color.b + (1 - d.age) * (255 - color.b)})`;
     },
     drag(simulation) {
       function dragstarted(d) {

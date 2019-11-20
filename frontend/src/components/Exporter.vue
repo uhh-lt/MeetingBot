@@ -71,6 +71,7 @@
 
 <script>
 import JSPDF from 'jspdf';
+import calculateKeywordnessTokenMap from '../helper/keyword';
 
 export default {
   name: 'Exporter',
@@ -86,8 +87,12 @@ export default {
       editorSpeakername: [],
       firstTime: true,
       mailto: '',
-      utterances: this.value,
     };
+  },
+  computed: {
+    utterances() {
+      return this.value;
+    },
   },
   mounted() {
     // listen to events
@@ -101,6 +106,14 @@ export default {
     },
     onReset() {
       this.firstTime = true;
+      this.editorAgendaDate = 'XX.XX.XXXX';
+      this.editorAgendaPoints = 4;
+      this.editorAgendaTitles = ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'];
+      this.editorAgendaVisibility = [true, true, true, true];
+      this.editorUtterances = [];
+      this.editorSpeakername = [];
+      this.firstTime = true;
+      this.mailto = '';
     },
     onSettingsSaved(settings) {
       this.settings = settings;
@@ -160,6 +173,9 @@ export default {
           utterance = utterances[uID];
           utterance.text = this.getEditedUtteranceText(agendaID, uID);
           utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
+          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
+          utterance.keywordnessTokenMap = keywordnessTokenMap;
+          utterance.keywordInfo = keywordInfo;
           result.push(utterance);
         }
       }
@@ -167,6 +183,7 @@ export default {
       this.updateValue(result.slice());
     },
     updateEditorUtterances() {
+      console.log("UPDATE EDITOR!");
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
       const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
