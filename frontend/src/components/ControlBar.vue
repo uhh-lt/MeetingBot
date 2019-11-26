@@ -1,39 +1,48 @@
 <template>
   <div>
 
-    <template v-if="status === StatusEnum.CONNECTING">
-      <button type="button" class="btn btn-outline-light disabled">CONNECTING TO ASR...</button>
-    </template>
-
-    <template v-else-if="status === StatusEnum.NOT_READY">
-      <button type="button" class="btn btn-outline-light disabled">WAITING FOR ASR TO LOAD...</button>
-    </template>
-
-    <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.BEFORE_MEETING">
-      <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success" :disabled="buttonStatus.start">
-        <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
-    </template>
-    <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.AFTER_MEETING">
-      <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success" :disabled="buttonStatus.newmeeting">
+    <template v-if="settings.controlButtonsStateDependent === 'false'">
+      <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success mr-sm-2" :disabled="buttonStatus.newmeeting">
         Neues Meeting starten</button>
-    </template>
-
-    <template v-else-if="status === StatusEnum.STARTED">
+      <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.start">
+        <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
+      <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
+        <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
       <button v-on:click="handleClick('PAUSE')" type="button" class="btn btn-labeled btn-warning mr-sm-2" :disabled="buttonStatus.pause">
         <span class="btn-label"><i class="fas fa-pause"></i></span>Pause</button>
       <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
         <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
     </template>
-
-    <template v-else-if="status === StatusEnum.PAUSED">
-      <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
-        <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
-      <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
-        <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
-    </template>
-
-    <template v-else>
-      <button type="button" class="btn btn-outline-light disabled">AN ERROR OCCURED :(</button>
+    <template v-if="settings.controlButtonsStateDependent === 'true'">
+      <template v-if="status === StatusEnum.CONNECTING">
+        <button type="button" class="btn btn-outline-light disabled">CONNECTING TO ASR...</button>
+      </template>
+      <template v-else-if="status === StatusEnum.NOT_READY">
+        <button type="button" class="btn btn-outline-light disabled">WAITING FOR ASR TO LOAD...</button>
+      </template>
+      <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.BEFORE_MEETING">
+        <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success" :disabled="buttonStatus.start">
+          <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
+      </template>
+      <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.AFTER_MEETING">
+        <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success" :disabled="buttonStatus.newmeeting">
+          Neues Meeting starten</button>
+      </template>
+      <template v-else-if="status === StatusEnum.STARTED">
+        <button v-on:click="handleClick('PAUSE')" type="button" class="btn btn-labeled btn-warning mr-sm-2" :disabled="buttonStatus.pause">
+          <span class="btn-label"><i class="fas fa-pause"></i></span>Pause</button>
+        <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
+          <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
+      </template>
+      <template v-else-if="status === StatusEnum.PAUSED">
+        <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
+          <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
+        <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
+          <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
+      </template>
+      <template v-else>
+        <button type="button" class="btn btn-outline-light disabled">AN ERROR OCCURED :(</button>
+      </template>
     </template>
   </div>
 </template>
@@ -62,9 +71,12 @@ export default {
         newmeeting: false,
       },
       meeting: Store.meeting,
+      settings: {},
     };
   },
   mounted() {
+    // listen to events
+    this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onStreamStatusChanged', this.onStreamStatusChanged);
   },
   methods: {
@@ -91,6 +103,9 @@ export default {
       } else {
         console.log('STREAM STATUS UNKOWN!!!');
       }
+    },
+    onSettingsSaved(settings) {
+      this.settings = settings;
     },
     handleClick(buttonType) {
       switch (buttonType) {

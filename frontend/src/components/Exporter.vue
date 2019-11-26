@@ -78,7 +78,7 @@ export default {
   props: ['value'],
   data() {
     return {
-      setttings: {},
+      settings: {},
       editorAgendaDate: 'XX.XX.XXXX',
       editorAgendaPoints: 4,
       editorAgendaTitles: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'],
@@ -183,7 +183,7 @@ export default {
       this.updateValue(result.slice());
     },
     updateEditorUtterances() {
-      console.log("UPDATE EDITOR!");
+      console.log('UPDATE EDITOR!');
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
       const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
