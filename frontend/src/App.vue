@@ -292,7 +292,6 @@ export default {
               i += 1;
             }
             utteranceID += 1;
-            console.log('iteration ->');
           }
           maxRange = utteranceID - 1;
 
@@ -310,7 +309,6 @@ export default {
               i += 1;
             }
             utteranceID -= 1;
-            console.log('iteration <-');
           }
           minRange = utteranceID + 1;
         }
@@ -476,8 +474,6 @@ export default {
             this.startNewUtt = true;
           }
 
-          console.log(`CHECK SCROLLLING :D ${Date.now() - this.lastRealScroll}`);
-
           // scrolling
           if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
             window.requestAnimationFrame(() => {
@@ -642,7 +638,8 @@ export default {
         this.utteranceIDMap.set(utterance.id, utterance);
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
         computeKeywords(utterance).then((keywords) => {
-          const { keywordnessTokenMap, keywordInfo } = this.calculateKeywordnessTokenMap(utterance, keywords);
+          utterance.keywords = keywords;
+          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
           // keywords have changed, therefore, check if new keywords should be sent
@@ -716,7 +713,6 @@ export default {
             const timeline = this.getTimeline();
             const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
             timeline.stop().animate({ scrollTop: value }, 500);
-            // document.getElementById("timeline").scrollTop = document.getElementById("timelinebox-21").offsetTop - document.getElementById("timeline").offsetHeight / 2 + document.getElementById("timelinebox-21").offsetHeight / 2
           }
         });
       }

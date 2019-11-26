@@ -120,10 +120,10 @@ export default {
   },
   mounted() {
     // Listen to events
-    this.$root.$on('onReset', this.onReset);
+    this.$root.$on('onReset', this.resetAll);
   },
   methods: {
-    onReset() {
+    resetAll() {
       this.currentTab = 0;
       this.fileImported = false;
       this.successfulImport = false;
