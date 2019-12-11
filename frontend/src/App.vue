@@ -208,6 +208,317 @@ export default {
     },
   },
   methods: {
+    sendOpenExporter() {
+      this.$root.$emit('onOpenExporter');
+    },
+    sendStreamStatus(status) {
+      this.$root.$emit('onStreamStatusChanged', status);
+    },
+    sendCompleteUtterance(fullutterance, utterance, speaker) {
+      this.$root.$emit('onCompleteUtterance', fullutterance, utterance, speaker);
+    },
+    sendOnCurrentUtteranceChanged(keywords, minRange, maxRange) {
+      this.$root.$emit('onCurrentUtteranceChanged', keywords, minRange, maxRange);
+    },
+    sendFakeStream() {
+      this.fakeTime += 60;
+      const utterances = [
+        'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
+        'Ich möchte noch einmal kurz für unsere',
+        'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
+        'Ich möchte noch einmal kurz für unsere',
+        'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
+        'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
+      ];
+      const confidences = [
+        Array(utterances[0].split(' ').length).fill(Math.random()),
+        Array(utterances[1].split(' ').length).fill(Math.random()),
+        Array(utterances[2].split(' ').length).fill(Math.random()),
+        Array(utterances[3].split(' ').length).fill(Math.random()),
+        Array(utterances[4].split(' ').length).fill(Math.random()),
+        Array(utterances[5].split(' ').length).fill(Math.random()),
+      ];
+      // let randomUtterance = Math.floor(Math.random() * utterances.length);
+      const randomUtterance = this.fakeUtteranceNum;
+      this.fakeUtteranceNum += 1;
+      if (this.fakeUtteranceNum >= utterances.length) this.fakeUtteranceNum = 0;
+      const fakeEventData = {
+        handle: 'completeUtterance',
+        utterance: utterances[randomUtterance],
+        time: this.fakeTime,
+        confidences: confidences[randomUtterance],
+        speaker: '01234560',
+      };
+      const fakeEvent = {
+        data: JSON.stringify(fakeEventData),
+      };
+      this.handleStream(fakeEvent);
+    },
+    calcGroupedUtterances() {
+      const groupedUtterances = [];
+      let lastSpeaker = -1;
+      this.utterances.forEach((utterance) => {
+        // same speaker => add to utterance group
+        if (utterance.speaker === lastSpeaker) {
+          const utteranceGroup = groupedUtterances.pop();
+          utteranceGroup.push(utterance);
+          groupedUtterances.push(utteranceGroup);
+
+        // other speaker => create new utterance group
+        } else {
+          groupedUtterances.push([utterance]);
+        }
+        // update last speaker
+        lastSpeaker = utterance.speaker;
+      });
+      return groupedUtterances;
+    },
+    handleStream(event) {
+      // console.log(event.data);
+      const jsonEvent = JSON.parse(event.data);
+
+      // UTTERANCE COMMANDS
+      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance')) {
+        // check if utterance is empty
+        if (jsonEvent.utterance.length > 0) {
+          // PARTIAL UTTERANCE
+          if (jsonEvent.handle === 'partialUtterance') {
+            if (this.startNewUtt) {
+              this.addOrReplaceUtterance(jsonEvent, false, true);
+              this.startNewUtt = false;
+            } else {
+              this.addOrReplaceUtterance(jsonEvent, false, false);
+            }
+
+            // COMPLETE UTTERANCE
+          } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
+            this.addOrReplaceUtterance(jsonEvent, true, true);
+          } else if (jsonEvent.handle === 'completeUtterance') {
+            this.addOrReplaceUtterance(jsonEvent, true, false);
+            this.startNewUtt = true;
+          }
+
+          // scrolling
+          if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
+            window.requestAnimationFrame(() => {
+              // scroll to bottom if order is ASC
+              if (this.settings.timelineSorting === 'ASC') {
+                // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
+                this.getTimeline().stop().animate({ scrollTop: this.$refs.timelineRef.scrollHeight }, 500);
+              }
+              // scroll to bottom if order is DESC
+              if (this.settings.timelineSorting === 'DESC') {
+                const timelinecontainer = $('.timelinecontainer');
+                if (timelinecontainer[0] !== undefined) {
+                  if (this.settings.timelineView === 'LINE') {
+                    const value = timelinecontainer[0].offsetHeight > this.$refs.timelineRef.offsetHeight ? timelinecontainer[0].offsetHeight - this.$refs.timelineRef.offsetHeight : 0;
+                    // this.$refs.timelineRef.scrollTop = value;
+                    $('#timeline').stop().animate({ scrollTop: value }, 500);
+                  }
+                  if (this.settings.timelineView === 'LANES') {
+                    const sticky = $('.stickytimelineheader');
+                    const value = timelinecontainer[0].offsetHeight > (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) : 0;
+                    // this.$refs.timelineRef.scrollTop = value;
+                    $('#timeline2').stop().animate({ scrollTop: value }, 500);
+                  }
+                }
+              }
+              this.lastFakeScroll = Date.now();
+            });
+          }
+
+          // set last utterance type
+          this.lastUtteranceType = jsonEvent.handle;
+        }
+
+      // RESET COMMAND
+      } else if (jsonEvent.handle === 'reset') {
+        // this.doSomething();
+
+      // STATUS COMMANDS
+      } else if (jsonEvent.handle === 'asr_ready') {
+        this.sendStreamStatus('NOT_DECODING');
+      } else if (jsonEvent.handle === 'status') {
+        if (jsonEvent.shutdown) {
+          this.sendStreamStatus('SHUTDOWN');
+        } else if (jsonEvent.isDecoding) {
+          this.sendStreamStatus('DECODING');
+        } else {
+          this.sendStreamStatus('NOT_DECODING');
+        }
+
+      // UNKOWN COMMANDS
+      } else {
+        console.log('ERROR STREAM COMMAND UNKNOWN!!');
+      }
+    },
+    getTimeline() {
+      if (this.settings.timelineView === 'LINE') {
+        return $('#timeline');
+      }
+      return $('#timeline2');
+    },
+    getTimeString(time) {
+      const timeString = new Date(Math.round(time) * 1000).toISOString();
+      const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
+      const seconds = parseInt(timeString.substr(17, 2), 10);
+
+      if (minutes > 9 && seconds > 9) {
+        return `${minutes}:${seconds}`;
+      }
+      if (minutes > 9 && seconds <= 9) {
+        return `${minutes}:0${seconds}`;
+      }
+      if (minutes <= 9 && seconds > 9) {
+        return `0${minutes}:${seconds}`;
+      }
+      return `0${minutes}:0${seconds}`;
+    },
+    addOrReplaceUtterance(jsonEvent, completed, add) {
+      let utterance;
+      // confidences fix (fill confidences if text length > confidences length)
+      let confidences;
+      if (completed) {
+        // eslint-disable-next-line prefer-destructuring
+        confidences = jsonEvent.confidences;
+        const text = encodeHTML(jsonEvent.utterance);
+        const textLen = text.split(' ').length;
+        if (confidences.length < textLen) {
+          const filler = new Array(textLen - confidences.length).fill(1.0);
+          confidences = confidences.concat(filler);
+        }
+      } else {
+        confidences = [];
+      }
+      // add utterance
+      if (add) {
+        let spkr;
+        if (this.settings.randomSpeaker === 'true') {
+          spkr = Math.floor(Math.random() * this.settings.speaker);
+        } else if (this.settings.randomSpeaker === 'false') {
+          spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
+        }
+        const timeString = this.getTimeString(jsonEvent.time);
+        const text = encodeHTML(jsonEvent.utterance);
+        utterance = {
+          completed,
+          text,
+          speaker: spkr,
+          time: jsonEvent.time,
+          startTime: timeString,
+          endTime: completed ? timeString : 0,
+          id: this.newUtteranceID,
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
+          confidences,
+          agenda: this.currentAgendaPoint,
+        };
+        this.newUtteranceID += 1;
+      // replace utterance
+      } else {
+        const lastUtterance = this.utterances.pop();
+        utterance = {
+          completed: completed ? true : lastUtterance.completed,
+          text: encodeHTML(jsonEvent.utterance),
+          speaker: lastUtterance.speaker,
+          time: lastUtterance.time,
+          startTime: lastUtterance.startTime,
+          endTime: completed ? this.getTimeString(jsonEvent.time) : 0,
+          id: lastUtterance.id,
+          keywordInfo: [],
+          keywordnessTokenMap: new Map(),
+          confidences,
+          agenda: lastUtterance.agenda,
+        };
+      }
+      this.utterances.push(utterance);
+      this.utteranceIDMap.set(utterance.id, utterance);
+      if (completed) {
+        this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
+        computeKeywords(utterance).then((keywords) => {
+          utterance.keywords = keywords;
+          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
+          utterance.keywordnessTokenMap = keywordnessTokenMap;
+          utterance.keywordInfo = keywordInfo;
+          // keywords have changed, therefore, check if new keywords should be sent
+          this.onScroll(true);
+        });
+      }
+    },
+    onResize() {
+      const navbarHeight = document.getElementById('navigation').clientHeight;
+      const footerHeight = document.getElementById('footer').clientHeight;
+      const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
+      this.getTimeline().css({ height: `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)` });
+      // this.getTimeline().style.height = ;
+    },
+    onSettingsSaved(settings) {
+      console.log('Settings saved!');
+      this.onSortingChanged(this.settings, settings);
+      this.onTimelineViewChanged(this.settings, settings);
+      this.settings = settings;
+    },
+    onSortingChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
+        window.requestAnimationFrame(() => {
+          // scroll to bot if timeline sorting changed to ASC
+          if (newSettings.timelineSorting === 'ASC') {
+            this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
+            // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
+          }
+          // scroll to top if timeline sorting changed to DESC
+          if (newSettings.timelineSorting === 'DESC') {
+            this.getTimeline().stop().animate({ scrollTop: 0 }, 500);
+            // this.$refs.timelineRef.scrollTop = 0;
+          }
+        });
+      }
+    },
+    onTimelineViewChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineView !== newSettings.timelineView) {
+        this.intersectingElements = new Map();
+        // find current utterance bubble and then scroll to this element
+        window.requestAnimationFrame(() => {
+          // const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          const allContainers = this.getTimeline().querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          const currentUtterance = this.currentUtterance.toString(10);
+          let currentContainer = null;
+          for (let id = 0; id < allContainers.length; id += 1) {
+            const container = allContainers[id];
+            if (container.dataset.utteranceid === currentUtterance) {
+              currentContainer = container;
+              break;
+            }
+          }
+          if (currentContainer !== null) {
+            const timeline = this.getTimeline();
+            const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
+            timeline.stop().animate({ scrollTop: value }, 500);
+          }
+        });
+      }
+    },
+    onReset() {
+      this.utterances = [];
+      this.utteranceIDMap = new Map();
+      this.startNewUtt = true;
+      this.lastUtteranceType = 'completeUtterance';
+      this.currentAgendaPoint = 0;
+      this.fakeTime = 0;
+      this.fakeUtteranceNum = 0;
+      this.intersectingElements = new Map();
+      this.utterances = this.utterances.slice();
+      this.currentUtterance = -1;
+      this.currentBubble = -1;
+      this.newUtteranceID = 0;
+      this.lastRealScroll = 0;
+      this.lastFakeScroll = 0;
+    },
+    onNextAgenda() {
+      if (this.currentAgendaPoint < this.settings.agendaPoints) {
+        this.currentAgendaPoint += 1;
+      }
+    },
     onIntersection(entries) {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -362,360 +673,6 @@ export default {
       //   const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
       //   this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
       // }
-    },
-    sendOpenExporter() {
-      this.$root.$emit('onOpenExporter');
-    },
-    onNextAgenda() {
-      if (this.currentAgendaPoint < this.settings.agendaPoints) {
-        this.currentAgendaPoint += 1;
-      }
-    },
-    sendStreamStatus(status) {
-      this.$root.$emit('onStreamStatusChanged', status);
-    },
-    sendCompleteUtterance(fullutterance, utterance, speaker) {
-      this.$root.$emit('onCompleteUtterance', fullutterance, utterance, speaker);
-    },
-    sendOnCurrentUtteranceChanged(keywords, minRange, maxRange) {
-      this.$root.$emit('onCurrentUtteranceChanged', keywords, minRange, maxRange);
-    },
-    onReset() {
-      this.utterances = [];
-      this.utteranceIDMap = new Map();
-      this.startNewUtt = true;
-      this.lastUtteranceType = 'completeUtterance';
-      this.currentAgendaPoint = 0;
-      this.fakeTime = 0;
-      this.fakeUtteranceNum = 0;
-      this.intersectingElements = new Map();
-      this.utterances = this.utterances.slice();
-      this.currentUtterance = -1;
-      this.currentBubble = -1;
-      this.newUtteranceID = 0;
-      this.lastRealScroll = 0;
-      this.lastFakeScroll = 0;
-    },
-    calcGroupedUtterances() {
-      const groupedUtterances = [];
-      let lastSpeaker = -1;
-      this.utterances.forEach((utterance) => {
-        // same speaker => add to utterance group
-        if (utterance.speaker === lastSpeaker) {
-          const utteranceGroup = groupedUtterances.pop();
-          utteranceGroup.push(utterance);
-          groupedUtterances.push(utteranceGroup);
-
-        // other speaker => create new utterance group
-        } else {
-          groupedUtterances.push([utterance]);
-        }
-        // update last speaker
-        lastSpeaker = utterance.speaker;
-      });
-      return groupedUtterances;
-    },
-    sendFakeStream() {
-      this.fakeTime += 60;
-      const utterances = [
-        'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
-        'Ich möchte noch einmal kurz für unsere',
-        'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
-        'Ich möchte noch einmal kurz für unsere',
-        'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
-        'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
-      ];
-      const confidences = [
-        Array(utterances[0].split(' ').length).fill(Math.random()),
-        Array(utterances[1].split(' ').length).fill(Math.random()),
-        Array(utterances[2].split(' ').length).fill(Math.random()),
-        Array(utterances[3].split(' ').length).fill(Math.random()),
-        Array(utterances[4].split(' ').length).fill(Math.random()),
-        Array(utterances[5].split(' ').length).fill(Math.random()),
-      ];
-      // let randomUtterance = Math.floor(Math.random() * utterances.length);
-      const randomUtterance = this.fakeUtteranceNum;
-      this.fakeUtteranceNum += 1;
-      if (this.fakeUtteranceNum >= utterances.length) this.fakeUtteranceNum = 0;
-      const fakeEventData = {
-        handle: 'completeUtterance',
-        utterance: utterances[randomUtterance],
-        time: this.fakeTime,
-        confidences: confidences[randomUtterance],
-        speaker: '01234560',
-      };
-      const fakeEvent = {
-        data: JSON.stringify(fakeEventData),
-      };
-      this.handleStream(fakeEvent);
-    },
-    handleStream(event) {
-      // console.log(event.data);
-      const jsonEvent = JSON.parse(event.data);
-
-      // UTTERANCE COMMANDS
-      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance')) {
-        // check if utterance is empty
-        if (jsonEvent.utterance.length > 0) {
-          // PARTIAL UTTERANCE
-          if (jsonEvent.handle === 'partialUtterance') {
-            if (this.startNewUtt) {
-              this.addUtterance(jsonEvent, false);
-              this.startNewUtt = false;
-            } else {
-              this.replaceLastUtterance(jsonEvent, false);
-            }
-
-            // COMPLETE UTTERANCE
-          } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
-            this.addUtterance(jsonEvent, true);
-          } else if (jsonEvent.handle === 'completeUtterance') {
-            this.replaceLastUtterance(jsonEvent, true);
-            this.startNewUtt = true;
-          }
-
-          // scrolling
-          if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
-            window.requestAnimationFrame(() => {
-              // scroll to bottom if order is ASC
-              if (this.settings.timelineSorting === 'ASC') {
-                // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
-                this.getTimeline().stop().animate({ scrollTop: this.$refs.timelineRef.scrollHeight }, 500);
-              }
-              // scroll to bottom if order is DESC
-              if (this.settings.timelineSorting === 'DESC') {
-                const timelinecontainer = $('.timelinecontainer');
-                if (timelinecontainer[0] !== undefined) {
-                  if (this.settings.timelineView === 'LINE') {
-                    const value = timelinecontainer[0].offsetHeight > this.$refs.timelineRef.offsetHeight ? timelinecontainer[0].offsetHeight - this.$refs.timelineRef.offsetHeight : 0;
-                    // this.$refs.timelineRef.scrollTop = value;
-                    $('#timeline').stop().animate({ scrollTop: value }, 500);
-                  }
-                  if (this.settings.timelineView === 'LANES') {
-                    const sticky = $('.stickytimelineheader');
-                    const value = timelinecontainer[0].offsetHeight > (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (this.$refs.timelineRef.offsetHeight - sticky[0].offsetHeight) : 0;
-                    // this.$refs.timelineRef.scrollTop = value;
-                    $('#timeline2').stop().animate({ scrollTop: value }, 500);
-                  }
-                }
-              }
-              this.lastFakeScroll = Date.now();
-            });
-          }
-
-          // set last utterance type
-          this.lastUtteranceType = jsonEvent.handle;
-        }
-
-      // RESET COMMAND
-      } else if (jsonEvent.handle === 'reset') {
-        // this.doSomething();
-
-      // STATUS COMMANDS
-      } else if (jsonEvent.handle === 'asr_ready') {
-        this.sendStreamStatus('NOT_DECODING');
-      } else if (jsonEvent.handle === 'status') {
-        if (jsonEvent.shutdown) {
-          this.sendStreamStatus('SHUTDOWN');
-        } else if (jsonEvent.isDecoding) {
-          this.sendStreamStatus('DECODING');
-        } else {
-          this.sendStreamStatus('NOT_DECODING');
-        }
-
-      // UNKOWN COMMANDS
-      } else {
-        console.log('ERROR STREAM COMMAND UNKNOWN!!');
-      }
-    },
-    getTimeline() {
-      if (this.settings.timelineView === 'LINE') {
-        return $('#timeline');
-      }
-      return $('#timeline2');
-    },
-    getTimeString(time) {
-      const timeString = new Date(Math.round(time) * 1000).toISOString();
-      const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
-      const seconds = parseInt(timeString.substr(17, 2), 10);
-
-      if (minutes > 9 && seconds > 9) {
-        return `${minutes}:${seconds}`;
-      }
-      if (minutes > 9 && seconds <= 9) {
-        return `${minutes}:0${seconds}`;
-      }
-      if (minutes <= 9 && seconds > 9) {
-        return `0${minutes}:${seconds}`;
-      }
-      return `0${minutes}:0${seconds}`;
-    },
-    addUtterance(jsonEvent, completed) {
-      let utterance;
-      let spkr;
-      if (this.settings.randomSpeaker === 'true') {
-        spkr = Math.floor(Math.random() * this.settings.speaker);
-      } else if (this.settings.randomSpeaker === 'false') {
-        spkr = parseInt(jsonEvent.speaker.charAt(7), 10);
-      }
-      const timeString = this.getTimeString(jsonEvent.time);
-      if (completed) {
-        let { confidences } = jsonEvent;
-        const text = encodeHTML(jsonEvent.utterance);
-        const textLen = text.split(' ').length;
-        if (confidences.length < textLen) {
-          const filler = new Array(textLen - confidences.length).fill(1.0);
-          confidences = confidences.concat(filler);
-          console.log(`FIX FIX FIX : ${confidences} TARGET: ${textLen}`);
-        }
-        utterance = {
-          completed,
-          text,
-          speaker: spkr,
-          time: jsonEvent.time,
-          startTime: timeString,
-          endTime: timeString,
-          id: this.newUtteranceID,
-          keywordInfo: [],
-          keywordnessTokenMap: new Map(),
-          confidences,
-          agenda: this.currentAgendaPoint,
-        };
-        this.utterances.push(utterance);
-        this.utteranceIDMap.set(utterance.id, utterance);
-        this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then((keywords) => {
-          utterance.keywords = keywords;
-          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
-          utterance.keywordnessTokenMap = keywordnessTokenMap;
-          utterance.keywordInfo = keywordInfo;
-          // keywords have changed, therefore, check if new keywords should be sent
-          this.onScroll(true);
-        });
-      } else {
-        utterance = {
-          completed,
-          text: encodeHTML(jsonEvent.utterance),
-          speaker: spkr,
-          time: jsonEvent.time,
-          startTime: timeString,
-          endTime: 0,
-          id: this.newUtteranceID,
-          keywordInfo: [],
-          keywordnessTokenMap: new Map(),
-          confidences: [],
-          agenda: this.currentAgendaPoint,
-        };
-        this.utterances.push(utterance);
-        this.utteranceIDMap.set(utterance.id, utterance);
-      }
-      this.newUtteranceID += 1;
-    },
-    replaceLastUtterance(jsonEvent, completedUtterance) {
-      if (completedUtterance) {
-        let { confidences } = jsonEvent;
-        const text = encodeHTML(jsonEvent.utterance);
-        const textLen = text.split(' ').length;
-        if (confidences.length < textLen) {
-          const filler = new Array(textLen - confidences.length).fill(1.0);
-          confidences = confidences.concat(filler);
-        }
-        const lastUtterance = this.utterances.pop();
-        const utterance = {
-          completed: true,
-          text: encodeHTML(jsonEvent.utterance),
-          speaker: lastUtterance.speaker,
-          time: lastUtterance.time,
-          startTime: lastUtterance.startTime,
-          endTime: this.getTimeString(jsonEvent.time),
-          id: lastUtterance.id,
-          keywordInfo: [],
-          keywordnessTokenMap: new Map(),
-          confidences,
-          agenda: lastUtterance.agenda,
-        };
-        this.utterances.push(utterance);
-        this.utteranceIDMap.set(utterance.id, utterance);
-        this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then((keywords) => {
-          utterance.keywords = keywords;
-          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
-          utterance.keywordnessTokenMap = keywordnessTokenMap;
-          utterance.keywordInfo = keywordInfo;
-          // keywords have changed, therefore, check if new keywords should be sent
-          this.onScroll(true);
-        });
-      } else {
-        const lastUtterance = this.utterances.pop();
-        const utterance = {
-          completed: lastUtterance.completed,
-          text: encodeHTML(jsonEvent.utterance),
-          speaker: lastUtterance.speaker,
-          time: lastUtterance.time,
-          startTime: lastUtterance.startTime,
-          endTime: 0,
-          id: lastUtterance.id,
-          keywordInfo: [],
-          keywordnessTokenMap: new Map(),
-          confidences: [],
-          agenda: lastUtterance.agenda,
-        };
-        this.utterances.push(utterance);
-        this.utteranceIDMap.set(utterance.id, utterance);
-      }
-    },
-    onResize() {
-      const navbarHeight = document.getElementById('navigation').clientHeight;
-      const footerHeight = document.getElementById('footer').clientHeight;
-      const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
-      this.getTimeline().css({ height: `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)` });
-      // this.getTimeline().style.height = ;
-    },
-    onSettingsSaved(settings) {
-      console.log('Settings saved!');
-      this.onSortingChanged(this.settings, settings);
-      this.onTimelineViewChanged(this.settings, settings);
-      this.settings = settings;
-    },
-    onSortingChanged(oldSettings, newSettings) {
-      if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
-        window.requestAnimationFrame(() => {
-          // scroll to bot if timeline sorting changed to ASC
-          if (newSettings.timelineSorting === 'ASC') {
-            this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
-            // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
-          }
-          // scroll to top if timeline sorting changed to DESC
-          if (newSettings.timelineSorting === 'DESC') {
-            this.getTimeline().stop().animate({ scrollTop: 0 }, 500);
-            // this.$refs.timelineRef.scrollTop = 0;
-          }
-        });
-      }
-    },
-    onTimelineViewChanged(oldSettings, newSettings) {
-      if (oldSettings.timelineView !== newSettings.timelineView) {
-        this.intersectingElements = new Map();
-        // find current utterance bubble and then scroll to this element
-        window.requestAnimationFrame(() => {
-          // const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
-          const allContainers = this.getTimeline().querySelectorAll('.timelinecontainer:not(.nodisplay)');
-          const currentUtterance = this.currentUtterance.toString(10);
-          let currentContainer = null;
-          for (let id = 0; id < allContainers.length; id += 1) {
-            const container = allContainers[id];
-            if (container.dataset.utteranceid === currentUtterance) {
-              currentContainer = container;
-              break;
-            }
-          }
-          if (currentContainer !== null) {
-            const timeline = this.getTimeline();
-            const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
-            timeline.stop().animate({ scrollTop: value }, 500);
-          }
-        });
-      }
     },
   },
 };
