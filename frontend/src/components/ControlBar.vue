@@ -113,6 +113,10 @@ export default {
           console.log('START clicked');
           this.sendButtonCommand('start', 'start');
           this.meeting.status = this.meeting.enum.IN_MEETING;
+          sendCommand('reset_timer')
+            .catch((error) => {
+              console.log(`ERROR while sending button command: ${error}`);
+            });
           break;
         case 'PAUSE':
           console.log('PAUSE clicked');
@@ -132,7 +136,6 @@ export default {
         case 'NEWMEETING':
           console.log('New Meeting clicked');
           this.sendReset();
-          this.sendButtonCommand('newmeeting', 'reset_timer');
           this.meeting.status = this.meeting.enum.BEFORE_MEETING;
           break;
         default:
