@@ -182,7 +182,7 @@ export default {
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
         'Ich möchte noch einmal kurz für unsere',
         'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
-        'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
+        '<UNK> Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
       ];
       const confidences = [
         Array(utterances[0].split(' ').length).fill(Math.random()),
