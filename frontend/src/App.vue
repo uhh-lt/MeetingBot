@@ -238,7 +238,7 @@ export default {
             window.requestAnimationFrame(() => {
               // scroll to bottom if order is ASC
               if (this.settings.timelineSorting === 'ASC') {
-                this.getTimeline().stop().animate({ scrollTop: this.getTimeline().scrollHeight }, 500);
+                this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
               }
               // scroll to bottom if order is DESC
               if (this.settings.timelineSorting === 'DESC') {
@@ -246,13 +246,13 @@ export default {
                 if (timelinecontainer[0] !== undefined) {
                   if (this.settings.timelineView === 'LINE') {
                     const timeline = $('#timeline');
-                    const value = timelinecontainer[0].offsetHeight > timeline.offsetHeight ? timelinecontainer[0].offsetHeight - timeline.offsetHeight : 0;
+                    const value = timelinecontainer[0].offsetHeight > timeline[0].offsetHeight ? timelinecontainer[0].offsetHeight - timeline[0].offsetHeight : 0;
                     timeline.stop().animate({ scrollTop: value }, 500);
                   }
                   if (this.settings.timelineView === 'LANES') {
                     const sticky = $('.stickytimelineheader');
                     const timeline = $('#timeline2');
-                    const value = timelinecontainer[0].offsetHeight > (timeline.offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline.offsetHeight - sticky[0].offsetHeight) : 0;
+                    const value = timelinecontainer[0].offsetHeight > (timeline[0].offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline[0].offsetHeight - sticky[0].offsetHeight) : 0;
                     timeline.stop().animate({ scrollTop: value }, 500);
                   }
                 }
