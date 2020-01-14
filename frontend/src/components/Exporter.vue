@@ -29,7 +29,8 @@
                 <div class="row" :key="'editor-agenda-'+agendaID+'-utterance-'+utteranceID">
 <!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
                   <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[agendaID][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
+                  <EditableUtterance :id="'agenda-'+agendaID+'-utterance-'+utteranceID" v-model="editorUtterances[agendaID][utteranceID]"></EditableUtterance>
+<!--                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
                     <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(agendaID, utteranceID)"></i>
                     <i style="font-size: 24px; float:right;" class="fas"
@@ -72,9 +73,11 @@
 <script>
 import JSPDF from 'jspdf';
 import calculateKeywordnessTokenMap from '../helper/keyword';
+import EditableUtterance from './EditableUtterance.vue';
 
 export default {
   name: 'Exporter',
+  components: { EditableUtterance },
   props: ['value'],
   data() {
     return {
@@ -128,7 +131,7 @@ export default {
     },
     onOpenExporter() {
       if (this.firstTime) {
-        this.updateEditorUtterances();
+        this.initEditorUtterances();
       }
       this.firstTime = false;
     },
@@ -164,7 +167,7 @@ export default {
       this.editorAgendaVisibility = this.editorAgendaVisibility.slice(0);
     },
     getEditedUtteranceText(agendaID, utteranceID) {
-      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent;
+      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     },
     deleteUtterance(agendaId, utteranceID) {
       this.editorUtterances[agendaId].splice(utteranceID, 1);
@@ -177,6 +180,7 @@ export default {
         for (let uID = 0; uID < utterances.length; uID += 1) {
           utterance = utterances[uID];
           utterance.text = this.getEditedUtteranceText(agendaID, uID);
+          console.log(utterance.text);
           utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
           const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
@@ -185,9 +189,9 @@ export default {
         }
       }
       console.log(result);
-      this.updateValue(result.slice());
+      this.updateValue(this.jsonCopy(result));
     },
-    updateEditorUtterances() {
+    initEditorUtterances() {
       console.log('UPDATE EDITOR!');
       this.editorSpeakername = this.settings.speakerName;
 
@@ -209,7 +213,6 @@ export default {
           const utterance = utterances[j];
           numConfidences = utterance.confidences.length;
           utterance.score = utterance.confidences.reduce((a, b) => a + b) / numConfidences;
-          utterance.html = this.visualizeUtterance(utterance);
         }
         this.editorUtterances.push(utterances);
       }
@@ -220,16 +223,6 @@ export default {
       this.editorUtterances = this.editorUtterances.slice();
 
       this.calculateMailto();
-    },
-    visualizeUtterance(utterance) {
-      let html = '';
-      const tokens = utterance.text.split(' ');
-      for (let i = 0; i < tokens.length; i += 1) {
-        const token = tokens[i];
-        const confidence = utterance.confidences[i];
-        html += confidence > 0.25 || token !== '&lt;UNK&gt;' ? `${token} ` : `<span class="confword">${token}</span> `; // <UNK> always red
-      }
-      return html.trim();
     },
     createPDF() {
       const pdf = new JSPDF('p', 'pt', 'letter');
