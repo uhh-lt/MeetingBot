@@ -369,7 +369,7 @@ export default {
       this.utteranceIDMap.set(utterance.id, utterance);
       if (completed) {
         this.sendCompleteUtterance(utterance, jsonEvent.utterance, utterance.speaker);
-        computeKeywords(utterance).then((keywords) => {
+        computeKeywords(utterance, this.$i18n.locale).then((keywords) => {
           utterance.keywords = keywords;
           const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;

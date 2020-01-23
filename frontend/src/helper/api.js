@@ -1,4 +1,4 @@
-const serverURL = 'http://localhost:8888/mbot';
+const serverURL = 'http://localhost:8888';
 const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
 const activateLogger = true;
@@ -19,11 +19,20 @@ function postData(url = '', data = {}) {
   }).then(response => response.json()); // parses JSON response into native JavaScript objects
 }
 
-async function fetchKeywords(text) {
+async function fetchKeywords(text, language) {
+  let lang = null;
+  if (language === 'en') {
+    lang = 'eng';
+  } else if (language === 'de') {
+    lang = 'deu';
+  }
+
+  if (lang === null) return null;
+
   if (activateLogger) console.log('Fetching Keywords');
-  const data = await postData(`${serverURL}/keywords`, {
+  const data = await postData(`${serverURL}/extractKeywords`, {
     count: 3,
-    lang: 'deu',
+    lang,
     text,
   });
   if (activateLogger) console.log('Success fetching keywords');
@@ -34,10 +43,11 @@ async function fetchKeywords(text) {
   return [];
 }
 
-async function fetchSpacy(text) {
+async function fetchSpacy(text, lang) {
   if (activateLogger) console.log('Fetching Spacy Output');
   const data = await postData(`${spacyURL}/process`, {
     text,
+    lang,
   });
   if (activateLogger) {
     console.log('Success fetching spacy output');
@@ -46,13 +56,13 @@ async function fetchSpacy(text) {
   return data;
 }
 
-async function computeKeywords(utterance) {
-  let keywords = await fetchKeywords(utterance.text);
+async function computeKeywords(utterance, lang) {
+  let keywords = await fetchKeywords(utterance.text, lang);
   // utterance.keywords = keywords.map(value => value.word).join(" ");
   keywords = keywords.filter(value => value.word !== 'UNK');
   const result = await Promise.resolve(
     Promise.all(keywords.map(k => new Promise((resolve) => {
-      fetchSpacy(k.word).then((data) => {
+      fetchSpacy(k.word, lang).then((data) => {
         // eslint-disable-next-line no-param-reassign
         k.spacy = data;
         return resolve(k);
