@@ -4,15 +4,15 @@
     <div style="max-width:1200px" class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header text-white bg-dark">
-          <h4 class="modal-title" id="exporteModalLabel">Meeting Exportieren</h4>
+          <h4 class="modal-title" id="exporteModalLabel">{{ $t('exporter_title') }}</h4>
           <button type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <h1>Meeting vom {{editorAgendaDate}}</h1>
+          <h1>{{ $t('exporter_meeting_from') }} {{editorAgendaDate}}</h1>
           <br>
-          <h2>Agenda</h2>
+          <h2>{{ $t('exporter_agenda') }}</h2>
           <ol>
             <li v-for="(title, id) in editorAgendaTitles" :key="'editor-agenda-title-'+id"><a :href="'#a'+id">{{title}}</a></li>
           </ol>
@@ -43,7 +43,7 @@
           <h2>
             <i v-if="!editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-down"></i>
             <i v-if="editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-up"></i>
-            Sonstiges
+            {{ $t('exporter_other') }}
           </h2>
           <div :style="editorAgendaVisibility[editorAgendaTitles.length] ? '' : 'display:none'" class="form-group">
             <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
@@ -59,10 +59,10 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" title="ACHTUNG: Konfidenz Informationen gehen verloren!">Gesprächsverlauf aktualisieren</button>
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
-          <a class="btn btn-primary" :href="mailto">E-Mail schreiben</a>
-          <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">PDF herunterladen</button>
+          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" :title="$t('exporter_refresh')">{{ $t('exporter_refresh') }}</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
+          <a class="btn btn-primary" :href="mailto">{{ $t('exporter_write_email') }}</a>
+          <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">{{ $t('exporter_download_pdf') }}</button>
         </div>
       </div>
     </div>

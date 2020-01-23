@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header text-white bg-dark">
-          <h4 class="modal-title" id="exampleModalLabel">Einstellungen</h4>
+          <h4 class="modal-title" id="exampleModalLabel">{{ $t('settings') }}</h4>
           <button v-on:click="revertSettings" type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -12,77 +12,80 @@
         <div class="modal-body">
           <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-bottom: 10px;">
             <li class="nav-item">
-              <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">Allgemein</a>
+              <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">{{ $t('general') }}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="speaker-tab" data-toggle="tab" href="#speaker" role="tab" aria-controls="speaker" aria-selected="false">Sprecher</a>
+              <a class="nav-link" id="speaker-tab" data-toggle="tab" href="#speaker" role="tab" aria-controls="speaker" aria-selected="false">{{ $t('speaker') }}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="agenda-tab" data-toggle="tab" href="#agenda" role="tab" aria-controls="agenda" aria-selected="false">Agenda</a>
+              <a class="nav-link" id="agenda-tab" data-toggle="tab" href="#agenda" role="tab" aria-controls="agenda" aria-selected="false">{{ $t('agenda') }}</a>
             </li>
           </ul>
           <div class="tab-content" id="myTabContent">
             <!--              BEGIN GENERAL SETTINGS-->
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+              <language-switcher></language-switcher>
+              <hr>
               <fieldset class="form-group px-2">
-                <label>Sortierung der Zeitleiste:</label><br>
+                <label>{{ $t('settings_timeline_sorting') }}:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="timeline-sorting-asc" class="form-check-label">
                     <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-asc" value="ASC">
-                    AUFsteigend
+                    {{ $t('settings_ASCending') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline mb-2">
                   <label for="timeline-sorting-desc" class="form-check-label">
                     <input v-model="timelineSorting" class="form-check-input" type="radio" name="timeline-sorting" id="timeline-sorting-desc" value="DESC">
-                    ABsteigend
+                    {{ $t('settings_DESCending') }}
                   </label>
                 </div>
               </fieldset>
               <hr>
               <fieldset class="form-group px-2">
-                <label>Zeitleisten Ansicht:</label><br>
-                <div class="form-check ">
-                  <label for="timeline-view-line" class="form-check-label">
-                    <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-line" value="LINE">
-                    Visualisiere den Gesprächsverlauf als eine einzige Linie
-                  </label>
-                </div>
-                <div class="form-check">
-                  <label for="timeline-view-lanes" class="form-check-label">
-                    <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-lanes" value="LANES">
-                    Visualisiere den Gesprächsverlauf mit einer Linie pro Sprecher
-                  </label>
-                </div>
-              </fieldset>
-              <hr>
-              <fieldset class="form-group px-2">
-                <label>Visualisiere die Konfidenzen mit Graustufen:</label><br>
+                <label>{{ $t('settings_confidences_as_greyscale') }}:</label><br>
                 <div class="form-check form-check-inline">
                   <label for="visualize-confidence-yes" class="form-check-label">
                     <input v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-yes" value="true">
-                    Ja
+                    {{ $t('yes') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="visualize-confidence-no" class="form-check-label">
                     <input v-model="shouldVisualizeConfidence" class="form-check-input" type="radio" name="visualize-confidence" id="visualize-confidence-no" value="false">
-                    Nein
+                    {{ $t('no') }}
                   </label>
                 </div>
               </fieldset>
+              <hr>
               <fieldset class="form-group px-2">
-                <label>Hebe Schlüsselwörter mit einer Hintergrundfarbe hervor:</label><br>
+                <label>{{ $t('settings_timeline_view') }}:</label><br>
+                <div class="form-check ">
+                  <label for="timeline-view-line" class="form-check-label">
+                    <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-line" value="LINE">
+                    {{ $t('settings_timeline_view_single_line') }}
+                  </label>
+                </div>
+                <div class="form-check">
+                  <label for="timeline-view-lanes" class="form-check-label">
+                    <input v-model="timelineView" class="form-check-input" type="radio" name="timeline-view" id="timeline-view-lanes" value="LANES">
+                    {{ $t('settings_timeline_view_multiple_lines') }}
+                  </label>
+                </div>
+              </fieldset>
+              <hr>
+              <fieldset class="form-group px-2">
+                <label>{{ $t('settings_highlight_keywords_with_color') }}:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="visualize-keywords-yes" class="form-check-label">
                     <input v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-yes" value="true">
-                    Ja
+                    {{ $t('yes') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline mb-2">
                   <label for="visualize-keywords-no" class="form-check-label">
                     <input v-model="shouldVisualizeKeywords" class="form-check-input" type="radio" name="visualize-keywords" id="visualize-keywords-no" value="false">
-                    Nein
+                    {{ $t('no') }}
                   </label>
                 </div>
                 <div id="cp3a" class="input-group">
@@ -94,57 +97,57 @@
               </fieldset>
               <hr>
               <fieldset class="form-group px-2">
-                <label for="example-number-input">Maximale Wörter in der Wort Wolke:</label><br>
+                <label for="example-number-input">{{ $t('settings_word_cloud_max_words') }}:</label><br>
                   <input v-model="wordCloudWords" class="form-control" type="number" id="example-number-input">
               </fieldset>
               <div class="form-group px-2">
-                <label for="wordcloudrange">Anzahl Aussagen vor und nach aktueller Aussage für Word Cloud: {{rangeNum}}</label>
+                <label for="wordcloudrange">{{ $t('settings_word_cloud_range') }}: {{rangeNum}}</label>
                 <input v-model="rangeNum" type="range" class="custom-range" min="0" max="20" id="wordcloudrange">
               </div>
               <fieldset class="form-group px-2">
-                <label>Visualisiere Kanten im Word Graph?</label><br>
+                <label>{{ $t('settings_word_cloud_visualize_edges') }}:</label><br>
                 <div class="form-check form-check-inline">
                   <label for="visualize-links-yes" class="form-check-label">
                     <input v-model="visualizeLinks" class="form-check-input" type="radio" name="visualize-links" id="visualize-links-yes" value="true">
-                    Ja
+                    {{ $t('yes') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="visualize-links-no" class="form-check-label">
                     <input v-model="visualizeLinks" class="form-check-input" type="radio" name="visualize-links" id="visualize-links-no" value="false">
-                    Nein
+                    {{ $t('no') }}
                   </label>
                 </div>
               </fieldset>
               <hr>
               <fieldset class="form-group px-2">
-                <label>Zufälliger Sprecher:</label><br>
+                <label>{{ $t('settings_random_speaker') }}:</label><br>
                 <div class="form-check form-check-inline">
                   <label for="random-speaker-yes" class="form-check-label">
                     <input v-model="randomSpeaker" class="form-check-input" type="radio" name="random-speaker" id="random-speaker-yes" value="true">
-                    Ja
+                    {{ $t('yes') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="random-speaker-no" class="form-check-label">
                     <input v-model="randomSpeaker" class="form-check-input" type="radio" name="random-speaker" id="random-speaker-no" value="false">
-                    Nein
+                    {{ $t('no') }}
                   </label>
                 </div>
               </fieldset>
               <hr>
               <fieldset class="form-group px-2">
-                <label>Kontroll-Buttons Status-abhängig?</label><br>
+                <label>{{ $t('settings_control_buttons_state_dependent') }}?</label><br>
                 <div class="form-check form-check-inline">
                   <label for="control-buttons-yes" class="form-check-label">
                     <input v-model="controlButtonsStateDependent" class="form-check-input" type="radio" name="control-button" id="control-buttons-yes" value="true">
-                    Ja
+                    {{ $t('yes') }}
                   </label>
                 </div>
                 <div class="form-check form-check-inline">
                   <label for="control-buttons-no" class="form-check-label">
                     <input v-model="controlButtonsStateDependent" class="form-check-input" type="radio" name="control-button" id="control-buttons-no" value="false">
-                    Nein
+                    {{ $t('no') }}
                   </label>
                 </div>
               </fieldset>
@@ -154,24 +157,24 @@
             <!--              BEGIN SPEAKER SETTINGS-->
             <div class="tab-pane fade" id="speaker" role="tabpanel" aria-labelledby="speaker-tab">
               <div class="form-group px-2">
-                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1"># Sprecher: {{speakers}}</label>
-                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1"># Sprecher: {{speakers}} <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span></label>
+                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_speaker') }}: {{speakers}}</label>
+                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_speaker') }}: {{speakers}} <span class="text-danger">{{ $t('settings_info_change_before_meeting') }}</span></label>
                 <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="speakerCount" type="range" class="custom-range" min="1" max="4" id="customRange1">
               </div>
               <div v-for="(speaker, id) in speakers" :key="'speaker-settings-'+speaker">
                 <hr>
                 <div class="row" style="padding: 0 1rem;">
                   <div class="col-sm-4 form-group px-2">
-                    <label :for="'speaker-' + speaker + '-name-input'">Sprecher {{speaker}} Name:</label>
+                    <label :for="'speaker-' + speaker + '-name-input'">{{ $t('speaker') }} {{speaker}} {{ $t('name') }}:</label>
                     <input v-model="speakerName[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-name-input'">
                   </div>
                   <div class="col-sm-8 form-group px-2">
-                    <label :for="'speaker-' + speaker + '-email-input'">Sprecher {{speaker}} E-Mail:</label>
+                    <label :for="'speaker-' + speaker + '-email-input'">{{ $t('speaker') }} {{speaker}} {{ $t('email') }}:</label>
                     <input v-model="speakerMail[id]" class="form-control" type="text" :id="'speaker-' + speaker + '-email-input'">
                   </div>
                 </div>
                 <fieldset class="form-group px-2">
-                  <label>Sprecher {{speaker}} Avatar:</label><br>
+                  <label>{{ $t('speaker') }} {{speaker}} {{ $t('avatar') }}:</label><br>
                   <div v-for="avatar in avatars" :key="'avatar-speaker-'+speaker+'-'+avatar" class="form-check form-check-inline mb-2">
                     <label :for="'avatar-radios-' + avatar + '-speaker-' + speaker" class="form-check-label">
                       <input v-model="selectedAvatar[id]" class="form-check-input imgradio" type="radio" :name="'avatar-radios-speaker-' + speaker" :id="'avatar-radios-' + avatar + '-speaker-' + speaker" :value="avatar">
@@ -186,23 +189,23 @@
             <!--              BEGIN AGENDA SETTINGS-->
             <div class="tab-pane fade" id="agenda" role="tabpanel" aria-labelledby="agenda-tab">
               <div class="form-group px-2">
-                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1"># Agendapunkte: {{agendas}}</label>
-                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1"># Agendapunkte: {{agendas}} <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span></label>
+                <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_agendapoints') }}: {{agendas}}</label>
+                <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_agendapoints') }}: {{agendas}} <span class="text-danger">{{ $t('settings_info_change_before_meeting') }}</span></label>
                 <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="agendaPoints" type="range" class="custom-range" min="1" max="10" id="customRange2">
               </div>
               <fieldset class="form-group px-2">
-                <label for="agenda-warn-time-input">Warn Zeit (Wie viele Minuten vor Ende eines Agendapunkts soll gewarnt werden?):</label><br>
+                <label for="agenda-warn-time-input">{{ $t('settings_warn_time') }} ({{ $t('settings_warn_time_info') }}):</label><br>
                 <input v-model="agendaWarnTime" class="form-control" type="number" id="agenda-warn-time-input">
               </fieldset>
               <div v-for="(index, id) in agendas" :key="'agenda-settings-'+index">
                 <div class="form-group px-2">
                   <hr>
-                  <label :for="'agenda-' + index + '-titel-input'">{{index}}. Agendapunkt Titel:</label>
+                  <label :for="'agenda-' + index + '-titel-input'">{{index}}. {{ $t('settings_agendapoint_title') }}:</label>
                   <input v-model="agendaTitel[id]" class="form-control" type="text" :id="'agenda-' + index + '-titel-input'">
                 </div>
                 <fieldset class="form-group px-2">
-                  <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten):</label><br>
-                  <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">Geplante Zeit (in Minuten) <span class="text-danger">(Kann nur vor dem Meeting geändert werden)</span>:</label><br>
+                  <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">{{ $t('settings_planned_time_in_minutes') }}:</label>
+                  <label v-if="meeting.status !== meeting.enum.BEFORE_MEETING" :for="'agenda-' + index + '-time-input'">{{ $t('settings_planned_time_in_minutes') }} <span class="text-danger">{{ $t('settings_info_change_before_meeting') }}</span>:</label><br>
                   <input :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" v-model="agendaTime[id]" class="form-control" type="number" :id="'agenda-' + index + '-time-input'">
                 </fieldset>
               </div>
@@ -211,8 +214,8 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button v-on:click="revertSettings" type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
-          <button v-on:click="saveSettings" type="button" class="btn btn-primary" data-dismiss="modal">Änderungen speichern</button>
+          <button v-on:click="revertSettings" type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
+          <button v-on:click="saveSettings" type="button" class="btn btn-primary" data-dismiss="modal">{{ $t('settings_save_changes') }}</button>
         </div>
       </div>
     </div>
@@ -225,13 +228,15 @@ import $ from 'jquery';
 import 'bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
 import Store from '../helper/Store';
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default {
   name: 'Settings',
+  components: {LanguageSwitcher},
   data() {
     return {
       speakerCount: '4',
-      speakerName: ['Sprecher 1', 'Sprecher 2', 'Sprecher 3', 'Sprecher 4'],
+      speakerName: [`${this.$t('speaker')} 1`, `${this.$t('speaker')} 2`, `${this.$t('speaker')} 3`, `${this.$t('speaker')} 4`],
       speakerMail: ['a@b.c', 'a@b.c', 'a@b.c', 'a@b.c'],
       avatars: ['avatar1.png', 'avatar2.png', 'avatar3.png', 'avatar4.png', 'avatar5.png', 'avatar6.png'],
       selectedAvatar: ['avatar1.png', 'avatar1.png', 'avatar1.png', 'avatar1.png'],
@@ -243,7 +248,7 @@ export default {
       wordCloudWords: '10',
       oldSettings: {},
       agendaPoints: '4',
-      agendaTitel: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4', '', '', '', '', '', ''],
+      agendaTitel: [`${this.$t('point')} 1`, `${this.$t('point')} 2`, `${this.$t('point')} 3`, `${this.$t('point')} 4`, '', '', '', '', '', ''],
       agendaTime: ['10', '10', '10', '10', '10', '10', '10', '10', '10', '10'],
       agendaWarnTime: '5',
       meeting: Store.meeting,

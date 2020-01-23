@@ -2,7 +2,7 @@
   <div class="col-8">
 
     <div class="card" style="margin-top: 1em; margin-bottom:1em;">
-      <h5 class="card-header" style="height: 50px;"><span>Gesprächsverlauf</span></h5>
+      <h5 class="card-header" style="height: 50px;"><span>{{ $t('timeline_title') }}</span></h5>
       <div class="card-body" style="padding:0;">
 
         <div v-if="settings.timelineView === 'LINE'" id="timeline" ref="timelineRef" class="disable-scrollbars">

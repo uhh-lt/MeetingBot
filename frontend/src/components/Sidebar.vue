@@ -4,7 +4,7 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Agenda</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_agenda') }}</span>
       </h5>
       <div :class="sidebarElements[0] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[0]">
         <AgendaVisualizer></AgendaVisualizer>
@@ -15,7 +15,7 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Wort Wolke</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_wordcloud') }}</span>
       </h5>
       <div id="wordcloud-container" :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
         <WordGraph :width="wordCloudSize.width" :height="wordCloudSize.height"></WordGraph>
@@ -26,7 +26,7 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[2]" v-on:click="toggleSidebarElement(2)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[2]" v-on:click="toggleSidebarElement(2)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Redeanteile (in %)</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_speakerpercentages') }}</span>
       </h5>
       <div :class="sidebarElements[2] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[2]">
         <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :open-sidebar-elements="numOpenSidebarElements"></bar-chart>

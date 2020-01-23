@@ -18,9 +18,9 @@
       </a>
 
       <div class="btn-group mr-auto ml-auto" role="group">
-        <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">Alles</button>
-        <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">Mittel</button>
-        <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">Kurz</button>
+        <button v-on:click="utteranceMode = 'FULL'" type="button" :class="utteranceMode === 'FULL' ? 'btn btn-primary': 'btn btn-secondary'">{{ $t('all') }}</button>
+        <button v-on:click="utteranceMode = 'MEDIUM'" type="button" :class="utteranceMode === 'MEDIUM' ? 'btn btn-primary': 'btn btn-secondary'">{{ $t('medium') }}</button>
+        <button v-on:click="utteranceMode = 'SHORT'" type="button" :class="utteranceMode === 'SHORT' ? 'btn btn-primary': 'btn btn-secondary'">{{ $t('short') }}</button>
       </div>
 
       <div class="mr-auto ml-auto" style="min-width: 300px; text-align: center;">
@@ -29,20 +29,20 @@
 
       <div class="ml-auto form-inline my-2 my-lg-0">
         <button v-if="settings.controlButtonsStateDependent === 'true'" :disabled="meeting.status !== meeting.enum.BEFORE_MEETING" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
-          <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
+          <span class="btn-label"><i class="fas fa-upload"></i></span>{{ $t('import') }}</button>
         <button v-if="settings.controlButtonsStateDependent === 'false'" type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#importModal">
-          <span class="btn-label"><i class="fas fa-upload"></i></span>Importieren</button>
+          <span class="btn-label"><i class="fas fa-upload"></i></span>{{ $t('import') }}</button>
 
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
-          <span class="btn-label"><i class="fas fa-cogs"></i></span>Einstellungen</button>
+          <span class="btn-label"><i class="fas fa-cogs"></i></span>{{ $t('settings') }}</button>
 
         <button v-if="settings.controlButtonsStateDependent === 'false'" v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
 
         <button v-if="settings.controlButtonsStateDependent === 'true'" :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
-          <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
+          <span class="btn-label"><i class="fas fa-download"></i></span>{{ $t('export') }}</button>
         <button v-if="settings.controlButtonsStateDependent === 'false'"  v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
-          <span class="btn-label"><i class="fas fa-download"></i></span>Exportieren</button>
+          <span class="btn-label"><i class="fas fa-download"></i></span>{{ $t('export') }}</button>
         <!--        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">-->
         <!--        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>-->
       </div>

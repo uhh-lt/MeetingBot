@@ -3,15 +3,15 @@
 
     <template v-if="settings.controlButtonsStateDependent === 'false'">
       <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success mr-sm-2" :disabled="buttonStatus.newmeeting">
-        Neues Meeting starten</button>
+        {{ $t('new_meeting') }}</button>
       <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.start">
-        <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
+        <span class="btn-label"><i class="fas fa-play"></i></span>{{ $t('start') }}</button>
       <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
-        <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
+        <span class="btn-label"><i class="fas fa-play"></i></span>{{ $t('resume') }}</button>
       <button v-on:click="handleClick('PAUSE')" type="button" class="btn btn-labeled btn-warning mr-sm-2" :disabled="buttonStatus.pause">
-        <span class="btn-label"><i class="fas fa-pause"></i></span>Pause</button>
+        <span class="btn-label"><i class="fas fa-pause"></i></span>{{ $t('pause') }}</button>
       <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
-        <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
+        <span class="btn-label"><i class="fas fa-stop"></i></span>{{ $t('stop') }}</button>
     </template>
     <template v-if="settings.controlButtonsStateDependent === 'true'">
       <template v-if="status === StatusEnum.CONNECTING">
@@ -22,23 +22,23 @@
       </template>
       <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.BEFORE_MEETING">
         <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success" :disabled="buttonStatus.start">
-          <span class="btn-label"><i class="fas fa-play"></i></span>Start</button>
+          <span class="btn-label"><i class="fas fa-play"></i></span>{{ $t('start') }}</button>
       </template>
       <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.AFTER_MEETING">
         <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success" :disabled="buttonStatus.newmeeting">
-          Neues Meeting starten</button>
+          {{ $t('new_meeting') }}</button>
       </template>
       <template v-else-if="status === StatusEnum.STARTED">
         <button v-on:click="handleClick('PAUSE')" type="button" class="btn btn-labeled btn-warning mr-sm-2" :disabled="buttonStatus.pause">
-          <span class="btn-label"><i class="fas fa-pause"></i></span>Pause</button>
+          <span class="btn-label"><i class="fas fa-pause"></i></span>{{ $t('pause') }}</button>
         <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
-          <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
+          <span class="btn-label"><i class="fas fa-stop"></i></span>{{ $t('stop') }}</button>
       </template>
       <template v-else-if="status === StatusEnum.PAUSED">
         <button v-on:click="handleClick('RESUME')" type="button" class="btn btn-labeled btn-success mr-sm-2" :disabled="buttonStatus.resume">
-          <span class="btn-label"><i class="fas fa-play"></i></span>Fortsetzen</button>
+          <span class="btn-label"><i class="fas fa-play"></i></span>{{ $t('resume') }}</button>
         <button v-on:click="handleClick('STOP')" type="button" class="btn btn-labeled btn-danger" :disabled="buttonStatus.stop">
-          <span class="btn-label"><i class="fas fa-stop"></i></span>Stop</button>
+          <span class="btn-label"><i class="fas fa-stop"></i></span>{{ $t('stop') }}</button>
       </template>
       <template v-else>
         <button type="button" class="btn btn-outline-light disabled">AN ERROR OCCURED :(</button>

@@ -9,7 +9,7 @@
     </div>
     <div class="col-4" style="text-align: right;">
       <button v-on:click="sendNextAgendaPoint" type="button" class="btn btn-labeled btn-primary">
-        <span class="btn-label"><i class="fas fa-forward"></i></span>Weiter</button>
+        <span class="btn-label"><i class="fas fa-forward"></i></span>{{ $t('next') }}</button>
     </div>
   </div>
 </template>
