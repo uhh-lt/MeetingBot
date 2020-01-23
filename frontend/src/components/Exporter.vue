@@ -148,7 +148,7 @@ export default {
           }
         }
         mailto += `&subject=Meeting%20vom%20${this.editorAgendaDate}`;
-        mailto += `&body=Hallo%20alle%20Zusammen${escape(',')}${escape('\r\n')}${escape('\r\n')}Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings${escape('.')}${escape('\r\n')}${escape('\r\n')}http://example.com/${escape('\r\n')}${escape('\r\n')}Gruß${escape('\r\n')}MoM%20Bot`;
+        mailto += `&body=Hallo%20alle%20Zusammen${escape(',')}${escape('\r\n')}${escape('\r\n')}Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings${escape('.')}${escape('\r\n')}${escape('\r\n')}https://speech.tools/mombot/Meeting_${this.editorAgendaDate}.pdf${escape('\r\n')}${escape('\r\n')}Gruß${escape('\r\n')}MoM%20Bot`;
         this.mailto = mailto;
       } else {
         this.mailto = '';
