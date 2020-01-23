@@ -4,7 +4,7 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[0]" v-on:click="toggleSidebarElement(0)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Agenda</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_agenda') }}</span>
       </h5>
       <div :class="sidebarElements[0] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[0]">
         <AgendaVisualizer></AgendaVisualizer>
@@ -15,10 +15,9 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[1]" v-on:click="toggleSidebarElement(1)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Wort Wolke</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_wordcloud') }}</span>
       </h5>
       <div id="wordcloud-container" :class="sidebarElements[1] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[1]">
-<!--        <WordCloud :width="wordCloudSize.width" :height="wordCloudSize.height"></WordCloud>-->
         <WordGraph :width="wordCloudSize.width" :height="wordCloudSize.height"></WordGraph>
       </div>
     </div>
@@ -27,10 +26,10 @@
       <h5 class="card-header" style="height: 50px;">
         <i v-if="!sidebarElements[2]" v-on:click="toggleSidebarElement(2)" class="fas fa-chevron-down"></i>
         <i v-if="sidebarElements[2]" v-on:click="toggleSidebarElement(2)" class="fas fa-chevron-up"></i>
-        <span style="margin-left:0.5em;">Redeanteile (in %)</span>
+        <span style="margin-left:0.5em;">{{ $t('sidebar_speakerpercentages') }}</span>
       </h5>
       <div :class="sidebarElements[2] ? 'card-body' : 'card-body hide'" :style="sidebarBodyHeights[2]">
-        <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :styles="{position: 'relative', height: '100%'}"></bar-chart>
+        <bar-chart :speaker-names="speakerName" :speaker-count="speakerCount" :open-sidebar-elements="numOpenSidebarElements"></bar-chart>
       </div>
     </div>
 
@@ -38,14 +37,16 @@
 </template>
 
 <script>
-import BarChart from './BarChart.vue';
 import AgendaVisualizer from './AgendaVisualizer.vue';
 import WordGraph from './WordGraph.vue';
+import BarChart from './BarChart.vue';
 
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
-  components: { WordGraph, AgendaVisualizer, BarChart },
+  components: {
+    BarChart, WordGraph, AgendaVisualizer,
+  },
   data() {
     return {
       sidebarElements: [false, false, false],
@@ -58,14 +59,17 @@ export default {
       },
     };
   },
-  created() {
-    window.addEventListener('resize', this.updateSidebarHeights);
-  },
-  methods: {
+  computed: {
     numOpenSidebarElements() {
       return this.sidebarElements.map(value => value * 1)
         .reduce((pv, cv) => pv + cv, 0);
     },
+  },
+  created() {
+    window.addEventListener('resize', this.updateSidebarHeights);
+  },
+  methods: {
+
     toggleSidebarElement(element) {
       this.sidebarElements[element] = !this.sidebarElements[element];
       this.sidebarElements = this.sidebarElements.slice(0);
@@ -78,7 +82,7 @@ export default {
         const footerHeight = document.getElementById('footer').clientHeight;
         const maxSidebarHeight = window.innerHeight - navbarHeight - footerHeight - 2;
         const sidebarHeaderHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
-        const activeElements = this.numOpenSidebarElements();
+        const activeElements = this.numOpenSidebarElements;
         const totalElements = this.sidebarElements.length;
         const margins = (2 + totalElements - 1) / activeElements;
         for (let i = 0; i < this.sidebarElements.length; i += 1) {

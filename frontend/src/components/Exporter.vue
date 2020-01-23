@@ -4,15 +4,15 @@
     <div style="max-width:1200px" class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header text-white bg-dark">
-          <h4 class="modal-title" id="exporteModalLabel">Meeting Exportieren</h4>
+          <h4 class="modal-title" id="exporteModalLabel">{{ $t('exporter_title') }}</h4>
           <button type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <h1>Meeting vom {{editorAgendaDate}}</h1>
+          <h1>{{ $t('exporter_meeting_from') }} {{editorAgendaDate}}</h1>
           <br>
-          <h2>Agenda</h2>
+          <h2>{{ $t('exporter_agenda') }}</h2>
           <ol>
             <li v-for="(title, id) in editorAgendaTitles" :key="'editor-agenda-title-'+id"><a :href="'#a'+id">{{title}}</a></li>
           </ol>
@@ -29,7 +29,8 @@
                 <div class="row" :key="'editor-agenda-'+agendaID+'-utterance-'+utteranceID">
 <!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
                   <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[agendaID][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
+                  <EditableUtterance :id="'agenda-'+agendaID+'-utterance-'+utteranceID" v-model="editorUtterances[agendaID][utteranceID]"></EditableUtterance>
+<!--                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
                     <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(agendaID, utteranceID)"></i>
                     <i style="font-size: 24px; float:right;" class="fas"
@@ -42,7 +43,7 @@
           <h2>
             <i v-if="!editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-down"></i>
             <i v-if="editorAgendaVisibility[editorAgendaTitles.length]" v-on:click="toggleEditorAgenda(editorAgendaTitles.length)" class="fas fa-chevron-up"></i>
-            Sonstiges
+            {{ $t('exporter_other') }}
           </h2>
           <div :style="editorAgendaVisibility[editorAgendaTitles.length] ? '' : 'display:none'" class="form-group">
             <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
@@ -58,10 +59,10 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" title="ACHTUNG: Konfidenz Informationen gehen verloren!">Gesprächsverlauf aktualisieren</button>
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
-          <a class="btn btn-primary" :href="mailto">E-Mail schreiben</a>
-          <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">PDF herunterladen</button>
+          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" :title="$t('exporter_refresh')">{{ $t('exporter_refresh') }}</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
+          <a class="btn btn-primary" :href="mailto">{{ $t('exporter_write_email') }}</a>
+          <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">{{ $t('exporter_download_pdf') }}</button>
         </div>
       </div>
     </div>
@@ -72,14 +73,15 @@
 <script>
 import JSPDF from 'jspdf';
 import calculateKeywordnessTokenMap from '../helper/keyword';
+import EditableUtterance from './EditableUtterance.vue';
 
 export default {
   name: 'Exporter',
+  components: { EditableUtterance },
   props: ['value'],
   data() {
     return {
       settings: {},
-      editorAgendaDate: 'XX.XX.XXXX',
       editorAgendaPoints: 4,
       editorAgendaTitles: ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'],
       editorAgendaVisibility: [true, true, true, true],
@@ -92,6 +94,13 @@ export default {
   computed: {
     utterances() {
       return this.value;
+    },
+    editorAgendaDate() {
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+      const yyyy = today.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
     },
   },
   mounted() {
@@ -106,7 +115,6 @@ export default {
     },
     onReset() {
       this.firstTime = true;
-      this.editorAgendaDate = 'XX.XX.XXXX';
       this.editorAgendaPoints = 4;
       this.editorAgendaTitles = ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'];
       this.editorAgendaVisibility = [true, true, true, true];
@@ -123,7 +131,7 @@ export default {
     },
     onOpenExporter() {
       if (this.firstTime) {
-        this.updateEditorUtterances();
+        this.initEditorUtterances();
       }
       this.firstTime = false;
     },
@@ -159,7 +167,7 @@ export default {
       this.editorAgendaVisibility = this.editorAgendaVisibility.slice(0);
     },
     getEditedUtteranceText(agendaID, utteranceID) {
-      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent;
+      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     },
     deleteUtterance(agendaId, utteranceID) {
       this.editorUtterances[agendaId].splice(utteranceID, 1);
@@ -172,6 +180,7 @@ export default {
         for (let uID = 0; uID < utterances.length; uID += 1) {
           utterance = utterances[uID];
           utterance.text = this.getEditedUtteranceText(agendaID, uID);
+          console.log(utterance.text);
           utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
           const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
@@ -180,16 +189,10 @@ export default {
         }
       }
       console.log(result);
-      this.updateValue(result.slice());
+      this.updateValue(this.jsonCopy(result));
     },
-    updateEditorUtterances() {
+    initEditorUtterances() {
       console.log('UPDATE EDITOR!');
-      const today = new Date();
-      const dd = String(today.getDate()).padStart(2, '0');
-      const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-      const yyyy = today.getFullYear();
-      this.editorAgendaDate = `${dd}.${mm}.${yyyy}`;
-
       this.editorSpeakername = this.settings.speakerName;
 
       this.editorAgendaPoints = this.settings.agendaPoints;
@@ -210,7 +213,6 @@ export default {
           const utterance = utterances[j];
           numConfidences = utterance.confidences.length;
           utterance.score = utterance.confidences.reduce((a, b) => a + b) / numConfidences;
-          utterance.html = this.visualizeUtterance(utterance);
         }
         this.editorUtterances.push(utterances);
       }
@@ -221,16 +223,6 @@ export default {
       this.editorUtterances = this.editorUtterances.slice();
 
       this.calculateMailto();
-    },
-    visualizeUtterance(utterance) {
-      let html = '';
-      const tokens = utterance.text.split(' ');
-      for (let i = 0; i < tokens.length; i += 1) {
-        const token = tokens[i];
-        const confidence = utterance.confidences[i];
-        html += confidence > 0.25 ? `${token} ` : `<span class="confword">${token}</span> `;
-      }
-      return html.trim();
     },
     createPDF() {
       const pdf = new JSPDF('p', 'pt', 'letter');

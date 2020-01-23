@@ -1,0 +1,21 @@
+Frequency files
+===============
+
+Frequency counts for each language were obtained from the latest (2018-03-01) 
+Wikipedia corpora provided by the Leipzig Corpora Collection (LCC). Corpus 
+files contain 100K randomly sampled sentences from Wikipedia.
+
+All corpora provided by LCC are licensed under CC BY and can be downloaded 
+from Abteilung Automatische Sprachverarbeitung, Universität Leipzig
+(http://wortschatz.uni-leipzig.de/en/download)
+
+Reference: 
+
+D. Goldhahn, T. Eckart & U. Quasthoff: Building Large Monolingual Dictionaries 
+at the Leipzig Corpora Collection: From 100 to 200 Languages. In: Proceedings 
+of the 8th International Language Ressources and Evaluation (LREC'12), 2012.
+
+Text samples
+============
+
+Sample files for key term extraction are obtained from Wikinews.

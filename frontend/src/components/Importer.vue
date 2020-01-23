@@ -4,7 +4,7 @@
       <div class="modal-content">
 
         <div class="modal-header text-white bg-dark">
-          <h4 class="modal-title" id="exampleModalLabel">Import</h4>
+          <h4 class="modal-title" id="exampleModalLabel">{{ $t('importer_import') }}</h4>
           <button v-on:click="resetAll" type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -16,14 +16,14 @@
           <div class="input-group">
             <div class="custom-file">
               <input ref="fileInputImport" v-on:change="loadFile" type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-              <label ref="labelFileImport" class="custom-file-label" for="inputGroupFile01">Datei zum Importieren auswählen</label>
+              <label ref="labelFileImport" class="custom-file-label" for="inputGroupFile01">{{ $t('importer_select_file') }}</label>
             </div>
           </div>
           <br>
           <div style="text-align: center; width:100%">
-            <h5 v-if="fileImported && successfulImport" class="text-success">Datei erfolgreich importiert!</h5>
+            <h5 v-if="fileImported && successfulImport" class="text-success">{{ $t('importer_import_success') }}</h5>
             <hr v-if="fileImported && successfulImport">
-            <h5 v-if="fileImported && !successfulImport" class="text-danger">Datei konnte nicht importiert werden.</h5>
+            <h5 v-if="fileImported && !successfulImport" class="text-danger">{{ $t('importer_import_fail') }}</h5>
           </div>
 
           <template v-if="successfulImport">
@@ -41,7 +41,7 @@
                 <div class="tab-pane fade" :class="{'show': id === 0, 'active': id === 0}" :id="'importer2-tab-'+id" role="tabpanel" :aria-labelledby="'importer-tab-'+id" :key="'event-content-'+id">
 
                   <div class="form-group px-2">
-                    <label :for="'numAttendants-'+id"># Teilnehmer: {{event.selectedAttendents}}</label>
+                    <label :for="'numAttendants-'+id"># {{ $t('importer_participants') }}: {{event.selectedAttendents}}</label>
                     <input v-model="event.selectedAttendents" type="range" class="custom-range" min="1" :max="event.attendants.length" :id="'numAttendants-'+id">
                   </div>
                   <div v-for="(attendant, attendantID) in event.attendants" :key="'event-' + id + 'attendant-settings-'+attendantID">
@@ -61,17 +61,17 @@
 
                   <hr>
                   <div class="form-group px-2">
-                    <label :for="'numAgendas-'+id"># Agendapunkte: {{event.agenda.agendaPoints}}</label>
+                    <label :for="'numAgendas-'+id"># {{ $t('importer_agendapoints') }}: {{event.agenda.agendaPoints}}</label>
                     <input v-model="event.agenda.agendaPoints" type="range" class="custom-range" min="1" max="10" :id="'numAgendas-'+id">
                   </div>
                   <div v-for="agendaID in parseInt(event.agenda.agendaPoints, 10)" :key="'event-' + id + 'agenda-importsettings-'+agendaID">
                     <div class="row" style="padding: 0 1rem;">
                       <div class="col-sm-8 form-group px-2">
-                        <label :for="'event-' + id + 'agenda2-' + agendaID + '-titel-input'">{{agendaID}}. Agendapunkt Titel:</label>
+                        <label :for="'event-' + id + 'agenda2-' + agendaID + '-titel-input'">{{agendaID}}. {{ $t('importer_agendapoint') }} {{ $t('importer_title') }}:</label>
                         <input v-model="event.agenda.agendaTitle[agendaID-1]" class="form-control" type="text" :id="'event-' + id + 'agenda2-' + agendaID + '-titel-input'">
                       </div>
                       <div class="col-sm-4 form-group px-2">
-                        <label :for="'event-' + id + 'agenda2-' + agendaID + '-time-input'">Geplante Zeit (in Minuten):</label><br>
+                        <label :for="'event-' + id + 'agenda2-' + agendaID + '-time-input'">{{ $t('importer_planned_time_in_minutes') }}:</label><br>
                         <input v-model="event.agenda.agendaTime[agendaID-1]" class="form-control" type="number" :id="'event-' + id + 'agenda2-' + agendaID + '-time-input'">
                       </div>
                     </div>
@@ -84,8 +84,8 @@
         </div>
 
         <div class="modal-footer bg-light">
-          <button v-on:click="resetAll" type="button" class="btn btn-danger" data-dismiss="modal">Schließen</button>
-          <button v-if="successfulImport" v-on:click="save" type="button" class="btn btn-primary" data-dismiss="modal">Ausgewählte Daten speichern</button>
+          <button v-on:click="resetAll" type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
+          <button v-if="successfulImport" v-on:click="save" type="button" class="btn btn-primary" data-dismiss="modal">{{ $t('importer_save_selected_data') }}</button>
         </div>
 
       </div>
@@ -128,7 +128,7 @@ export default {
       this.fileImported = false;
       this.successfulImport = false;
       this.events = [];
-      this.$refs.labelFileImport.innerHTML = 'Datei zum Importieren auswählen';
+      this.$refs.labelFileImport.innerHTML = this.$t('importer_select_file');
     },
     save() {
       this.$root.$emit('onImport', this.events[this.currentTab]);
