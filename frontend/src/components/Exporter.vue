@@ -59,7 +59,7 @@
           </div>
         </div>
         <div class="modal-footer bg-light">
-          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" :title="$t('exporter_refresh')">{{ $t('exporter_refresh') }}</button>
+          <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" :title="$t('exporter_refresh_warning')">{{ $t('exporter_refresh') }}</button>
           <button type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
           <a class="btn btn-primary" :href="mailto">{{ $t('exporter_write_email') }}</a>
           <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">{{ $t('exporter_download_pdf') }}</button>
