@@ -46,14 +46,22 @@
             {{ $t('exporter_other') }}
           </h2>
           <div :style="editorAgendaVisibility[editorAgendaTitles.length] ? '' : 'display:none'" class="form-group">
-            <template v-for="(utterance, uID) in editorUtterances[editorAgendaTitles.length]">
-              <div class="row" :key="'editor-agenda-sonstige-'+uID">
-                <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
-                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>
-                <div class="col-sm-1 col-form-label">
-                  <i style="font-size: 24px; float:left;" class="fas fa-trash"></i>
-                  <i style="font-size: 24px; float:right" class="fas"
+            <template v-for="(utterance, utteranceID) in editorUtterances[editorAgendaTitles.length]">
+              <div class="row" :key="'editor-agenda-sonstige-'+utteranceID">
+                <!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
+                <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[editorAgendaTitles.length][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
+                <EditableUtterance :id="'agenda-'+editorAgendaTitles.length+'-utterance-'+utteranceID" v-model="editorUtterances[editorAgendaTitles.length][utteranceID]"></EditableUtterance>
+                <!--                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
+                <div class="col-sm-1 col-form-label" style="text-align: center;">
+                  <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(editorAgendaTitles.length, utteranceID)"></i>
+                  <i style="font-size: 24px; float:right;" class="fas"
                      :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
+                <!--                <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
+<!--                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
+<!--                <div class="col-sm-1 col-form-label">-->
+<!--                  <i style="font-size: 24px; float:left;" class="fas fa-trash"></i>-->
+<!--                  <i style="font-size: 24px; float:right" class="fas"-->
+<!--                     :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>-->
               </div>
             </template>
           </div>
@@ -224,7 +232,26 @@ export default {
 
       this.calculateMailto();
     },
+    createSummaries() {
+      const agendaText = [];
+      for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
+        let start = true;
+        const utterances = this.editorUtterances[i];
+        for (let uID = 0; uID < utterances.length; uID += 1) {
+          if (start) {
+            agendaText[i] += `${this.getEditedUtteranceText(i, uID)}.`;
+          } else {
+            agendaText[i] += `${this.getEditedUtteranceText(i, uID)}.`;
+          }
+          start = false;
+        }
+        agendaText[i] = agendaText[i].trim();
+      }
+      console.log(agendaText);
+      return agendaText;
+    },
     createPDF() {
+      this.createSummaries();
       const pdf = new JSPDF('p', 'pt', 'letter');
       // source can be HTML-formatted string, or a reference
       // to an actual DOM element from which the text will be scraped.
@@ -251,12 +278,12 @@ export default {
           utterance = utterances[uID];
           if (utterance.speaker !== lastSpeaker) {
             if (start) {
-              html += `<p><b>${this.editorSpeakername[utterance.speaker]} (${utterance.startTime}):</b> ${this.getEditedUtteranceText(i, uID)}`;
+              html += `<p><b>${this.editorSpeakername[utterance.speaker]} (${utterance.startTime}):</b> ${this.getEditedUtteranceText(i, uID)}.`;
             } else {
-              html += `</p><p><b>${this.editorSpeakername[utterance.speaker]} (${utterance.startTime}):</b> ${this.getEditedUtteranceText(i, uID)}`;
+              html += `</p><p><b>${this.editorSpeakername[utterance.speaker]} (${utterance.startTime}):</b> ${this.getEditedUtteranceText(i, uID)}.`;
             }
           } else {
-            html += ` ${this.getEditedUtteranceText(i, uID)}`;
+            html += ` ${this.getEditedUtteranceText(i, uID)}.`;
           }
           start = false;
           lastSpeaker = utterance.speaker;
