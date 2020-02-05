@@ -228,11 +228,11 @@ import $ from 'jquery';
 import 'bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
 import Store from '../helper/Store';
-import LanguageSwitcher from "./LanguageSwitcher";
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 export default {
   name: 'Settings',
-  components: {LanguageSwitcher},
+  components: { LanguageSwitcher },
   data() {
     return {
       speakerCount: '4',

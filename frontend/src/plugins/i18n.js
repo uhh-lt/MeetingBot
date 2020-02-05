@@ -5,8 +5,8 @@ Vue.use(VueI18n);
 
 // eslint-disable-next-line import/prefer-default-export
 export const i18n = new VueI18n({
-  locale: 'en',
-  fallbackLocale: 'en',
+  locale: 'de',
+  fallbackLocale: 'de',
   messages: {
     en: {
       hello: 'Hello',
