@@ -40,3 +40,12 @@ services:
     networks:
       - anet
   # END: NER
+
+  # BEGIN: TEXTRANK
+  textrank:
+    image: bigabig/mbot-textrank:latest
+    ports:
+      - 9001:5000
+    networks:
+      - anet
+  # END: TEXTRANK
