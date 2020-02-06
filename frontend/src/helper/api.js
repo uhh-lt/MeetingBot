@@ -1,6 +1,7 @@
 const serverURL = 'http://localhost:8888';
 const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
+const summaryURL = 'http://localhost:9001';
 const activateLogger = true;
 
 function postData(url = '', data = {}) {
@@ -56,6 +57,20 @@ async function fetchSpacy(text, lang) {
   return data;
 }
 
+async function fetchSummary(text, length, lang) {
+  if (activateLogger) console.log('Fetching Textrank Output');
+  const data = await postData(`${summaryURL}/summarize`, {
+    text,
+    length,
+    lang,
+  });
+  if (activateLogger) {
+    console.log('Success fetching textrank output');
+    console.log(data);
+  }
+  return data.summary;
+}
+
 async function computeKeywords(utterance, lang) {
   let keywords = await fetchKeywords(utterance.text, lang);
   // utterance.keywords = keywords.map(value => value.word).join(" ");
@@ -71,6 +86,28 @@ async function computeKeywords(utterance, lang) {
   );
   if (activateLogger) {
     console.log('Final Keywords:');
+    console.log(result);
+  }
+  return result;
+}
+
+async function computeSummary(textSegments, lang) {
+  // compute for each text segment the summary
+  const result = await Promise.resolve(
+    // eslint-disable-next-line consistent-return
+    Promise.all(textSegments.map(content => new Promise((resolve) => {
+      if (content.sentences > 0) {
+        fetchSummary(content.text, Math.min(2, content.sentences), lang).then((data) => {
+          // eslint-disable-next-line no-param-reassign
+          return resolve(data);
+        });
+      } else {
+        return resolve('');
+      }
+    }))),
+  );
+  if (activateLogger) {
+    console.log('Final Summaries:');
     console.log(result);
   }
   return result;
@@ -98,7 +135,7 @@ async function sendCommand(command) {
   if (activateLogger) console.log(`Success Sending Command ${command}. Answer: ${data}`);
 }
 
-export { computeKeywords, sendCommand };
+export { computeKeywords, sendCommand, computeSummary };
 
 // function getData(url = '') {
 //   // Default options are marked with *

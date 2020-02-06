@@ -27,10 +27,8 @@
             <div :style="editorAgendaVisibility[agendaID] ? '' : 'display:none'" class="form-group" :key="'editor-agenda-container-'+agendaID">
               <template v-for="(utterance, utteranceID) in editorUtterances[agendaID]">
                 <div class="row" :key="'editor-agenda-'+agendaID+'-utterance-'+utteranceID">
-<!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
                   <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[agendaID][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
                   <EditableUtterance :id="'agenda-'+agendaID+'-utterance-'+utteranceID" v-model="editorUtterances[agendaID][utteranceID]"></EditableUtterance>
-<!--                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
                   <div class="col-sm-1 col-form-label" style="text-align: center;">
                     <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(agendaID, utteranceID)"></i>
                     <i style="font-size: 24px; float:right;" class="fas"
@@ -48,20 +46,12 @@
           <div :style="editorAgendaVisibility[editorAgendaTitles.length] ? '' : 'display:none'" class="form-group">
             <template v-for="(utterance, utteranceID) in editorUtterances[editorAgendaTitles.length]">
               <div class="row" :key="'editor-agenda-sonstige-'+utteranceID">
-                <!--                  <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
                 <div class="col-sm-2 col-form-label"><b>{{utteranceID === 0 || editorUtterances[editorAgendaTitles.length][utteranceID-1].speaker !== utterance.speaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>
                 <EditableUtterance :id="'agenda-'+editorAgendaTitles.length+'-utterance-'+utteranceID" v-model="editorUtterances[editorAgendaTitles.length][utteranceID]"></EditableUtterance>
-                <!--                  <div :id="'agenda-'+agendaID+'-utterance-'+utteranceID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
                 <div class="col-sm-1 col-form-label" style="text-align: center;">
                   <i style="font-size: 24px; float:left;" class="fas fa-trash" v-on:click="deleteUtterance(editorAgendaTitles.length, utteranceID)"></i>
                   <i style="font-size: 24px; float:right;" class="fas"
                      :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>
-                <!--                <div class="col-sm-2 col-form-label"><b>{{utterance.showSpeaker ? editorSpeakername[utterance.speaker] : '' }}</b></div>-->
-<!--                <div :id="'agenda-'+(editorAgendaTitles.length)+'-utterance-'+uID" class="col-sm-9 form-control-plaintext" contenteditable v-html="utterance.html"></div>-->
-<!--                <div class="col-sm-1 col-form-label">-->
-<!--                  <i style="font-size: 24px; float:left;" class="fas fa-trash"></i>-->
-<!--                  <i style="font-size: 24px; float:right" class="fas"-->
-<!--                     :class="{'fa-poo brown': utterance.score > 0 && utterance.score <= 0.25, 'fa-frown text-danger': utterance.score > 0.25 && utterance.score <= 0.5, 'fa-meh text-warning': utterance.score > 0.5 && utterance.score <= 0.75, 'fa-smile text-success': utterance.score > 0.75}"></i></div>-->
               </div>
             </template>
           </div>
@@ -70,7 +60,7 @@
           <button v-on:click="applyChanges" type="button" class="btn btn-primary mr-auto" :title="$t('exporter_refresh_warning')">{{ $t('exporter_refresh') }}</button>
           <button type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
           <a class="btn btn-primary" :href="mailto">{{ $t('exporter_write_email') }}</a>
-          <button v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">{{ $t('exporter_download_pdf') }}</button>
+          <button :disabled="creatingPDF" v-on:click="createPDF" type="button" class="btn btn-success" data-dismiss="modal">{{ $t('exporter_download_pdf') }}</button>
         </div>
       </div>
     </div>
@@ -82,6 +72,7 @@
 import JSPDF from 'jspdf';
 import calculateKeywordnessTokenMap from '../helper/keyword';
 import EditableUtterance from './EditableUtterance.vue';
+import { computeSummary } from '../helper/api';
 
 export default {
   name: 'Exporter',
@@ -97,6 +88,7 @@ export default {
       editorSpeakername: [],
       firstTime: true,
       mailto: '',
+      creatingPDF: false,
     };
   },
   computed: {
@@ -232,26 +224,31 @@ export default {
 
       this.calculateMailto();
     },
-    createSummaries() {
-      const agendaText = [];
+    async createSummaries() {
+      const agendaContent = [];
       for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
+        agendaContent[i] = {
+          text: '',
+          sentences: 0,
+        };
         let start = true;
         const utterances = this.editorUtterances[i];
         for (let uID = 0; uID < utterances.length; uID += 1) {
           if (start) {
-            agendaText[i] += `${this.getEditedUtteranceText(i, uID)}.`;
+            agendaContent[i].text += `${this.getEditedUtteranceText(i, uID)}.`;
           } else {
-            agendaText[i] += `${this.getEditedUtteranceText(i, uID)}.`;
+            agendaContent[i].text += ` ${this.getEditedUtteranceText(i, uID)}.`;
           }
+          agendaContent[i].sentences += 1;
           start = false;
         }
-        agendaText[i] = agendaText[i].trim();
+        agendaContent[i].text = agendaContent[i].text.trim();
       }
-      console.log(agendaText);
-      return agendaText;
+      return computeSummary(agendaContent, this.$i18n.locale);
     },
-    createPDF() {
-      this.createSummaries();
+    async createPDF() {
+      this.creatingPDF = true;
+      const summaries = await this.createSummaries();
       const pdf = new JSPDF('p', 'pt', 'letter');
       // source can be HTML-formatted string, or a reference
       // to an actual DOM element from which the text will be scraped.
@@ -269,7 +266,9 @@ export default {
       for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
         const agendaTitle = i < this.editorAgendaPoints ? this.editorAgendaTitles[i] : 'Sonstiges';
         html += `<h2>${agendaTitle}</h2>`;
-
+        if (summaries[i] !== '') {
+          html += `<p><b>${this.$t('exporter_summary')}:</b> ${summaries[i]}</p>`;
+        }
         let start = true;
         let lastSpeaker = -1337;
         const utterances = this.editorUtterances[i];
@@ -314,6 +313,7 @@ export default {
           pdf.save(filename);
         }, margins,
       );
+      this.creatingPDF = false;
     },
     jsonCopy(src) {
       return JSON.parse(JSON.stringify(src));
