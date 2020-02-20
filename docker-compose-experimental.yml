@@ -17,6 +17,7 @@ services:
   # BEGIN: FRONTEND
   frontend:
     image: bigabig/mbot-frontend:experimental
+    container_name: frontend
     ports:
       - 8080:8080
     depends_on:
@@ -35,12 +36,13 @@ services:
   # BEGIN: KEYWORDS
   keywords:
     image: bigabig/mbot-keyterms:latest
+    container_name: keywords
     ports:
       - 8888:8080
     healthcheck:
       test: curl 0.0.0.0:8080/healthcheck
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 30
     networks:
       - anet
@@ -49,13 +51,17 @@ services:
   # BEGIN: NER
   ner:
     image: bigabig/mbot-ner:latest
+    container_name: ner
     ports:
       - 9000:9000
     healthcheck:
       test: curl 0.0.0.0:9000/de && curl 0.0.0.0:9000/en
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 30
+    depends_on:
+      keywords:
+        condition: service_healthy
     networks:
       - anet
   # END: NER
@@ -63,13 +69,19 @@ services:
   # BEGIN: TEXTRANK
   textrank:
     image: bigabig/mbot-textrank:latest
+    container_name: textrank
     ports:
       - 9001:5000
     healthcheck:
       test: curl 0.0.0.0:5000
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 30
+    depends_on:
+      keywords:
+        condition: service_healthy
+      ner:
+        condition: service_healthy
     networks:
       - anet
   # END: TEXTRANK
@@ -77,13 +89,21 @@ services:
   # BEGIN: CLSUMM
   clsumm:
     image: bigabig/mbot-clsumm:latest
+    container_name: clsumm
     ports:
       - 9002:5000
     healthcheck:
       test: curl 0.0.0.0:5000
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 30
+    volumes:
+      - ./backend/clsumm/models:/app/models
+    depends_on:
+      keywords:
+        condition: service_healthy
+      ner:
+        condition: service_healthy
     networks:
       - anet
   # END: CLSUMM

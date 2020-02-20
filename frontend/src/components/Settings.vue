@@ -30,13 +30,13 @@
                 <label>{{ $t('settings_summary_method') }}:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="settings-summary-method-textrank" class="form-check-label">
-                    <input v-model="summarymethod" class="form-check-input" type="radio" name="timeline-sorting" id="settings-summary-method-textrank" value="TEXTRANK">
+                    <input v-model="summarymethod" class="form-check-input" type="radio" name="summary-method" id="settings-summary-method-textrank" value="TEXTRANK">
                     Textrank
                   </label>
                 </div>
                 <div class="form-check form-check-inline mb-2">
                   <label for="settings-summary-method-bert" class="form-check-label">
-                    <input v-model="summarymethod" class="form-check-input" type="radio" name="timeline-sorting" id="settings-summary-method-bert" value="BERT">
+                    <input v-model="summarymethod" class="form-check-input" type="radio" name="summary-method" id="settings-summary-method-bert" value="BERT">
                     BERT
                   </label>
                 </div>
@@ -338,6 +338,7 @@ export default {
       this.randomSpeaker = this.oldSettings.randomSpeaker;
       this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
       this.visualizeLinks = this.oldSettings.visualizeLinks;
+      this.summarymethod = this.oldSettings.summarymethod;
     },
     saveSettings() {
       const settings = {
@@ -359,6 +360,7 @@ export default {
         randomSpeaker: this.randomSpeaker,
         controlButtonsStateDependent: this.controlButtonsStateDependent,
         visualizeLinks: this.visualizeLinks,
+        summarymethod: this.summarymethod,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
