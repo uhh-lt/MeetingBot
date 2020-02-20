@@ -18,6 +18,11 @@ services:
     image: bigabig/mbot-keyterms:latest
     ports:
       - 8888:8080
+    healthcheck:
+      test: curl 0.0.0.0:8080/swagger-ui.html
+      interval: 10s
+      timeout: 5s
+      retries: 30
     networks:
       - anet
   # END: KEYWORDS
@@ -27,6 +32,11 @@ services:
     image: bigabig/mbot-ner:latest
     ports:
       - 9000:9000
+    healthcheck:
+      test: curl 0.0.0.0:9000/de && curl 0.0.0.0:9000/en
+      interval: 10s
+      timeout: 5s
+      retries: 30
     networks:
       - anet
   # END: NER
@@ -36,6 +46,25 @@ services:
     image: bigabig/mbot-textrank:latest
     ports:
       - 9001:5000
+    healthcheck:
+      test: curl 0.0.0.0:5000
+      interval: 10s
+      timeout: 5s
+      retries: 30
     networks:
       - anet
   # END: TEXTRANK
+
+  # BEGIN: CLSUMM
+  clsumm:
+    image: bigabig/mbot-clsumm:latest
+    ports:
+      - 9002:5000
+    healthcheck:
+      test: curl 0.0.0.0:5000
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - anet
+  # END: CLSUMM

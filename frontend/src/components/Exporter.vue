@@ -244,7 +244,7 @@ export default {
         }
         agendaContent[i].text = agendaContent[i].text.trim();
       }
-      return computeSummary(agendaContent, this.$i18n.locale);
+      return computeSummary(agendaContent, this.$i18n.locale, this.settings.summarymethod);
     },
     async createPDF() {
       this.creatingPDF = true;

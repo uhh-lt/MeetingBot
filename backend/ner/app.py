@@ -20,7 +20,6 @@ app._static_files_root_folder_path = base_path
 CORS(app)
 
 port = 9000
-debug = True
 
 nlp_de = spacy.load('de')
 nlp_en = spacy.load('en')

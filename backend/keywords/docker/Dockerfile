@@ -5,6 +5,7 @@
 # visit http://localhost:8090/swagger-ui.html
 
 FROM openjdk:8-jdk-alpine
+RUN apk --no-cache add curl
 VOLUME /tmp
 COPY ltkeyterms.jar app.jar
 EXPOSE 8080

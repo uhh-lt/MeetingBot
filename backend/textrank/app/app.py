@@ -6,6 +6,7 @@ import textrank as textrank
 app = Flask(__name__)
 CORS(app)
 
+port = 5000
 
 @app.route('/')
 def hello_world():
@@ -20,17 +21,15 @@ def summarize():
         print("Request is not a JSON object :(")
         return ""
     content = request.get_json()
+    print('Got a request:')
     print(content)
     return jsonify({
         "summary": textrank.generate_summary(content['text'], content['length'], content['lang'])
     })
 
 
-def main():
-    # start flask app
-    app.run(host='0.0.0.0')
-
-
 if __name__ == '__main__':
-    main()
+    print('Starting textrank service...')
+    app.debug = True
+    app.run(host='0.0.0.0', threaded=True, port=port)
 

@@ -1,6 +1,6 @@
+# docker build -t bigabig/mbot-textrank:latest .
 FROM python:3.6
 
-# We copy just the requirements.txt first to leverage Docker cache
 COPY app/requirements.txt /app/requirements.txt
 
 WORKDIR /app

@@ -2,6 +2,7 @@ const serverURL = 'http://localhost:8888';
 const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
 const summaryURL = 'http://localhost:9001';
+const summary2URL = 'http://localhost:9002';
 const activateLogger = true;
 
 function postData(url = '', data = {}) {
@@ -57,6 +58,18 @@ async function fetchSpacy(text, lang) {
   return data;
 }
 
+async function fetchBERTSummary(text) {
+  if (activateLogger) console.log('Fetching CLSUMM Output');
+  const data = await postData(`${summaryURL2}/summarize`, {
+    text,
+  });
+  if (activateLogger) {
+    console.log('Success fetching CLSUMM output');
+    console.log(data);
+  }
+  return data.summary;
+}
+
 async function fetchSummary(text, length, lang) {
   if (activateLogger) console.log('Fetching Textrank Output');
   const data = await postData(`${summaryURL}/summarize`, {
@@ -91,16 +104,16 @@ async function computeKeywords(utterance, lang) {
   return result;
 }
 
-async function computeSummary(textSegments, lang) {
+async function computeSummary(textSegments, lang, method) {
   // compute for each text segment the summary
   const result = await Promise.resolve(
     // eslint-disable-next-line consistent-return
     Promise.all(textSegments.map(content => new Promise((resolve) => {
-      if (content.sentences > 0) {
-        fetchSummary(content.text, Math.min(2, content.sentences), lang).then((data) => {
-          // eslint-disable-next-line no-param-reassign
-          return resolve(data);
-        });
+      if (content.sentences > 0 && method === 'TEXTRANK') {
+        // eslint-disable-next-line max-len
+        fetchSummary(content.text, Math.min(Math.ceil(content.sentences / 3), content.sentences), lang).then(data => resolve(data));
+      } else if (content.sentences > 0 && method === 'BERT') {
+        fetchBERTSummary(content.text).then(data => resolve(data));
       } else {
         return resolve('');
       }

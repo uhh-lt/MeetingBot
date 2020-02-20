@@ -22,6 +22,15 @@ public class KeywordExtractionController {
         return ResponseEntity.status(HttpStatus.OK).body(extractKeywords(rbk.getText(), rbk.getLang(), rbk.getCount()));
     }
 
+    @CrossOrigin
+    @GetMapping("healthcheck")
+    public ResponseEntity healthCheck() {
+        return ResponseEntity.status(HttpStatus.OK).body(extractKeywords(
+                "Tim ist toll. Tim arbeitet bei der Universität Hamburg. Tim ist ein guter Student.",
+                "deu",
+                3));
+    }
+
     private KeywordResult extractKeywords(String text, String lang, int count) {
         Extractor extractor = new Extractor();
         extractor.setLanguage(lang);

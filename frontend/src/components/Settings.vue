@@ -27,6 +27,22 @@
               <language-switcher></language-switcher>
               <hr>
               <fieldset class="form-group px-2">
+                <label>{{ $t('settings_summary_method') }}:</label><br>
+                <div class="form-check form-check-inline mb-2">
+                  <label for="settings-summary-method-textrank" class="form-check-label">
+                    <input v-model="summarymethod" class="form-check-input" type="radio" name="timeline-sorting" id="settings-summary-method-textrank" value="TEXTRANK">
+                    Textrank
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mb-2">
+                  <label for="settings-summary-method-bert" class="form-check-label">
+                    <input v-model="summarymethod" class="form-check-input" type="radio" name="timeline-sorting" id="settings-summary-method-bert" value="BERT">
+                    BERT
+                  </label>
+                </div>
+              </fieldset>
+              <hr>
+              <fieldset class="form-group px-2">
                 <label>{{ $t('settings_timeline_sorting') }}:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="timeline-sorting-asc" class="form-check-label">
@@ -256,6 +272,7 @@ export default {
       randomSpeaker: 'false',
       controlButtonsStateDependent: 'true',
       visualizeLinks: 'false',
+      summarymethod: 'TEXTRANK',
     };
   },
   mounted() {
