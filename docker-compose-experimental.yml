@@ -16,7 +16,7 @@ services:
 
   # BEGIN: FRONTEND
   frontend:
-    image: bigabig/mbot-frontend:latest
+    image: bigabig/mbot-frontend:experimental
     ports:
       - 8080:8080
     depends_on:

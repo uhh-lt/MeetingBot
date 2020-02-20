@@ -19,7 +19,7 @@ services:
     ports:
       - 8888:8080
     healthcheck:
-      test: curl 0.0.0.0:8080/swagger-ui.html
+      test: curl 0.0.0.0:8080/healthcheck
       interval: 10s
       timeout: 5s
       retries: 30
