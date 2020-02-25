@@ -138,11 +138,14 @@ def generate_summary(text, n, lang):
 
     doc = nlp(text)
 
+    # filter sentences
+    sentences = [sentence for sentence in doc.sents if len(list(filter(lambda t: not t.is_stop, sentence))) > 0 ]
+
     # filter stopwords in sentence
     # then map words of sentence to vectors
     # then calculate mean of the vectors to get the sentence embedding
     # for all sentences
-    sentence_vectors = [np.mean(np.array(list(map(lambda t: t.vector, list(filter(lambda t: not t.is_stop, sentence))))), axis=0) for sentence in doc.sents]
+    sentence_vectors = [np.mean(np.array(list(map(lambda t: t.vector, list(filter(lambda t: not t.is_stop, sentence))))), axis=0) for sentence in sentences]
 
     # create similarity matrix
     sim_mat = np.zeros([len(sentence_vectors), len(sentence_vectors)])
@@ -158,7 +161,7 @@ def generate_summary(text, n, lang):
     scores = nx.pagerank(nx_graph)
 
     # map sentences to scores
-    ranked_sentences = sorted(((scores[i], s) for i, s in enumerate(doc.sents)), reverse=True)
+    ranked_sentences = sorted(((scores[i], s) for i, s in enumerate(sentences)), reverse=True)
 
     # Generate Summary
     summary = ""
