@@ -3,6 +3,7 @@ const asrURL = 'http://localhost:5000';
 const spacyURL = 'http://localhost:9000';
 const summaryURL = 'http://localhost:9001';
 const summary2URL = 'http://localhost:9002';
+const combinedURL = 'http://localhost:9999';
 const activateLogger = true;
 
 function postData(url = '', data = {}) {
@@ -18,7 +19,11 @@ function postData(url = '', data = {}) {
     redirect: 'follow', // manual, *follow, error
     referrer: 'no-referrer', // no-referrer, *client
     body: JSON.stringify(data), // body data type must match "Content-Type" header
-  }).then(response => response.json()); // parses JSON response into native JavaScript objects
+  }).then(response => response.json()) // parses JSON response into native JavaScript objects
+    .catch((err) => {
+      console.error(err);
+      return '';
+    });
 }
 
 async function fetchKeywords(text, language) {
@@ -47,7 +52,7 @@ async function fetchKeywords(text, language) {
 
 async function fetchSpacy(text, lang) {
   if (activateLogger) console.log('Fetching Spacy Output');
-  const data = await postData(`${spacyURL}/process`, {
+  const data = await postData(`${combinedURL}/process`, {
     text,
     lang,
   });
@@ -60,7 +65,7 @@ async function fetchSpacy(text, lang) {
 
 async function fetchBERTSummary(text) {
   if (activateLogger) console.log('Fetching CLSUMM Output');
-  const data = await postData(`${summaryURL2}/summarize`, {
+  const data = await postData(`${summary2URL}/summarize`, {
     text,
   });
   if (activateLogger) {
@@ -72,14 +77,16 @@ async function fetchBERTSummary(text) {
 
 async function fetchSummary(text, length, lang) {
   if (activateLogger) console.log('Fetching Textrank Output');
-  const data = await postData(`${summaryURL}/summarize`, {
+  const data = await postData(`${combinedURL}/summarize`, {
     text,
     length,
     lang,
   });
-  if (activateLogger) {
+  if (activateLogger && data !== '') {
     console.log('Success fetching textrank output');
     console.log(data);
+  } else if (data === '') {
+    return '';
   }
   return data.summary;
 }
