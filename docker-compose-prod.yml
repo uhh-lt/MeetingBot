@@ -23,9 +23,7 @@ services:
     depends_on:
       keywords:
         condition: service_healthy
-      ner:
-        condition: service_healthy
-      textrank:
+      spacy:
         condition: service_healthy
     networks:
       - anet
@@ -39,47 +37,27 @@ services:
       - 8888:8080
     healthcheck:
       test: curl 0.0.0.0:8080/healthcheck
-      interval: 10s
+      interval: 60s
       timeout: 10s
-      retries: 30
+      retries: 5
     networks:
       - anet
   # END: KEYWORDS
 
-  # BEGIN: NER
-  ner:
-    image: bigabig/mbot-ner:latest
-    container_name: ner
+  # BEGIN: SPACY
+  spacy:
+    image: bigabig/mbot-spacy:latest
+    container_name: spacy
     ports:
-      - 9000:9000
+      - 9999:9999
     healthcheck:
-      test: curl 0.0.0.0:9000/de && curl 0.0.0.0:9000/en
-      interval: 10s
+      test: curl 0.0.0.0:9999/health
+      interval: 120s
       timeout: 10s
-      retries: 30
-    depends_on:
-      keywords:
-        condition: service_healthy
+      retries: 5
     networks:
       - anet
-  # END: NER
-
-  # BEGIN: TEXTRANK
-  textrank:
-    image: bigabig/mbot-textrank:latest
-    container_name: textrank
-    ports:
-      - 9001:5000
-    healthcheck:
-      test: curl 0.0.0.0:5000
-      interval: 10s
-      timeout: 10s
-      retries: 30
-    depends_on:
-      keywords:
-        condition: service_healthy
-      ner:
-        condition: service_healthy
-    networks:
-      - anet
-  # END: TEXTRANK
+#    entrypoint: ["python", "app.py", "-l", "de"]
+#    set language with -l, supported languages are 'de', 'en' or 'both'
+    command: ["-l", "de"]
+  # END: SPACY
