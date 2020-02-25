@@ -1,12 +1,12 @@
 # First, build the project with npm run build
 # How to tag:
 # - One image with latest tag
-# - One image with commit id tag: get commit id with git log --abbrev-commit
+# - One image with commit id tag: git log --abbrev-commit
 # - One image with version number: current version is 1.0
-# Build:
+# Build & Tag:
 # - docker build -t bigabig/mbot-frontend:latest .
-# - docker build -t bigabig/mbot-frontend:<commit id> .
-# - docker build -t bigabig/mbot-frontend:<version number> .
+# - docker tag bigabig/mbot-frontend:latest bigabig/mbot-frontend:<commit id>
+# - docker tag bigabig/mbot-frontend:latest bigabig/mbot-frontend:<version number>
 # Push:
 # - docker push bigabig/mbot-frontend:latest
 # - docker push bigabig/mbot-frontend:<commit id>

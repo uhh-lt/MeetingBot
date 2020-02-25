@@ -16,7 +16,7 @@ services:
 
   # BEGIN: FRONTEND
   frontend:
-    image: bigabig/mbot-frontend:latest
+    image: bigabig/mbot-frontend:1.0
     container_name: frontend
     ports:
       - 8080:8080
