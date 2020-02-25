@@ -92,6 +92,7 @@ import calculateKeywordnessTokenMap from './helper/keyword';
 import Timeline from './components/Timeline.vue';
 
 require('@/assets/css/main.css');
+require('@fortawesome/fontawesome-free/css/all.css');
 
 export default {
   name: 'app',
@@ -415,7 +416,8 @@ export default {
 </script>
 
 <style>
-  @import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";
+  /*We host it ourself now!*/
+  /*@import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";*/
 
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
