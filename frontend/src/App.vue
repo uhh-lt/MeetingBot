@@ -178,6 +178,22 @@ export default {
     sendFakeStream() {
       this.fakeTime += 60;
       const utterances = [
+        // 'Geeignet sind bei',
+        // 'Uplands verleiht',
+        // 'Für',
+        // '<UNK> wird',
+        // '<UNK> an',
+        // '<UNK> für <UNK>',
+        // 'Obwohl',
+        // 'Außer der Sender The Candomble angestellt',
+        // 'an',
+        // '<UNK> an',
+        // 'Er soll sind',
+        // '<UNK>',
+        // 'Im Mühlen',
+        // '<UNK> <UNK>',
+        // 'Oh Gott',
+        // 'Ein Albury Doppeladler',
         '<UNK> Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
         'Ich möchte noch einmal kurz für unsere',
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
@@ -185,14 +201,10 @@ export default {
         'Da wir in zwei Wochen dem Kunden unseren Prototypen zeigen wollen und dem Kunden Sicherheit sehr wichtig ist haben wir heute zwei Experten zum Thema IT Sicherheit und Ethik eingeladen in der Hoffnung dass Sie uns nocheinmal auf die wichtigsten Punkte aufmerksam machen damit wir den Kunden von unserem Produkt überzeugen können',
         'Genau und deshalb überreiche ich jetzt das Wort direkt an Mark weiter der uns über IT Sicherheit berichten wird',
       ];
-      const confidences = [
-        Array(utterances[0].split(' ').length).fill(Math.random()),
-        Array(utterances[1].split(' ').length).fill(Math.random()),
-        Array(utterances[2].split(' ').length).fill(Math.random()),
-        Array(utterances[3].split(' ').length).fill(Math.random()),
-        Array(utterances[4].split(' ').length).fill(Math.random()),
-        Array(utterances[5].split(' ').length).fill(Math.random()),
-      ];
+      const confidences = [];
+      for (let i = 0; i < utterances.length; i += 1) {
+        confidences.push(Array(utterances[i].split(' ').length).fill(Math.random()));
+      }
       // let randomUtterance = Math.floor(Math.random() * utterances.length);
       const randomUtterance = this.fakeUtteranceNum;
       this.fakeUtteranceNum += 1;

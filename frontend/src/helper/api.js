@@ -6,7 +6,13 @@ const summary2URL = 'http://localhost:9002';
 const combinedURL = 'http://localhost:9999';
 const activateLogger = true;
 
+function removeUNK(text) {
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;UNK&gt;/g, '');
+}
+
 function postData(url = '', data = {}) {
+  console.log('POSTING DATA:');
+  console.log(data);
   return fetch(url, {
     method: 'POST', // *GET, POST, PUT, DELETE, etc.
     mode: 'cors', // no-cors, cors, *same-origin
@@ -118,9 +124,11 @@ async function computeSummary(textSegments, lang, method) {
     Promise.all(textSegments.map(content => new Promise((resolve) => {
       if (content.sentences > 0 && method === 'TEXTRANK') {
         // eslint-disable-next-line max-len
-        fetchSummary(content.text, Math.min(Math.ceil(content.sentences / 3), content.sentences), lang).then(data => resolve(data));
+        // fetchSummary(content.text, Math.min(Math.ceil(content.sentences / 5), content.sentences), lang).then(data => resolve(data));
+        // eslint-disable-next-line max-len
+        fetchSummary(removeUNK(content.text), Math.min(3, content.sentences), lang).then(data => resolve(data));
       } else if (content.sentences > 0 && method === 'BERT') {
-        fetchBERTSummary(content.text).then(data => resolve(data));
+        fetchBERTSummary(removeUNK(content.text)).then(data => resolve(data));
       } else {
         return resolve('');
       }
