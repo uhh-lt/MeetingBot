@@ -13,7 +13,7 @@ Therefore, speech input will not work.
 - Startup the frontend & microservice containers: `docker-compose -f docker-compose-prod.yml up -d`
 - Visit the frontend: http://localhost:8080/
 
-To get a complete working version of the Meeting Bot with frontend, microservices and backend please follow the instructions here: [kaldi-model-server/docker](https://github.com/uhh-lt/kaldi-model-server/tree/master/docker).
+To get a complete working version of the Meeting Bot with frontend, microservices and backend please follow the instructions here: [Linux Guide](./linux-guide.md).
 
 ## Development
 For detailed instructions on how to develop and build (for production) the frontend as well as the microservices please take a look at the corresponding readme files:

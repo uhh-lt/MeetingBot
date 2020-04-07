@@ -1,0 +1,78 @@
+######
+##
+# 1) start: docker-compose -f docker-compose-suite.yml up -d
+# 2) attach: docker attach ...
+# 3) detach: detach with <CTRL-p> <CTRL-q>
+# 4) stop: docker-compose down
+# VISIT localhost:8080/
+##
+######
+version: '2.3'
+
+networks:
+  anet:
+
+services:
+
+  # BEGIN: kaldi-model-server
+  kamose:
+    image: uhhlt/kaldi-model-server:latest
+    container_name: kamose
+    volumes:
+      - ${PWD}/models:/projects/kaldi-model-server/models
+    ports:
+      - 5000:5000
+    networks:
+      - anet
+    working_dir: /projects/kaldi-model-server/
+    devices:
+      - /dev/snd:/dev/snd
+  # END: kaldi-model-server
+
+  # BEGIN: FRONTEND
+  frontend:
+    image: bigabig/mbot-frontend:1.1
+    container_name: frontend
+    ports:
+      - 8080:8080
+    depends_on:
+      keywords:
+        condition: service_healthy
+      spacy:
+        condition: service_healthy
+    networks:
+      - anet
+  # END: FRONTEND
+
+  # BEGIN: KEYWORDS
+  keywords:
+    image: bigabig/mbot-keyterms:latest
+    container_name: keywords
+    ports:
+      - 8888:8080
+    healthcheck:
+      test: curl 0.0.0.0:8080/healthcheck
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    networks:
+      - anet
+  # END: KEYWORDS
+
+  # BEGIN: SPACY
+  spacy:
+    image: bigabig/mbot-spacy:1.1
+    container_name: spacy
+    ports:
+      - 9999:9999
+    healthcheck:
+      test: curl 0.0.0.0:9999/health
+      interval: 120s
+      timeout: 10s
+      retries: 5
+    networks:
+      - anet
+    #    entrypoint: ["python", "app.py", "-l", "de"]
+    #    set language with -l, supported languages are 'de', 'en' or 'both'
+    command: ["-l", "de"]
+  # END: SPACY
