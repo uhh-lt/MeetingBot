@@ -5,29 +5,32 @@
 <script>
 import * as d3 from 'd3';
 
+/**
+ * This component keeps track of the conversation shares of each speaker and visualizes them as a bar chart with d3.js.
+ */
 export default {
   name: 'BarChart',
   props: ['speakerCount', 'speakerNames', 'openSidebarElements'],
   data() {
     return {
-      redeanteil: [0, 0, 0, 0],
-      redeanteilInProzent: [0, 0, 0, 0],
+      conversationShares: [0, 0, 0, 0],
+      conversationSharesInPercent: [0, 0, 0, 0],
       data: [
         {
           speaker: 'Speaker 1',
-          redeanteil: 0,
+          conversationShares: 0,
         },
         {
           speaker: 'Speaker 2',
-          redeanteil: 0,
+          conversationShares: 0,
         },
         {
           speaker: 'Speaker 3',
-          redeanteil: 0,
+          conversationShares: 0,
         },
         {
           speaker: 'Speaker 4',
-          redeanteil: 0,
+          conversationShares: 0,
         },
       ],
       svg: null,
@@ -48,67 +51,28 @@ export default {
     },
   },
   mounted() {
+    // listen to events from other components
     this.$root.$on('onCompleteUtterance', this.onCompleteUtterance);
     this.$root.$on('onReset', this.onReset);
+    // init this component
     this.initBarChart();
   },
   watch: {
+    // in case the data, names, count changes update & draw the new data
     data() {
-      this.loadData();
+      this.updateAndDrawData();
     },
     speakerNames() {
-      this.loadData();
+      this.updateAndDrawData();
     },
     speakerCount() {
-      this.loadData();
+      this.updateAndDrawData();
     },
     openSidebarElements() {
       this.draw();
     },
   },
   methods: {
-    onReset() {
-      this.redeanteil = [0, 0, 0, 0];
-      this.redeanteilInProzent = [0, 0, 0, 0];
-      this.data = [
-        {
-          speaker: 'Speaker 1',
-          redeanteil: 0,
-        },
-        {
-          speaker: 'Speaker 2',
-          redeanteil: 0,
-        },
-        {
-          speaker: 'Speaker 3',
-          redeanteil: 0,
-        },
-        {
-          speaker: 'Speaker 4',
-          redeanteil: 0,
-        },
-      ];
-    },
-    onCompleteUtterance(utterance, data, speaker) {
-      // update redeanteil
-      this.redeanteil[speaker] += data.length;
-
-      // compute redeanteil in percent
-      const totalRedeanteil = this.redeanteil.reduce((total, num) => total + num);
-      for (let spkr = 0; spkr < this.redeanteil.length; spkr += 1) {
-        this.redeanteilInProzent[spkr] = this.redeanteil[spkr] / totalRedeanteil;
-      }
-
-      // update data
-      this.data = [];
-      for (let i = 0; i < this.speakers; i += 1) {
-        this.data[i] = {
-          speaker: this.speakerNames[i],
-          redeanteil: this.redeanteilInProzent[i],
-        };
-      }
-      this.data = this.data.slice(0);
-    },
     initBarChart() {
       // SETUP
       this.svg = d3.select('#chart');
@@ -126,7 +90,7 @@ export default {
 
       window.addEventListener('resize', this.draw);
     },
-    loadData() {
+    updateAndDrawData() {
       this.x.domain([0, 1]);
       this.y.domain(this.data.map(d => d.speaker));
       this.draw();
@@ -149,11 +113,6 @@ export default {
         .call(d3.axisLeft(this.y))
         .selectAll('text')
         .attr('fill', 'none');
-      // .style('text-anchor', 'middle')
-      // .attr('x', '0')
-      // .attr('dx', '0em')
-      // .attr('dy', '-1em')
-      // .attr('transform', 'rotate(-90)');
 
       const bars = this.g.selectAll('.bar')
         .data(this.data);
@@ -164,13 +123,13 @@ export default {
         .attr('class', 'bar')
         .attr('x', 5)
         .attr('y', d => this.y(d.speaker))
-        .attr('width', d => this.x(d.redeanteil))
+        .attr('width', d => this.x(d.conversationShares))
         .attr('height', this.y.bandwidth());
 
       // UPDATE
       bars.attr('x', 5)
         .attr('y', d => this.y(d.speaker))
-        .attr('width', d => this.x(d.redeanteil))
+        .attr('width', d => this.x(d.conversationShares))
         .attr('height', this.y.bandwidth());
 
       // EXIT
@@ -186,13 +145,13 @@ export default {
         .attr('class', 'txt')
         .style('text-anchor', 'start')
         .attr('fill', 'black')
-        .attr('x', d => this.x(d.redeanteil) + 8)
+        .attr('x', d => this.x(d.conversationShares) + 8)
         .attr('y', d => this.y(d.speaker) + this.y.bandwidth() / 2 + 6)
         .text(d => d.speaker);
 
       // UPDATE
       texts
-        .attr('x', d => this.x(d.redeanteil) + 8)
+        .attr('x', d => this.x(d.conversationShares) + 8)
         .attr('y', d => this.y(d.speaker) + this.y.bandwidth() / 2 + 6)
         .text(d => d.speaker);
 
@@ -200,6 +159,50 @@ export default {
       texts.exit()
         .remove();
     },
+    // BEGIN methods that react to events
+    onReset() {
+      this.conversationShares = [0, 0, 0, 0];
+      this.conversationSharesInPercent = [0, 0, 0, 0];
+      this.data = [
+        {
+          speaker: 'Speaker 1',
+          conversationShares: 0,
+        },
+        {
+          speaker: 'Speaker 2',
+          conversationShares: 0,
+        },
+        {
+          speaker: 'Speaker 3',
+          conversationShares: 0,
+        },
+        {
+          speaker: 'Speaker 4',
+          conversationShares: 0,
+        },
+      ];
+    },
+    onCompleteUtterance(utterance, data, speaker) {
+      // update conversation shares
+      this.conversationShares[speaker] += data.length;
+
+      // compute conversation shares in percent
+      const totalRedeanteil = this.conversationShares.reduce((total, num) => total + num);
+      for (let spkr = 0; spkr < this.conversationShares.length; spkr += 1) {
+        this.conversationSharesInPercent[spkr] = this.conversationShares[spkr] / totalRedeanteil;
+      }
+
+      // update data
+      this.data = [];
+      for (let i = 0; i < this.speakers; i += 1) {
+        this.data[i] = {
+          speaker: this.speakerNames[i],
+          conversationShares: this.conversationSharesInPercent[i],
+        };
+      }
+      this.data = this.data.slice(0);
+    },
+    // END methods that react to events
   },
 };
 </script>

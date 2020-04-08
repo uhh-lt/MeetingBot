@@ -1,3 +1,11 @@
+/**
+ * A generic graph object that offers standard graph operations:
+ * - add / remove nodes
+ * - add / remove edges
+ * - get connected components
+ * - get all nodes / edges
+ * @constructor
+ */
 function Graph() {
   this.nodeIDMap = new Map(); // node ID to node map
   this.nodes = []; // list of node ids

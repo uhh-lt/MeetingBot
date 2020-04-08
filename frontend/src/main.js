@@ -5,6 +5,6 @@ import { i18n } from './plugins/i18n';
 Vue.config.productionTip = false;
 
 new Vue({
-  i18n,
+  i18n, // include localization plugin as global variable. It accessible with 'this.$i18n'
   render: h => h(App),
 }).$mount('#app');

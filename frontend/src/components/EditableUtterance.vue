@@ -6,6 +6,12 @@
 </template>
 
 <script>
+/**
+ * This is a micro-component that allows the user to manipulate a string.
+ * This component takes an original string and visualizes it as an editable text field.
+ * Once the string is edited by the user, the ORIGINAL string changes to that new value.
+ * Please note that this emulates that the string is "passed by reference"!
+ */
 export default {
   props: ['value'],
   computed: {

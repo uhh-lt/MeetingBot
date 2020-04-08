@@ -1,15 +1,13 @@
 <template>
   <div id="app">
 
+    <!-- BEGIN MODAL WINDOWS -->
     <settings></settings>
-
-<!--    <exporter :utterances="utterances"></exporter>-->
     <exporter v-model="utterances"></exporter>
-
     <importer></importer>
+    <!-- END MODAL WINDOWS -->
 
-<!--    START NAVBAR-->
-
+    <!-- START NAVBAR -->
     <nav id="navigation" class="justify-content-start navbar sticky-top navbar-dark bg-dark">
 
       <a class="navbar-brand" href="#">
@@ -36,39 +34,39 @@
         <button type="button" class="btn btn-labeled btn-light mr-sm-2" data-toggle="modal" data-target="#settingsModal">
           <span class="btn-label"><i class="fas fa-cogs"></i></span>{{ $t('settings') }}</button>
 
-        <button v-if="settings.controlButtonsStateDependent === 'false'" v-on:click="sendFakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
+        <button v-if="settings.controlButtonsStateDependent === 'false'" v-on:click="fakeStream" type="button" class="btn btn-labeled btn-light mr-sm-2">
           <span class="btn-label"><i class="fas fa-print"></i></span>Fake</button>
 
         <button v-if="settings.controlButtonsStateDependent === 'true'" :disabled="meeting.status !== meeting.enum.AFTER_MEETING" v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>{{ $t('export') }}</button>
         <button v-if="settings.controlButtonsStateDependent === 'false'"  v-on:click="sendOpenExporter" type="button" class="btn btn-labeled btn-light" data-toggle="modal" data-target="#exportModal">
           <span class="btn-label"><i class="fas fa-download"></i></span>{{ $t('export') }}</button>
-        <!--        <input class="form-control mr-sm-2" type="search" placeholder="Suchen" aria-label="Search">-->
-        <!--        <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i></button>-->
       </div>
 
     </nav>
-<!--    END NAVBAR-->
+    <!-- END NAVBAR -->
 
-<!--    START CONTENT-->
+    <!-- START CONTENT -->
     <div class="container-fluid">
 
       <div class="row">
 
-<!--        START TIMELINE-->
+        <!-- START TIMELINE -->
         <timeline :utterances="utterances" :utteranceMode="utteranceMode" :utteranceIDMap="utteranceIDMap"></timeline>
-<!--        END TIMELINE-->
+        <!-- END TIMELINE-->
 
-<!--        START SIDEBAR-->
+        <!-- START SIDEBAR -->
         <div class="col-4">
           <sidebar :speaker-name="settings.speakerName" :speaker-count="settings.speaker"></sidebar>
         </div>
-<!--        END SIDEBAR-->
+        <!-- END SIDEBAR -->
       </div>
     </div>
-    <!--      END CONTENT-->
+    <!-- END CONTENT-->
 
+    <!-- START FOOTER -->
     <Footer></Footer>
+    <!-- END FOOTER -->
 
   </div>
 </template>
@@ -106,23 +104,23 @@ export default {
     Footer,
   },
   created() {
-    // Execute methods on create
+    // make this component listen to resize events as soon as the component is created
     window.addEventListener('resize', this.onResize);
   },
   mounted() {
-    // Listen to stream
+    // connect to the asr input stream (this is a text stream)
     const source = new EventSource('http://localhost:5000/stream');
-    source.onmessage = this.handleStream;
+    source.onmessage = this.handleStream; // handle stream will be called when there is a new message in the stream
     source.onerror = () => {
       console.log('STREAM: Error Event!');
-      this.sendStreamStatus('ERROR');
+      this.sendStreamStatus('ERROR'); // inform other components that connection to stream failed
     };
     source.onopen = () => {
       console.log('STREAM: Open Event!');
-      this.sendStreamStatus('OPEN');
+      this.sendStreamStatus('OPEN'); // inform other components that connection to stream succeeded
     };
 
-    // listen to vue events
+    // listen to events from other components
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onReset', this.onReset);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
@@ -163,6 +161,7 @@ export default {
     };
   },
   methods: {
+    // BEGIN Methods to trigger events for other components
     sendOpenExporter() {
       this.$root.$emit('onOpenExporter');
     },
@@ -175,26 +174,14 @@ export default {
     sendRecheckCurrentUtterance(forceUpdateIfTop) {
       this.$root.$emit('onRecheckCurrentUtteranceChange', forceUpdateIfTop);
     },
-    sendFakeStream() {
+    // END Methods to trigger events for other components
+    /**
+     * This method is only used for testing. It generates random utterances so that you can test the functionalities of the frontend without the need of the ASR backend.
+     */
+    fakeStream() {
       this.fakeTime += 60;
       const utterances = [
-        // 'Geeignet sind bei',
-        // 'Uplands verleiht',
-        // 'Für',
-        // '<UNK> wird',
-        // '<UNK> an',
-        // '<UNK> für <UNK>',
-        // 'Obwohl',
-        // 'Außer der Sender The Candomble angestellt',
-        // 'an',
-        // '<UNK> an',
-        // 'Er soll sind',
-        // '<UNK>',
-        // 'Im Mühlen',
-        // '<UNK> <UNK>',
-        // 'Oh Gott',
-        // 'Ein Albury Doppeladler',
-        '<UNK> Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
+        'Hallo zusammen jetzt wird spannend Wir haben noch zwei Wochen und dann stellen wir unser KI Produkt für E Bibliothek bei der Landesverwaltung vor',
         'Ich möchte noch einmal kurz für unsere',
         'Unser Ziel war es ja Machine Learning einzusetzen um Daten einfacher mit Hilfe eines Sprach Interface in der E Bibliothek ausfindig zu machen In den letzen Monaten haben wir einen technischen Prototyp fertiggestelt',
         'Ich möchte noch einmal kurz für unsere',
@@ -205,7 +192,6 @@ export default {
       for (let i = 0; i < utterances.length; i += 1) {
         confidences.push(Array(utterances[i].split(' ').length).fill(Math.random()));
       }
-      // let randomUtterance = Math.floor(Math.random() * utterances.length);
       const randomUtterance = this.fakeUtteranceNum;
       this.fakeUtteranceNum += 1;
       if (this.fakeUtteranceNum >= utterances.length) this.fakeUtteranceNum = 0;
@@ -221,106 +207,92 @@ export default {
       };
       this.handleStream(fakeEvent);
     },
+    /**
+     * This method is called automatically whenever a new event is in the ASR stream.
+     * Based on event.handle (the type of the event) this function updates the utterances or informs other components of status changes.
+     * @param event the event object sent from the ASR backend to the frontend
+     */
     handleStream(event) {
-      // console.log(event.data);
       const jsonEvent = JSON.parse(event.data);
-
-      // UTTERANCE COMMANDS
-      if ((jsonEvent.handle === 'partialUtterance' || jsonEvent.handle === 'completeUtterance')) {
-        // check if utterance is empty
-        if (jsonEvent.utterance.length > 0) {
-          // PARTIAL UTTERANCE
-          if (jsonEvent.handle === 'partialUtterance') {
-            if (this.startNewUtt) {
-              this.addOrReplaceUtterance(jsonEvent, false, true);
-              this.startNewUtt = false;
-            } else {
-              this.addOrReplaceUtterance(jsonEvent, false, false);
+      switch (jsonEvent.handle) {
+        case 'partialUtterance':
+        case 'completeUtterance':
+          // check if utterance is empty
+          if (jsonEvent.utterance.length > 0) {
+            // PARTIAL UTTERANCE
+            if (jsonEvent.handle === 'partialUtterance') {
+              if (this.startNewUtt) {
+                this.addOrReplaceUtterance(jsonEvent, false, true);
+                this.startNewUtt = false;
+              } else {
+                this.addOrReplaceUtterance(jsonEvent, false, false);
+              }
+              // COMPLETE UTTERANCE
+            } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
+              this.addOrReplaceUtterance(jsonEvent, true, true);
+            } else if (jsonEvent.handle === 'completeUtterance') {
+              this.addOrReplaceUtterance(jsonEvent, true, false);
+              this.startNewUtt = true;
             }
 
-            // COMPLETE UTTERANCE
-          } else if (jsonEvent.handle === 'completeUtterance' && this.lastUtteranceType === 'completeUtterance') {
-            this.addOrReplaceUtterance(jsonEvent, true, true);
-          } else if (jsonEvent.handle === 'completeUtterance') {
-            this.addOrReplaceUtterance(jsonEvent, true, false);
-            this.startNewUtt = true;
-          }
-
-          // scrolling
-          if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
-            window.requestAnimationFrame(() => {
-              // scroll to bottom if order is ASC
-              if (this.settings.timelineSorting === 'ASC') {
-                this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
-              }
-              // scroll to bottom if order is DESC
-              if (this.settings.timelineSorting === 'DESC') {
-                const timelinecontainer = $('.timelinecontainer');
-                if (timelinecontainer[0] !== undefined) {
-                  if (this.settings.timelineView === 'LINE') {
-                    const timeline = $('#timeline');
-                    const value = timelinecontainer[0].offsetHeight > timeline[0].offsetHeight ? timelinecontainer[0].offsetHeight - timeline[0].offsetHeight : 0;
-                    timeline.stop().animate({ scrollTop: value }, 500);
-                  }
-                  if (this.settings.timelineView === 'LANES') {
-                    const sticky = $('.stickytimelineheader');
-                    const timeline = $('#timeline2');
-                    const value = timelinecontainer[0].offsetHeight > (timeline[0].offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline[0].offsetHeight - sticky[0].offsetHeight) : 0;
-                    timeline.stop().animate({ scrollTop: value }, 500);
+            // The following code automatically scrolls to top or bottom
+            // if some time (scrollIdleTime) has passed
+            // since the last scroll performed by the user (real scroll)
+            if (Date.now() - this.lastRealScroll > this.scrollIdleTime) {
+              window.requestAnimationFrame(() => {
+                // scroll to bottom if order is ASC
+                if (this.settings.timelineSorting === 'ASC') {
+                  this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
+                }
+                // scroll to bottom if order is DESC
+                if (this.settings.timelineSorting === 'DESC') {
+                  const timelinecontainer = $('.timelinecontainer');
+                  if (timelinecontainer[0] !== undefined) {
+                    if (this.settings.timelineView === 'LINE') {
+                      const timeline = $('#timeline');
+                      const value = timelinecontainer[0].offsetHeight > timeline[0].offsetHeight ? timelinecontainer[0].offsetHeight - timeline[0].offsetHeight : 0;
+                      timeline.stop().animate({ scrollTop: value }, 500);
+                    }
+                    if (this.settings.timelineView === 'LANES') {
+                      const sticky = $('.stickytimelineheader');
+                      const timeline = $('#timeline2');
+                      const value = timelinecontainer[0].offsetHeight > (timeline[0].offsetHeight - sticky[0].offsetHeight) ? timelinecontainer[0].offsetHeight - (timeline[0].offsetHeight - sticky[0].offsetHeight) : 0;
+                      timeline.stop().animate({ scrollTop: value }, 500);
+                    }
                   }
                 }
-              }
-              this.lastFakeScroll = Date.now();
-            });
+                this.lastFakeScroll = Date.now();
+              });
+            }
+            this.lastUtteranceType = jsonEvent.handle; // set last utterance type
           }
-
-          // set last utterance type
-          this.lastUtteranceType = jsonEvent.handle;
-        }
-
-      // RESET COMMAND
-      } else if (jsonEvent.handle === 'reset') {
-        // this.doSomething();
-
-      // STATUS COMMANDS
-      } else if (jsonEvent.handle === 'asr_ready') {
-        this.sendStreamStatus('NOT_DECODING');
-      } else if (jsonEvent.handle === 'status') {
-        if (jsonEvent.shutdown) {
-          this.sendStreamStatus('SHUTDOWN');
-        } else if (jsonEvent.isDecoding) {
-          this.sendStreamStatus('DECODING');
-        } else {
-          this.sendStreamStatus('NOT_DECODING');
-        }
-
-      // UNKOWN COMMANDS
-      } else {
-        console.log('ERROR STREAM COMMAND UNKNOWN!!');
+          break;
+        case 'reset':
+          // TODO: do something on reset
+          break;
+        case 'asr_ready':
+          this.sendStreamStatus('NOT_DECODING'); // inform other components of status change
+          break;
+        case 'status':
+          if (jsonEvent.shutdown) {
+            this.sendStreamStatus('SHUTDOWN'); // inform other components of status change
+          } else if (jsonEvent.isDecoding) {
+            this.sendStreamStatus('DECODING'); // inform other components of status change
+          } else {
+            this.sendStreamStatus('NOT_DECODING'); // inform other components of status change
+          }
+          break;
+        default:
+          console.log('ERROR STREAM COMMAND UNKNOWN!!');
+          break;
       }
     },
-    getTimeline() {
-      if (this.settings.timelineView === 'LINE') {
-        return $('#timeline');
-      }
-      return $('#timeline2');
-    },
-    getTimeString(time) {
-      const timeString = new Date(Math.round(time) * 1000).toISOString();
-      const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
-      const seconds = parseInt(timeString.substr(17, 2), 10);
-
-      if (minutes > 9 && seconds > 9) {
-        return `${minutes}:${seconds}`;
-      }
-      if (minutes > 9 && seconds <= 9) {
-        return `${minutes}:0${seconds}`;
-      }
-      if (minutes <= 9 && seconds > 9) {
-        return `0${minutes}:${seconds}`;
-      }
-      return `0${minutes}:0${seconds}`;
-    },
+    /**
+     * This function updates the global utterances object by adding new or replacing old utterances.
+     * @param jsonEvent the event object sent from the ASR backend to the frontend
+     * @param completed determines weather the utterance is partial or complete
+     * @param add determines weather the utterance should be added or replaced
+     */
     addOrReplaceUtterance(jsonEvent, completed, add) {
       let utterance;
       // confidences fix (fill confidences if text length > confidences length)
@@ -387,17 +359,16 @@ export default {
           const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
           utterance.keywordnessTokenMap = keywordnessTokenMap;
           utterance.keywordInfo = keywordInfo;
-          // keywords have changed, therefore, check if new keywords should be sent
-          this.sendRecheckCurrentUtterance(true);
+          this.sendRecheckCurrentUtterance(true); // keywords have changed, therefore, check if new keywords should be sent
         });
       }
     },
+    // BEGIN methods that react to events
     onResize() {
       const navbarHeight = document.getElementById('navigation').clientHeight;
       const footerHeight = document.getElementById('footer').clientHeight;
       const headerHeight = document.getElementsByClassName('card-header')[0].clientHeight + 3;
       this.getTimeline().css({ height: `calc(${window.innerHeight - navbarHeight - footerHeight - headerHeight}px - 2em - 2px)` });
-      // this.getTimeline().style.height = ;
     },
     onSettingsSaved(settings) {
       this.settings = settings;
@@ -423,14 +394,45 @@ export default {
     onWheelScroll(time) {
       this.lastRealScroll = time;
     },
+    // END methods that react to events
+    // BEGIN utility functions
+    /**
+     * This is a utility function that always returns the correct timeline object. This is necessary as the timeline object may differ depending on some settings.
+     * @returns {jQuery|HTMLElement} The timeline object
+     */
+    getTimeline() {
+      if (this.settings.timelineView === 'LINE') {
+        return $('#timeline');
+      }
+      return $('#timeline2');
+    },
+    /**
+     * This is a utility function that converts time values to minutes so that the resulting string has a length of minimum 5 characters e.g. 05:10 min or 90:05 min.
+     * @param time time in ms
+     * @returns {string} the formatted time string
+     */
+    getTimeString(time) {
+      const timeString = new Date(Math.round(time) * 1000).toISOString();
+      const minutes = parseInt(timeString.substr(11, 2), 10) * 60 + parseInt(timeString.substr(14, 2), 10);
+      const seconds = parseInt(timeString.substr(17, 2), 10);
+
+      if (minutes > 9 && seconds > 9) {
+        return `${minutes}:${seconds}`;
+      }
+      if (minutes > 9 && seconds <= 9) {
+        return `${minutes}:0${seconds}`;
+      }
+      if (minutes <= 9 && seconds > 9) {
+        return `0${minutes}:${seconds}`;
+      }
+      return `0${minutes}:0${seconds}`;
+    },
+    // END utility functions
   },
 };
 </script>
 
 <style>
-  /*We host it ourself now!*/
-  /*@import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css";*/
-
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -458,10 +460,6 @@ export default {
   }
   /*END STYLE FOR SETTINGS IMAGES*/
 
-  /*.row {*/
-  /*  padding-top: 2em;*/
-  /*  padding-bottom: 2em;*/
-  /*}*/
   #footer {
     width: 100%;
     height: 60px;
@@ -523,17 +521,6 @@ export default {
     margin: 0 auto;
     overflow-y: scroll;
   }
-
-  /* The actual timeline (the vertical ruler) */
-  /*#timeline::after {*/
-  /*  content: '';*/
-  /*  position: absolute;*/
-  /*  width: 6px;*/
-  /*  background-color: lightgrey;*/
-  /*  top: 0;*/
-  /*  bottom: 0;*/
-  /*  left: calc(100% - 36px);*/
-  /*}*/
 
   /* Container around content */
   .tl-container {

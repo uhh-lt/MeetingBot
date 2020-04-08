@@ -1,15 +1,16 @@
-const serverURL = 'http://localhost:8888';
+// connections to docker microservices
+const keytermsURL = 'http://localhost:8888';
 const asrURL = 'http://localhost:5000';
-const spacyURL = 'http://localhost:9000';
-const summaryURL = 'http://localhost:9001';
-const summary2URL = 'http://localhost:9002';
-const combinedURL = 'http://localhost:9999';
+const clsumm2URL = 'http://localhost:9002';
+const spacyURL = 'http://localhost:9999';
 const activateLogger = true;
 
-function removeUNK(text) {
-  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;UNK&gt;/g, '');
-}
-
+/**
+ * Generic function that allows to POST any json data object to any url
+ * @param url {string} API endpoint
+ * @param data {object} json data object
+ * @returns {Promise<any | string>} json response of the API endpoint
+ */
 function postData(url = '', data = {}) {
   console.log('POSTING DATA:');
   console.log(data);
@@ -20,7 +21,6 @@ function postData(url = '', data = {}) {
     credentials: 'same-origin', // include, *same-origin, omit
     headers: {
       'Content-Type': 'application/json',
-      // 'Content-Type': 'application/x-www-form-urlencoded',
     },
     redirect: 'follow', // manual, *follow, error
     referrer: 'no-referrer', // no-referrer, *client
@@ -32,18 +32,45 @@ function postData(url = '', data = {}) {
     });
 }
 
+/**
+ * Generic function that allows to GET any data object from any url
+ * @param url {string} API endpoint
+ * @returns {Promise<Response>} response of the API endpoint
+ */
+function getDataNoJSON(url = '') {
+  // Default options are marked with *
+  return fetch(url, {
+    method: 'GET', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, cors, *same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json',
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrer: 'no-referrer', // no-referrer, *client
+  });
+}
+
+/**
+ * Fetches 3 keywords for a given text.
+ * @param text {string} text to analyze
+ * @param language {string} text language either 'en' or 'de'
+ * @returns {Promise<properties.keywords|string[]>} list of keywords or empty list
+ */
 async function fetchKeywords(text, language) {
   let lang = null;
   if (language === 'en') {
     lang = 'eng';
   } else if (language === 'de') {
     lang = 'deu';
+  } else {
+    return null;
   }
 
-  if (lang === null) return null;
-
   if (activateLogger) console.log('Fetching Keywords');
-  const data = await postData(`${serverURL}/extractKeywords`, {
+  const data = await postData(`${keytermsURL}/extractKeywords`, {
     count: 3,
     lang,
     text,
@@ -56,9 +83,15 @@ async function fetchKeywords(text, language) {
   return [];
 }
 
+/**
+ * Analyzes the given text with the spacy microservice.
+ * @param text {string} text to analyze
+ * @param lang {string} text language either 'en' or 'de'
+ * @returns {Promise<any|string>} a list of (token, pos, lemma, dep) tuples.
+ */
 async function fetchSpacy(text, lang) {
   if (activateLogger) console.log('Fetching Spacy Output');
-  const data = await postData(`${combinedURL}/process`, {
+  const data = await postData(`${spacyURL}/process`, {
     text,
     lang,
   });
@@ -69,9 +102,23 @@ async function fetchSpacy(text, lang) {
   return data;
 }
 
+/**
+ * Utility function that removes every <UNK> token in the given text.
+ * @param text {string} text containing <UNK> tokens
+ * @returns {string} text without <UNK> tokens
+ */
+function removeUNK(text) {
+  return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&lt;UNK&gt;/g, '');
+}
+
+/**
+ * Summarizes the given text with the CLSUMM microservice.
+ * @param text {string} text to summarize
+ * @returns {Promise<String|string|*>} summary of given text
+ */
 async function fetchBERTSummary(text) {
   if (activateLogger) console.log('Fetching CLSUMM Output');
-  const data = await postData(`${summary2URL}/summarize`, {
+  const data = await postData(`${clsumm2URL}/summarize`, {
     text,
   });
   if (activateLogger) {
@@ -81,9 +128,16 @@ async function fetchBERTSummary(text) {
   return data.summary;
 }
 
+/**
+ * Summarizes the given text with the spacy microservice (TextRank).
+ * @param text {string} text to summarize
+ * @param length {integer} length of the summary (# of sentences)
+ * @param lang {string} text language either 'en' or 'de'
+ * @returns {Promise<String|string|*>} summary of given text
+ */
 async function fetchSummary(text, length, lang) {
   if (activateLogger) console.log('Fetching Textrank Output');
-  const data = await postData(`${combinedURL}/summarize`, {
+  const data = await postData(`${spacyURL}/summarize`, {
     text,
     length,
     lang,
@@ -97,9 +151,15 @@ async function fetchSummary(text, length, lang) {
   return data.summary;
 }
 
+/**
+ * Fetches the keywords as well as their pos, lemma, dep
+ * using keyterms & spacy microservice for the given utterance.
+ * @param utterance the utterance to analyze
+ * @param lang {string} utterance language either 'en' or 'de'
+ * @returns {Promise<unknown[]>} list of keywords with their scores, pos, lemma and dep
+ */
 async function computeKeywords(utterance, lang) {
   let keywords = await fetchKeywords(utterance.text, lang);
-  // utterance.keywords = keywords.map(value => value.word).join(" ");
   keywords = keywords.filter(value => value.word !== 'UNK');
   const result = await Promise.resolve(
     Promise.all(keywords.map(k => new Promise((resolve) => {
@@ -117,14 +177,19 @@ async function computeKeywords(utterance, lang) {
   return result;
 }
 
+/**
+ * Computes the summary of multiple texts.
+ * @param textSegments {object[]} list of text segment objects: {text: string, sentences: integer}
+ * @param lang {string} language of the text segments either 'en' or 'de'
+ * @param method {string} method to use for summarization either 'TEXTRANK' or 'BERT'
+ * @returns {Promise<string[]>} list of summaries. One summary per text segment
+ */
 async function computeSummary(textSegments, lang, method) {
   // compute for each text segment the summary
   const result = await Promise.resolve(
     // eslint-disable-next-line consistent-return
     Promise.all(textSegments.map(content => new Promise((resolve) => {
       if (content.sentences > 0 && method === 'TEXTRANK') {
-        // eslint-disable-next-line max-len
-        // fetchSummary(content.text, Math.min(Math.ceil(content.sentences / 5), content.sentences), lang).then(data => resolve(data));
         // eslint-disable-next-line max-len
         fetchSummary(removeUNK(content.text), Math.min(3, content.sentences), lang).then(data => resolve(data));
       } else if (content.sentences > 0 && method === 'BERT') {
@@ -141,22 +206,11 @@ async function computeSummary(textSegments, lang, method) {
   return result;
 }
 
-function getDataNoJSON(url = '') {
-  // Default options are marked with *
-  return fetch(url, {
-    method: 'GET', // *GET, POST, PUT, DELETE, etc.
-    mode: 'cors', // no-cors, cors, *same-origin
-    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: 'same-origin', // include, *same-origin, omit
-    headers: {
-      'Content-Type': 'application/json',
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    redirect: 'follow', // manual, *follow, error
-    referrer: 'no-referrer', // no-referrer, *client
-  });
-}
-
+/**
+ * Sends a command to the ASR backend.
+ * @param command command to send to the ASR backend
+ * @returns {Promise<void>}
+ */
 async function sendCommand(command) {
   if (activateLogger) console.log('Sending Command...');
   const data = await getDataNoJSON(`${asrURL}/${command}`);

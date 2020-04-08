@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <template v-if="settings.controlButtonsStateDependent === 'false'">
       <button v-on:click="handleClick('NEWMEETING')" type="button" class="btn btn-success mr-sm-2" :disabled="buttonStatus.newmeeting">
         {{ $t('new_meeting') }}</button>
@@ -51,6 +50,12 @@
 import { sendCommand } from '../helper/api';
 import Store from '../helper/Store';
 
+/**
+ * This component is tightly coupled with the ASR backend.
+ * It reacts to status changes of the ASR backend and is also able to change the status of the ASR backend.
+ * Depending on the status, the control bar displays appropriate buttons (that let the user manipulate the meeting & ASR).
+ * e.g. if the ASR is currently transcribing, the user is able to press Stop to end the transcription, or Pause to pause the transcription.
+ */
 export default {
   name: 'ControlBar',
   data() {
@@ -75,38 +80,20 @@ export default {
     };
   },
   mounted() {
-    // listen to events
+    // listen to events from other components
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onStreamStatusChanged', this.onStreamStatusChanged);
   },
   methods: {
+    // BEGIN Methods to trigger events for other components
     sendReset() {
       this.$root.$emit('onReset');
     },
-    onStreamStatusChanged(streamStatus) {
-      console.log(`Stream Status has changed to ${streamStatus}`);
-      if (streamStatus === 'ERROR') {
-        this.status = this.StatusEnum.CONNECTING;
-      } else if (streamStatus === 'OPEN') {
-        this.status = this.StatusEnum.NOT_READY;
-      } else if (streamStatus === 'DECODING') {
-        this.status = this.StatusEnum.STARTED;
-        this.meeting.status = this.meeting.enum.IN_MEETING;
-      } else if (streamStatus === 'NOT_DECODING') {
-        if (this.meeting.status === this.meeting.enum.IN_MEETING) {
-          this.status = this.StatusEnum.PAUSED;
-        } else if (this.meeting.status === this.meeting.enum.BEFORE_MEETING || this.meeting.status === this.meeting.enum.AFTER_MEETING) {
-          this.status = this.StatusEnum.STOPPED;
-        }
-      } else if (streamStatus === 'SHUTDOWN') {
-        this.status = this.StatusEnum.NOT_READY;
-      } else {
-        console.log('STREAM STATUS UNKOWN!!!');
-      }
-    },
-    onSettingsSaved(settings) {
-      this.settings = settings;
-    },
+    // END Methods to trigger events for other components
+    /**
+     * This is a button handler function that updates the meeting status and informs the ASR backend based on the pressed button.
+     * @param buttonType {string} the name of pressed button
+     */
     handleClick(buttonType) {
       switch (buttonType) {
         case 'START':
@@ -143,6 +130,11 @@ export default {
           break;
       }
     },
+    /**
+     * This function sends a command to the ASR backend and disables the used button until the command was processed by the backend.
+     * @param button {string} button that was pressed
+     * @param command {string} command associated with this button
+     */
     sendButtonCommand(button, command) {
       this.buttonStatus[button] = true; // disable button
       sendCommand(command)
@@ -153,6 +145,37 @@ export default {
           this.buttonStatus[button] = false; // enable button
         });
     },
+    // BEGIN methods that react to events
+    /**
+     * This function reacts to changes of the stream status (status of the ASR backend) and updates the status and meeting status accordingly.
+     * Updating the status has direct impact on the displayed buttons on the control bar.
+     * @param streamStatus status of the ASR backend
+     */
+    onStreamStatusChanged(streamStatus) {
+      console.log(`Stream Status has changed to ${streamStatus}`);
+      if (streamStatus === 'ERROR') {
+        this.status = this.StatusEnum.CONNECTING;
+      } else if (streamStatus === 'OPEN') {
+        this.status = this.StatusEnum.NOT_READY;
+      } else if (streamStatus === 'DECODING') {
+        this.status = this.StatusEnum.STARTED;
+        this.meeting.status = this.meeting.enum.IN_MEETING;
+      } else if (streamStatus === 'NOT_DECODING') {
+        if (this.meeting.status === this.meeting.enum.IN_MEETING) {
+          this.status = this.StatusEnum.PAUSED;
+        } else if (this.meeting.status === this.meeting.enum.BEFORE_MEETING || this.meeting.status === this.meeting.enum.AFTER_MEETING) {
+          this.status = this.StatusEnum.STOPPED;
+        }
+      } else if (streamStatus === 'SHUTDOWN') {
+        this.status = this.StatusEnum.NOT_READY;
+      } else {
+        console.log('STREAM STATUS UNKOWN!!!');
+      }
+    },
+    onSettingsSaved(settings) {
+      this.settings = settings;
+    },
+    // END methods that react to events
   },
 };
 </script>
