@@ -25,6 +25,10 @@
 <script>
 import TimelineUtterance from './TimelineUtterance.vue';
 
+/**
+ * This component visualizes grouped utterances for a speaker as a speech bubble. It is used for the timeline setting 'conversation history as a single line'.
+ * To render the utterance itself, this component makes use of the timeline utterance component.
+ */
 export default {
   name: 'TimelineBox',
   components: { TimelineUtterance },
@@ -35,6 +39,9 @@ export default {
     };
   },
   mounted() {
+    // the following code initializes the onIntersection event
+    // this event is sent to and used by the timeline component
+    // we use this event to find out weather the user sees a new speech bubble (and therefore has scrolled)
     const callback = (entries) => {
       this.$root.$emit('onIntersection', entries);
     };

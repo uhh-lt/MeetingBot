@@ -62,6 +62,9 @@ export default {
     this.init();
   },
   methods: {
+    /**
+     * This function intializes the d3.js force directed graph
+     */
     init() {
       this.svg = d3.select('svg')
         .attr('viewBox', [0, 0, this.width, this.height]);
@@ -81,6 +84,9 @@ export default {
 
       this.restart();
     },
+    /**
+     * This function starts the d3.js force directed graph. First it loads the data, then it starts the simulation.
+     */
     restart() {
       this.node = this.node.data(this.nodes, d => d.id);
 
@@ -134,6 +140,9 @@ export default {
         });
       });
     },
+    /**
+     * This function enables drag & drog for the nodes of the d3.js force directed graph.
+     */
     drag(simulation) {
       function dragstarted(d) {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
@@ -157,6 +166,9 @@ export default {
         .on('drag', dragged)
         .on('end', dragended);
     },
+    /**
+     * This function is called every tick and updates the d3.js force directed graph. It is important for the drag & drop feature.
+     */
     tick() {
       this.link
         .attr('x1', d => d.source.x)

@@ -41,6 +41,10 @@ import AgendaVisualizer from './AgendaVisualizer.vue';
 import WordGraph from './WordGraph.vue';
 import BarChart from './BarChart.vue';
 
+/**
+ * This component allows to display 3 sidebar elements.
+ * It handles opening, closing and resizing of the sidebar elements.
+ */
 export default {
   name: 'Sidebar',
   props: ['speakerName', 'speakerCount'],
@@ -69,12 +73,18 @@ export default {
     window.addEventListener('resize', this.updateSidebarHeights);
   },
   methods: {
-
+    /**
+     * This function handles opening & closing of sidebar elements
+     * @param element the sidebar element
+     */
     toggleSidebarElement(element) {
       this.sidebarElements[element] = !this.sidebarElements[element];
       this.sidebarElements = this.sidebarElements.slice(0);
       this.updateSidebarHeights();
     },
+    /**
+     * This function handles resizing of sidebar elements
+     */
     updateSidebarHeights() {
       const result = Array(this.sidebarElements.length).fill('');
       if (window && document && document.getElementById('navigation') && document.getElementById('footer') && document.getElementsByClassName('card-header').length > 0) {

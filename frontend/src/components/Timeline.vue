@@ -34,12 +34,15 @@ import $ from 'jquery';
 import TimelineBox from './TimelineBox.vue';
 import TimelineRow from './TimelineRow.vue';
 
+/**
+ * This component visualizes the timeline / conversation history.
+ */
 export default {
   name: 'Timeline',
   components: { TimelineRow, TimelineBox },
   props: ['utterances', 'utteranceIDMap', 'utteranceMode'],
   mounted() {
-    // listen to vue events
+    // listen to events from other components
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onReset', this.onReset);
     this.$root.$on('onIntersection', this.onIntersection);
@@ -80,101 +83,20 @@ export default {
     };
   },
   methods: {
+    // BEGIN Methods to trigger events for other components
     sendOnWheelScroll(time) {
       this.$root.$emit('onWheelScroll', time);
     },
     sendOnCurrentUtteranceChanged(keywords, minRange, maxRange) {
       this.$root.$emit('onCurrentUtteranceChanged', keywords, minRange, maxRange);
     },
-    calcGroupedUtterances() {
-      const groupedUtterances = [];
-      let lastSpeaker = -1;
-      this.utterances.forEach((utterance) => {
-        // same speaker => add to utterance group
-        if (utterance.speaker === lastSpeaker) {
-          const utteranceGroup = groupedUtterances.pop();
-          utteranceGroup.push(utterance);
-          groupedUtterances.push(utteranceGroup);
-
-          // other speaker => create new utterance group
-        } else {
-          groupedUtterances.push([utterance]);
-        }
-        // update last speaker
-        lastSpeaker = utterance.speaker;
-      });
-      return groupedUtterances;
-    },
-    getTimeline() {
-      if (this.settings.timelineView === 'LINE') {
-        return $('#timeline');
-      }
-      return $('#timeline2');
-    },
-    onSettingsSaved(settings) {
-      this.onSortingChanged(this.settings, settings);
-      this.onTimelineViewChanged(this.settings, settings);
-      this.settings = settings;
-    },
-    onReset() {
-      this.currentUtterance = -1;
-      this.currentBubble = -1;
-      this.intersectingElements = new Map();
-    },
-    onSortingChanged(oldSettings, newSettings) {
-      if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
-        window.requestAnimationFrame(() => {
-          // scroll to bot if timeline sorting changed to ASC
-          if (newSettings.timelineSorting === 'ASC') {
-            this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
-            // this.$refs.timelineRef.scrollTop = this.$refs.timelineRef.scrollHeight;
-          }
-          // scroll to top if timeline sorting changed to DESC
-          if (newSettings.timelineSorting === 'DESC') {
-            this.getTimeline().stop().animate({ scrollTop: 0 }, 500);
-            // this.$refs.timelineRef.scrollTop = 0;
-          }
-        });
-      }
-    },
-    onTimelineViewChanged(oldSettings, newSettings) {
-      if (oldSettings.timelineView !== newSettings.timelineView) {
-        this.intersectingElements = new Map();
-        // find current utterance bubble and then scroll to this element
-        window.requestAnimationFrame(() => {
-          const allContainers = this.getTimeline()[0].querySelectorAll('.timelinecontainer:not(.nodisplay)');
-          const currentUtterance = this.currentUtterance.toString(10);
-          let currentContainer = null;
-          for (let id = 0; id < allContainers.length; id += 1) {
-            const container = allContainers[id];
-            if (container.dataset.utteranceid === currentUtterance) {
-              currentContainer = container;
-              break;
-            }
-          }
-          if (currentContainer !== null) {
-            const timeline = this.getTimeline();
-            const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
-            timeline.stop().animate({ scrollTop: value }, 500);
-          }
-        });
-      }
-    },
-    onIntersection(entries) {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          this.intersectingElements.set(entry.target.id, entry.target);
-        } else {
-          this.intersectingElements.delete(entry.target.id);
-        }
-      });
-      // visible containers have changed, therefore, check if currentUtterance has changed and new keywords should be sent
-      this.checkForCurrentUtteranceChange(false);
-    },
+    // END Methods to trigger events for other components
+    /**
+     * This function is automatically called by an event (onIntersection) that fires if the rendered speech bubbles change. (e.g. if the user scrolls)
+     * This function checks if the current / centered speech bubble has changed.
+     * If the current bubble has changed, all keywords surrounding the current speech bubble are collected & sent to the keyword graph. So this function is tightly coupled to the WordGraph component!
+     */
     checkForCurrentUtteranceChange(forceUpdateIfTop) {
-      // this method checks if the current bubble has changed
-      // if the current bubble has changed, all keywords surrounding the current bubble are collected & sent
-
       // force update if scroll is top
       if (forceUpdateIfTop && this.$refs.timelineRef.scrollTop === 0) {
         // force update by setting this.currentUtterance to -1
@@ -271,50 +193,117 @@ export default {
         const newMaxRange = totalRange + minRange - 1; // upscaled max range
         this.sendOnCurrentUtteranceChanged(keywordInfos, minRange, newMaxRange);
       }
-      // // BASED ON BUBBLES
-      // if (this.currentBubble !== nearestContainer) {
-      //   this.currentBubble = nearestContainer;
-      //
-      //   const allContainers = this.$refs.timelineRef.querySelectorAll('.timelinecontainer:not(.nodisplay)');
-      //
-      //   // collect keywords from utterances around current utterance
-      //   // richtig für descending
-      //   const keywordInfos = [];
-      //   const minRange = Math.max(this.currentBubble - this.settings.range, 0);
-      //   const maxRange = Math.min(this.currentBubble + this.settings.range, allContainers.length - 1);
-      //
-      //   if (this.settings.timelineSorting === 'DESC') {
-      //     for (let i = minRange; i <= maxRange; i += 1) {
-      //       const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
-      //       const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
-      //
-      //       for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-      //         const { keywordInfo } = this.utteranceIDMap.get(j);
-      //         // eslint-disable-next-line no-param-reassign
-      //         keywordInfo.forEach((info) => { info.age = i; });
-      //         keywordInfos.push(keywordInfo);
-      //       }
-      //     }
-      //   } else if (this.settings.timelineSorting === 'ASC') {
-      //     for (let i = minRange; i <= maxRange; i += 1) {
-      //       const utteranceID = parseInt(allContainers[i].dataset.utteranceid, 10);
-      //       const numUtterances = parseInt(allContainers[i].dataset.numutterances, 10);
-      //
-      //       for (let j = utteranceID; j < utteranceID + numUtterances; j += 1) {
-      //         const { keywordInfo } = this.utteranceIDMap.get(j);
-      //         // eslint-disable-next-line no-param-reassign
-      //         keywordInfo.forEach((info) => { info.age = minRange + maxRange - i; });
-      //         keywordInfos.push(keywordInfo);
-      //       }
-      //     }
-      //   }
-      //
-      //   const totalRange = 2 * this.settings.range + 1;
-      //   const newMinRange = Math.max(this.currentBubble - this.settings.range, 0);
-      //   const newMaxRange = (totalRange - (maxRange - minRange + 1)) + maxRange;
-      //   this.sendOnCurrentUtteranceChanged(keywordInfos, newMinRange, newMaxRange);
-      // }
     },
+    /**
+     * This function groups utterances by speaker. Multiple successive utterances that belong to one speaker are grouped to one speech bubble.
+     * @returns {[]} list of grouped utterances / speech bubbles
+     */
+    calcGroupedUtterances() {
+      const groupedUtterances = [];
+      let lastSpeaker = -1;
+      this.utterances.forEach((utterance) => {
+        // same speaker => add to utterance group
+        if (utterance.speaker === lastSpeaker) {
+          const utteranceGroup = groupedUtterances.pop();
+          utteranceGroup.push(utterance);
+          groupedUtterances.push(utteranceGroup);
+
+          // other speaker => create new utterance group
+        } else {
+          groupedUtterances.push([utterance]);
+        }
+        // update last speaker
+        lastSpeaker = utterance.speaker;
+      });
+      return groupedUtterances;
+    },
+    /**
+     * This is a utility function that always returns the correct timeline object. This is necessary as the timeline object varies depending on some settings.
+     * @returns {jQuery|HTMLElement} The timeline object
+     */
+    getTimeline() {
+      if (this.settings.timelineView === 'LINE') {
+        return $('#timeline');
+      }
+      return $('#timeline2');
+    },
+    // BEGIN methods that react to events
+    /**
+     * This event fires if the rendered speech bubbles / containers change.
+     * Then, it is necessary to check if the current / centered utterance has also changed. If this is the case, the context has changed and new keywords have to be send to the keyword graph.
+     * @param entries
+     */
+    onIntersection(entries) {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          this.intersectingElements.set(entry.target.id, entry.target);
+        } else {
+          this.intersectingElements.delete(entry.target.id);
+        }
+      });
+      // visible containers have changed, therefore, check if currentUtterance has changed and new keywords should be sent
+      this.checkForCurrentUtteranceChange(false);
+    },
+    /**
+     * This event fires if a users changed the settings and has changed the timeline view.
+     * This method ensures that after changing the view, the user sees the same utterance as before the change. (By scrolling to the element that was centered before the change.)
+     * @param oldSettings settings before the user changed the settings
+     * @param newSettings settings after the user changed the settings
+     */
+    onTimelineViewChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineView !== newSettings.timelineView) {
+        this.intersectingElements = new Map();
+        // find current utterance bubble and then scroll to this element
+        window.requestAnimationFrame(() => {
+          const allContainers = this.getTimeline()[0].querySelectorAll('.timelinecontainer:not(.nodisplay)');
+          const currentUtterance = this.currentUtterance.toString(10);
+          let currentContainer = null;
+          for (let id = 0; id < allContainers.length; id += 1) {
+            const container = allContainers[id];
+            if (container.dataset.utteranceid === currentUtterance) {
+              currentContainer = container;
+              break;
+            }
+          }
+          if (currentContainer !== null) {
+            const timeline = this.getTimeline();
+            const value = currentContainer.offsetTop - timeline[0].offsetHeight / 2 + currentContainer.offsetHeight / 2;
+            timeline.stop().animate({ scrollTop: value }, 500);
+          }
+        });
+      }
+    },
+    /**
+     * This event fires if a users changed the settings and has changed the timeline sorting.
+     * This method ensures that the user will always see the latest utterance after changing the sorting.
+     * @param oldSettings settings before the user changed the settings
+     * @param newSettings settings after the user changed the settings
+     */
+    onSortingChanged(oldSettings, newSettings) {
+      if (oldSettings.timelineSorting !== newSettings.timelineSorting) {
+        window.requestAnimationFrame(() => {
+          // scroll to bot if timeline sorting changed to ASC
+          if (newSettings.timelineSorting === 'ASC') {
+            this.getTimeline().stop().animate({ scrollTop: this.getTimeline()[0].scrollHeight }, 500);
+          }
+          // scroll to top if timeline sorting changed to DESC
+          if (newSettings.timelineSorting === 'DESC') {
+            this.getTimeline().stop().animate({ scrollTop: 0 }, 500);
+          }
+        });
+      }
+    },
+    onSettingsSaved(settings) {
+      this.onSortingChanged(this.settings, settings);
+      this.onTimelineViewChanged(this.settings, settings);
+      this.settings = settings;
+    },
+    onReset() {
+      this.currentUtterance = -1;
+      this.currentBubble = -1;
+      this.intersectingElements = new Map();
+    },
+    // END methods that react to events
   },
 };
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <!--    START SETTINGS-->
+  <!-- START SETTINGS -->
   <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
@@ -22,7 +22,8 @@
             </li>
           </ul>
           <div class="tab-content" id="myTabContent">
-            <!--              BEGIN GENERAL SETTINGS-->
+
+            <!-- BEGIN GENERAL SETTINGS -->
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
               <language-switcher></language-switcher>
               <hr>
@@ -168,9 +169,9 @@
                 </div>
               </fieldset>
             </div>
-            <!--              END GENERAL SETTINGS -->
+            <!-- END GENERAL SETTINGS -->
 
-            <!--              BEGIN SPEAKER SETTINGS-->
+            <!-- BEGIN SPEAKER SETTINGS -->
             <div class="tab-pane fade" id="speaker" role="tabpanel" aria-labelledby="speaker-tab">
               <div class="form-group px-2">
                 <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_speaker') }}: {{speakers}}</label>
@@ -200,9 +201,9 @@
                 </fieldset>
               </div>
             </div>
-            <!--              END SPEAKER SETTINGS-->
+            <!-- END SPEAKER SETTINGS -->
 
-            <!--              BEGIN AGENDA SETTINGS-->
+            <!-- BEGIN AGENDA SETTINGS -->
             <div class="tab-pane fade" id="agenda" role="tabpanel" aria-labelledby="agenda-tab">
               <div class="form-group px-2">
                 <label v-if="meeting.status === meeting.enum.BEFORE_MEETING" for="customRange1">{{ $t('settings_num_agendapoints') }}: {{agendas}}</label>
@@ -226,7 +227,8 @@
                 </fieldset>
               </div>
             </div>
-            <!--              END AGENDA SETTINGS -->
+            <!-- END AGENDA SETTINGS -->
+
           </div>
         </div>
         <div class="modal-footer bg-light">
@@ -246,6 +248,10 @@ import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css';
 import Store from '../helper/Store';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 
+/**
+ * This component offers a UI to set many different options. These options include general settings, speaker settings and agenda settings.
+ * Once the settings are saved, this component emits the 'onSettingsSaved' event that allows all other components to adjust to the new settings.
+ */
 export default {
   name: 'Settings',
   components: { LanguageSwitcher },
@@ -285,9 +291,10 @@ export default {
     });
 
     // init settings
+    // emit the save settings event at the start of the application, so that every component adjusts to the standard settings
     setTimeout(this.saveSettings, 100);
 
-    // listen to events
+    // listen to events from other components
     this.$root.$on('onImport', this.onImport);
   },
   computed: {
@@ -302,44 +309,10 @@ export default {
     },
   },
   methods: {
-    onImport(e) {
-      const event = this.jsonCopy(e);
-      this.agendaPoints = event.agenda.agendaPoints;
-
-      for (let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i += 1) {
-        this.agendaTitel[i] = event.agenda.agendaTitle[i];
-      }
-      for (let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i += 1) {
-        this.agendaTime[i] = event.agenda.agendaTime[i];
-      }
-      for (let i = 0; i < Math.min(event.selectedAttendents, 4); i += 1) {
-        this.speakerName[i] = event.attendants[i].name;
-        this.speakerMail[i] = event.attendants[i].email;
-      }
-      this.speakerCount = Math.min(event.selectedAttendents, 4);
-      this.saveSettings();
-    },
-    revertSettings() {
-      this.speakerCount = `${this.oldSettings.speaker}`;
-      this.speakerName = this.oldSettings.speakerName;
-      this.speakerMail = this.oldSettings.speakerMail;
-      this.selectedAvatar = this.oldSettings.selectedAvatar;
-      this.timelineSorting = this.oldSettings.timelineSorting;
-      this.timelineView = this.oldSettings.timelineView;
-      this.showConfidence = this.oldSettings.showConfidence;
-      this.showKeywords = this.oldSettings.showKeywords;
-      this.keywordColor = this.oldSettings.keywordColor;
-      this.wordCloudWords = this.oldSettings.wordCloudWords;
-      this.agendaPoints = this.oldSettings.agendaPoints;
-      this.agendaTitel = this.oldSettings.agendaTitel;
-      this.agendaTime = this.oldSettings.agendaTime;
-      this.agendaWarnTime = this.oldSettings.agendaWarnTime;
-      this.rangeNum = this.oldSettings.range;
-      this.randomSpeaker = this.oldSettings.randomSpeaker;
-      this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
-      this.visualizeLinks = this.oldSettings.visualizeLinks;
-      this.summarymethod = this.oldSettings.summarymethod;
-    },
+    /**
+     * This method applies all the setting set by the user.
+     * This method emits the 'onSettingsSaved' event. Almost every other component listens to this event and then adapts to the settings.
+     */
     saveSettings() {
       const settings = {
         speaker: this.speakers,
@@ -365,6 +338,56 @@ export default {
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
     },
+    /**
+     * This function reverts all changes. It resets all settings to the old settings.
+     */
+    revertSettings() {
+      this.speakerCount = `${this.oldSettings.speaker}`;
+      this.speakerName = this.oldSettings.speakerName;
+      this.speakerMail = this.oldSettings.speakerMail;
+      this.selectedAvatar = this.oldSettings.selectedAvatar;
+      this.timelineSorting = this.oldSettings.timelineSorting;
+      this.timelineView = this.oldSettings.timelineView;
+      this.showConfidence = this.oldSettings.showConfidence;
+      this.showKeywords = this.oldSettings.showKeywords;
+      this.keywordColor = this.oldSettings.keywordColor;
+      this.wordCloudWords = this.oldSettings.wordCloudWords;
+      this.agendaPoints = this.oldSettings.agendaPoints;
+      this.agendaTitel = this.oldSettings.agendaTitel;
+      this.agendaTime = this.oldSettings.agendaTime;
+      this.agendaWarnTime = this.oldSettings.agendaWarnTime;
+      this.rangeNum = this.oldSettings.range;
+      this.randomSpeaker = this.oldSettings.randomSpeaker;
+      this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
+      this.visualizeLinks = this.oldSettings.visualizeLinks;
+      this.summarymethod = this.oldSettings.summarymethod;
+    },
+    /**
+     * This event fires when the users imports a .ics file with the importer.
+     * All imported information (agenda, speaker settings) are stored & saved here in the settings component.
+     */
+    onImport(e) {
+      const event = this.jsonCopy(e);
+      this.agendaPoints = event.agenda.agendaPoints;
+
+      for (let i = 0; i < Math.min(event.agenda.agendaTitle.length, 10); i += 1) {
+        this.agendaTitel[i] = event.agenda.agendaTitle[i];
+      }
+      for (let i = 0; i < Math.min(event.agenda.agendaTime.length, 10); i += 1) {
+        this.agendaTime[i] = event.agenda.agendaTime[i];
+      }
+      for (let i = 0; i < Math.min(event.selectedAttendents, 4); i += 1) {
+        this.speakerName[i] = event.attendants[i].name;
+        this.speakerMail[i] = event.attendants[i].email;
+      }
+      this.speakerCount = Math.min(event.selectedAttendents, 4);
+      this.saveSettings();
+    },
+    /**
+     * This is a utility function that creates a deep copy of any object
+     * @param src object to clone
+     * @returns {any} cloned object
+     */
     jsonCopy(src) {
       return JSON.parse(JSON.stringify(src));
     },

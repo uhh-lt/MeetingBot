@@ -22,6 +22,10 @@
 <script>
 import TimelineUtterance from './TimelineUtterance.vue';
 
+/**
+ * This component visualizes grouped utterances for a speaker as a speech bubble. However, the speech bubbles are arranged in a table-like structure, so that each speaker has its own column. This component is used for the timeline setting 'conversation history with one line per speaker'.
+ * To render the utterance itself, this component makes use of the timeline utterance component.
+ */
 export default {
   name: 'TimelineRow',
   components: { TimelineUtterance },
@@ -32,6 +36,9 @@ export default {
     };
   },
   mounted() {
+    // the following code initializes the onIntersection event
+    // this event is sent to and used by the timeline component
+    // we use this event to find out weather the user sees a new speech bubble (and therefore has scrolled)
     const callback = (entries) => {
       this.$root.$emit('onIntersection', entries);
     };

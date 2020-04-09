@@ -397,7 +397,7 @@ export default {
     // END methods that react to events
     // BEGIN utility functions
     /**
-     * This is a utility function that always returns the correct timeline object. This is necessary as the timeline object may differ depending on some settings.
+     * This is a utility function that always returns the correct timeline object. This is necessary as the timeline object varies depending on some settings.
      * @returns {jQuery|HTMLElement} The timeline object
      */
     getTimeline() {

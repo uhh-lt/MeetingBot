@@ -5,7 +5,7 @@
 
         <div class="modal-header text-white bg-dark">
           <h4 class="modal-title" id="exampleModalLabel">{{ $t('importer_import') }}</h4>
-          <button v-on:click="resetAll" type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
+          <button v-on:click="onReset" type="button" class="btn btn-danger my-2 my-sm-0" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -84,7 +84,7 @@
         </div>
 
         <div class="modal-footer bg-light">
-          <button v-on:click="resetAll" type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
+          <button v-on:click="onReset" type="button" class="btn btn-danger" data-dismiss="modal">{{ $t('close') }}</button>
           <button v-if="successfulImport" v-on:click="save" type="button" class="btn btn-primary" data-dismiss="modal">{{ $t('importer_save_selected_data') }}</button>
         </div>
 
@@ -96,6 +96,10 @@
 <script>
 import ICAL from 'ical.js';
 
+/**
+ * This component allows to import .ics files.
+ * It offers the user a UI to import .ics files, edit the imported settings and then save these settings.
+ */
 export default {
   name: 'Importer',
   data() {
@@ -119,26 +123,22 @@ export default {
     };
   },
   mounted() {
-    // Listen to events
-    this.$root.$on('onReset', this.resetAll);
+    // Listen to events from other components
+    this.$root.$on('onReset', this.onReset);
   },
   methods: {
-    resetAll() {
-      this.currentTab = 0;
-      this.fileImported = false;
-      this.successfulImport = false;
-      this.events = [];
-      this.$refs.labelFileImport.innerHTML = this.$t('importer_select_file');
-    },
+    // BEGIN methods to trigger events for other components
     save() {
       this.$root.$emit('onImport', this.events[this.currentTab]);
       setTimeout(() => {
-        this.resetAll();
+        this.onReset();
       }, 100);
     },
-    selectTab(id) {
-      this.currentTab = id;
-    },
+    // END methods to trigger events for other components
+    /**
+     * This function reads the passed file and then tries to parse the data.
+     * @param e file to load & parse
+     */
     loadFile(e) {
       const file = e.target.files[0];
       console.log(file);
@@ -150,6 +150,11 @@ export default {
       this.$refs.fileInputImport.value = '';
       this.$refs.labelFileImport.innerHTML = file.name;
     },
+    /**
+     * This function parses data that is in .ics format.
+     * All parsed information are stored in this components data variables.
+     * @param iCalendarData
+     */
     importICSData(iCalendarData) {
       this.fileImported = true;
       const events = [];
@@ -169,6 +174,11 @@ export default {
       }
       this.successfulImport = jcalData !== null;
     },
+    /**
+     * A utility function that parses event information from ics formatted data.
+     * @param vevent event data
+     * @returns {{attendants: *, title: *, agenda: *, selectedAttendents: *}}
+     */
     parseEvent(vevent) {
       const event = new ICAL.Event(vevent);
       const title = event.summary;
@@ -181,6 +191,11 @@ export default {
         selectedAttendents: attendants.length,
       };
     },
+    /**
+     * A utility function that parses attendant information from ics formatted data.
+     * @param event event data (ics format)
+     * @returns {[]} list of attendees
+     */
     parseAttendantsFromEvent(event) {
       const attendants = [];
       event.attendees.forEach((attend) => {
@@ -195,6 +210,11 @@ export default {
       });
       return attendants;
     },
+    /**
+     * A utility function that parses agenda information a description string.
+     * @param description string that contains agenda information
+     * @returns {{agendaPoints: *, agendaTitle: *, agendaTime: *}}
+     */
     parseAgendaFromDescription(description) {
       let agendaPoints = '0';
       const agendaTitle = [];
@@ -219,6 +239,18 @@ export default {
         agendaTime,
       };
     },
+    selectTab(id) {
+      this.currentTab = id;
+    },
+    // BEGIN methods that react to events
+    onReset() {
+      this.currentTab = 0;
+      this.fileImported = false;
+      this.successfulImport = false;
+      this.events = [];
+      this.$refs.labelFileImport.innerHTML = this.$t('importer_select_file');
+    },
+    // END methods that react to events
   },
 };
 </script>

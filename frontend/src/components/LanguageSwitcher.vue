@@ -17,6 +17,10 @@
 <script>
 import Store from '../helper/Store';
 
+/**
+ * This component offers the user a simple radio button input to select the language.
+ * Please note that the language selection is only possible before the meeting has started. If the meeting has already started, this component shows some info messages.
+ */
 export default {
   name: 'LanguageSwitcher',
   data() {

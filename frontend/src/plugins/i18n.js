@@ -50,7 +50,7 @@ export const i18n = new VueI18n({
       settings_DESCending: 'DESCending',
       settings_timeline_view: 'Timeline view',
       settings_timeline_view_single_line: 'Visuzalize the conversation history as a single line',
-      settings_timeline_view_multiple_lines: 'Visuzalize the conversation history  with one line per speaker',
+      settings_timeline_view_multiple_lines: 'Visuzalize the conversation history with one line per speaker',
       settings_confidences_as_greyscale: 'Visualize confidences with greyscales',
       settings_highlight_keywords_with_color: 'Highlight keywords with backgroundcolor',
       settings_word_cloud_max_words: 'Maximum words rendered in the word cloud',

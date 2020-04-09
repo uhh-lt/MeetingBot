@@ -40,6 +40,15 @@
 </template>
 
 <script>
+/**
+ * This component visualizes the elapsed time per agenda point like a loading bar.
+ * Every agenda point is characterized by a title and planned time.
+ * The 'loading bar' of each agenda point is colored differently depending on some conditions:
+ * - if the current time is less then the planned time everything is fine
+ * - if the current time is close to the planned time the loading bar is colored with a warning color
+ * - if the current time is larger then the planned time, the loading bar is colored with an error color
+ *
+ */
 export default {
   name: 'Footer',
   data() {
@@ -84,7 +93,7 @@ export default {
     };
   },
   mounted() {
-    // Listen to events
+    // Listen to events from other components
     this.$root.$on('onAgendaChanged', this.onAgendaChanged);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
@@ -103,11 +112,53 @@ export default {
     },
   },
   methods: {
+    /**
+     * This function updates the rendered width of the agenda points. The width is dependent on the time.
+     */
     calcAgendaWidth(agenda) {
       if (agenda.end === -1) {
         return ((this.currentTime - agenda.start) / this.totalTime) * 100;
       }
       return ((agenda.end - agenda.start) / this.totalTime) * 100;
+    },
+    /**
+     * This method is only used for testing. With this you can manually manipulates the time, so that you can test if everything works.
+     */
+    fakeTick() {
+      this.currentTime += 1;
+      if (this.currentTime >= this.totalTime) {
+        this.currentTime = this.totalTime;
+      }
+    },
+    // BEGIN methods that react to events
+    /**
+     * This function updates the time (based on the complete utterances).
+     */
+    onCompleteUtterance(utterance) {
+      this.currentTime = utterance.time / 60;
+      if (this.currentTime >= this.totalTime) {
+        this.currentTime = this.totalTime;
+      }
+    },
+    /**
+     * This function updates the agenda, so that the old agenda point's status is set to finished, and the new agenda point is set to active.
+     */
+    onNextAgenda() {
+      const oldAgenda = this.agenda[this.currentAgendaPoint];
+      oldAgenda.end = this.currentTime;
+      oldAgenda.status = 'finished';
+      this.currentAgendaPoint += 1;
+      if (this.currentAgendaPoint < this.agenda.length) {
+        const newAgenda = this.agenda[this.currentAgendaPoint];
+        newAgenda.start = this.currentTime;
+        newAgenda.status = 'active';
+        this.usedTime = oldAgenda.end;
+        this.agenda.slice();
+      }
+    },
+    onAgendaChanged(newAgenda) {
+      console.log('AGENDA HAS CHANGED: ');
+      console.log(newAgenda);
     },
     onReset() {
       this.currentAgendaPoint = 0;
@@ -147,29 +198,10 @@ export default {
       this.currentTime = 0;
       this.usedTime = 0;
     },
-    onCompleteUtterance(utterance) {
-      this.currentTime = utterance.time / 60;
-      if (this.currentTime >= this.totalTime) {
-        this.currentTime = this.totalTime;
-      }
-    },
-    onNextAgenda() {
-      const oldAgenda = this.agenda[this.currentAgendaPoint];
-      oldAgenda.end = this.currentTime;
-      oldAgenda.status = 'finished';
-      this.currentAgendaPoint += 1;
-      if (this.currentAgendaPoint < this.agenda.length) {
-        const newAgenda = this.agenda[this.currentAgendaPoint];
-        newAgenda.start = this.currentTime;
-        newAgenda.status = 'active';
-        this.usedTime = oldAgenda.end;
-        this.agenda.slice();
-      }
-    },
-    onAgendaChanged(newAgenda) {
-      console.log('AGENDA HAS CHANGED: ');
-      console.log(newAgenda);
-    },
+    /**
+     * This function is called when the settings are saved. This function creates a new agenda based on the settings.
+     * @param settings new settings saved by the user
+     */
     onSettingsSaved(settings) {
       const totalAgendaTime = settings.agendaTime.slice(0, settings.agendaPoints).map(x => parseInt(x, 10)).reduce((a, b) => a + b, 0);
       const newAgenda = [];
@@ -213,12 +245,7 @@ export default {
       this.agenda.slice();
       this.agendaWarnTime = parseInt(settings.agendaWarnTime, 10);
     },
-    fakeTick() {
-      this.currentTime += 1;
-      if (this.currentTime >= this.totalTime) {
-        this.currentTime = this.totalTime;
-      }
-    },
+    // END methods that react to events
   },
 };
 </script>

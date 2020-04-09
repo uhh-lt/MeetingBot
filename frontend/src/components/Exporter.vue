@@ -74,6 +74,11 @@ import calculateKeywordnessTokenMap from '../helper/keyword';
 import EditableUtterance from './EditableUtterance.vue';
 import { computeSummary } from '../helper/api';
 
+/**
+ * This component offers two main functionalities:
+ * - An editor that allows to edit the utterances and gives visual feedback that indicates the ASR confidence.
+ * - An PDF exporter that allows to export the edited transcript. The exported transcript will contain a summary as well as the edited transcript for each agenda point of the meeting.
+ */
 export default {
   name: 'Exporter',
   components: { EditableUtterance },
@@ -92,7 +97,7 @@ export default {
     };
   },
   computed: {
-    utterances() {
+    utterances() { // this is just an alias, but more understandable than 'value'
       return this.value;
     },
     editorAgendaDate() {
@@ -104,7 +109,7 @@ export default {
     },
   },
   mounted() {
-    // listen to events
+    // listen to events from other components
     this.$root.$on('onSettingsSaved', this.onSettingsSaved);
     this.$root.$on('onOpenExporter', this.onOpenExporter);
     this.$root.$on('onReset', this.onReset);
@@ -113,84 +118,11 @@ export default {
     updateValue(newValue) {
       this.$emit('input', newValue);
     },
-    onReset() {
-      this.firstTime = true;
-      this.editorAgendaPoints = 4;
-      this.editorAgendaTitles = ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'];
-      this.editorAgendaVisibility = [true, true, true, true];
-      this.editorUtterances = [];
-      this.editorSpeakername = [];
-      this.firstTime = true;
-      this.mailto = '';
-    },
-    onSettingsSaved(settings) {
-      this.settings = settings;
-      this.editorSpeakername = this.settings.speakerName;
-      this.editorSpeakername = this.editorSpeakername.slice();
-      this.calculateMailto();
-    },
-    onOpenExporter() {
-      if (this.firstTime) {
-        this.initEditorUtterances();
-      }
-      this.firstTime = false;
-    },
-    calculateMailto() {
-      let mailto = 'mailto:';
-      let firstCC = true;
-      if (this.settings.speakerMail !== undefined) {
-        for (let i = 0; i < this.settings.speaker; i += 1) {
-          const email = this.settings.speakerMail[i];
-          if (i === 0) {
-            mailto += email;
-          } else {
-            if (firstCC) {
-              mailto += '?cc=';
-              firstCC = false;
-            }
-            if (i === this.settings.speakerMail.length - 1) {
-              mailto += email;
-            } else {
-              mailto += `${email};`;
-            }
-          }
-        }
-        mailto += `&subject=Meeting%20vom%20${this.editorAgendaDate}`;
-        mailto += `&body=Hallo%20alle%20Zusammen${escape(',')}${escape('\r\n')}${escape('\r\n')}Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings${escape('.')}${escape('\r\n')}${escape('\r\n')}https://speech.tools/mombot/Meeting_${this.editorAgendaDate}.pdf${escape('\r\n')}${escape('\r\n')}Gruß${escape('\r\n')}MoM%20Bot`;
-        this.mailto = mailto;
-      } else {
-        this.mailto = '';
-      }
-    },
-    toggleEditorAgenda(element) {
-      this.editorAgendaVisibility[element] = !this.editorAgendaVisibility[element];
-      this.editorAgendaVisibility = this.editorAgendaVisibility.slice(0);
-    },
-    getEditedUtteranceText(agendaID, utteranceID) {
-      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    },
-    deleteUtterance(agendaId, utteranceID) {
-      this.editorUtterances[agendaId].splice(utteranceID, 1);
-    },
-    applyChanges() {
-      const result = [];
-      for (let agendaID = 0; agendaID < this.editorAgendaPoints + 1; agendaID += 1) {
-        const utterances = this.editorUtterances[agendaID];
-        let utterance;
-        for (let uID = 0; uID < utterances.length; uID += 1) {
-          utterance = utterances[uID];
-          utterance.text = this.getEditedUtteranceText(agendaID, uID);
-          console.log(utterance.text);
-          utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
-          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
-          utterance.keywordnessTokenMap = keywordnessTokenMap;
-          utterance.keywordInfo = keywordInfo;
-          result.push(utterance);
-        }
-      }
-      console.log(result);
-      this.updateValue(this.jsonCopy(result));
-    },
+    /**
+     * This function initializes the editor. Basically it creates a copy of each original utterance and saves them as 'editorUtterance'.
+     * This way, there are now two version of each utterance: the original and the editor utterance.
+     * This has several advantages: If we want to revert all editor changes, just do not change the original utterances! If we want to apply all editor changes, just replace the original utterances with the editor utterances.
+     */
     initEditorUtterances() {
       console.log('UPDATE EDITOR!');
       this.editorSpeakername = this.settings.speakerName;
@@ -224,6 +156,69 @@ export default {
 
       this.calculateMailto();
     },
+    /**
+     * This function generates a HTML mailto: string. Clicking on this mailto link will open the users e-mail program with a standard text generated by this function.
+     */
+    calculateMailto() {
+      let mailto = 'mailto:';
+      let firstCC = true;
+      if (this.settings.speakerMail !== undefined) {
+        for (let i = 0; i < this.settings.speaker; i += 1) {
+          const email = this.settings.speakerMail[i];
+          if (i === 0) {
+            mailto += email;
+          } else {
+            if (firstCC) {
+              mailto += '?cc=';
+              firstCC = false;
+            }
+            if (i === this.settings.speakerMail.length - 1) {
+              mailto += email;
+            } else {
+              mailto += `${email};`;
+            }
+          }
+        }
+        mailto += `&subject=Meeting%20vom%20${this.editorAgendaDate}`;
+        mailto += `&body=Hallo%20alle%20Zusammen${escape(',')}${escape('\r\n')}${escape('\r\n')}Unter%20folgendem%20Link%20findet%20Ihr%20die%20automatisch%20generierte%20Zusammenfassung%20unseres%20Meetings${escape('.')}${escape('\r\n')}${escape('\r\n')}https://speech.tools/mombot/Meeting_${this.editorAgendaDate}.pdf${escape('\r\n')}${escape('\r\n')}Gruß${escape('\r\n')}MoM%20Bot`;
+        this.mailto = mailto;
+      } else {
+        this.mailto = '';
+      }
+    },
+    getEditedUtteranceText(agendaID, utteranceID) {
+      return document.getElementById(`agenda-${agendaID}-utterance-${utteranceID}`).textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    },
+    deleteUtterance(agendaId, utteranceID) {
+      this.editorUtterances[agendaId].splice(utteranceID, 1);
+    },
+    /**
+     * This function gets all the user edited utterances and then updates the original utterances.
+     * This has the effect that the conversation history shows the edited utterances (as the original utterances are replaced by the edited utterances).
+     */
+    applyChanges() {
+      const result = [];
+      for (let agendaID = 0; agendaID < this.editorAgendaPoints + 1; agendaID += 1) {
+        const utterances = this.editorUtterances[agendaID];
+        let utterance;
+        for (let uID = 0; uID < utterances.length; uID += 1) {
+          utterance = utterances[uID];
+          utterance.text = this.getEditedUtteranceText(agendaID, uID);
+          console.log(utterance.text);
+          utterance.confidences = new Array(utterance.text.split(' ').length).fill(1); // PROBLEM: CONFIDENCES ARE LOST!!!
+          const { keywordnessTokenMap, keywordInfo } = calculateKeywordnessTokenMap(utterance);
+          utterance.keywordnessTokenMap = keywordnessTokenMap;
+          utterance.keywordInfo = keywordInfo;
+          result.push(utterance);
+        }
+      }
+      console.log(result);
+      this.updateValue(this.jsonCopy(result));
+    },
+    /**
+     * This function first groups all utterances by agenda point (in the end there is one text segment per agenda point containing all utterances regarding this agenda point)
+     * and then utilizes the summarization micro services to generate a summary per agenda point.
+     */
     async createSummaries() {
       const agendaContent = [];
       for (let i = 0; i < this.editorAgendaPoints + 1; i += 1) {
@@ -246,6 +241,9 @@ export default {
       }
       return computeSummary(agendaContent, this.$i18n.locale, this.settings.summarymethod);
     },
+    /**
+     * This function takes the edited utterances, generates summaries with the 'createSummaries' function and then renders both as a PDF using jspdf.
+     */
     async createPDF() {
       this.creatingPDF = true;
       const summaries = await this.createSummaries();
@@ -315,9 +313,49 @@ export default {
       );
       this.creatingPDF = false;
     },
+    // BEGIN UI functions
+    /**
+     * This function opens / closes
+     */
+    toggleEditorAgenda(element) {
+      this.editorAgendaVisibility[element] = !this.editorAgendaVisibility[element];
+      this.editorAgendaVisibility = this.editorAgendaVisibility.slice(0);
+    },
+    // END UI functions
+    // BEGIN utility functions
+    /**
+     * This is a utility function that creates a deep copy of any object
+     * @param src object to clone
+     * @returns {any} cloned object
+     */
     jsonCopy(src) {
       return JSON.parse(JSON.stringify(src));
     },
+    // END utility functions
+    // BEGIN methods that react to events
+    onOpenExporter() {
+      if (this.firstTime) {
+        this.initEditorUtterances();
+      }
+      this.firstTime = false;
+    },
+    onReset() {
+      this.firstTime = true;
+      this.editorAgendaPoints = 4;
+      this.editorAgendaTitles = ['Punkt 1', 'Punkt 2', 'Punkt 3', 'Punkt 4'];
+      this.editorAgendaVisibility = [true, true, true, true];
+      this.editorUtterances = [];
+      this.editorSpeakername = [];
+      this.firstTime = true;
+      this.mailto = '';
+    },
+    onSettingsSaved(settings) {
+      this.settings = settings;
+      this.editorSpeakername = this.settings.speakerName;
+      this.editorSpeakername = this.editorSpeakername.slice();
+      this.calculateMailto();
+    },
+    // END methods that react to events
   },
 };
 </script>
