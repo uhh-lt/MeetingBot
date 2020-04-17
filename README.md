@@ -6,7 +6,7 @@ The Minute Meeting Bot consists of different components:
 
 The code for the [frontend](./frontend/) and [microservices](./backend/) can be found in this repository. The ASR backend is hosted here: [kaldi-model-server](https://github.com/uhh-lt/kaldi-model-server).
 
-## Production Usage
+## Usage
 Please note that the following instructions will start the frontend as well as all the microservices so that all functionalities of the frontend will work. 
 However, this will NOT start the ASR backend. 
 Therefore, speech input will not work. 
