@@ -56,10 +56,10 @@ For more information on the parameters please try out `docker exec kamose asr --
 ## 5. Use the MoM Bot
 Finally, we can use the MoM Bot. Therefore
 - Visit http://localhost:8080
-- Press the green Start Buton
-- Speak something :)
+- Press the green Start Button
+- Say something :)
 
 ## Additional Notes
-- Please understand that currently the dockerized MoM Bot only works on Linux! This is because it is only possible with Linux to forward audio devices to a docker container. It is of course also possible to run the MoM Bot on Windows or Mac. However, this is much more complicated as you need to build & compile dependencies of the ASR backend yourself. You can find instructions for this [here](https://github.com/uhh-lt/kaldi-model-server#installation).
+- Please understand that currently the dockerized MoM Bot only works on Linux! This is because it is only possible with Linux to forward audio devices to a docker container. It is also possible to run the MoM Bot on a Mac. However, this is a bit more complicated as you need to build and compile dependencies of the ASR backend yourself. You can find instructions for this [here](https://github.com/uhh-lt/kaldi-model-server#installation).
 - Please note that there is currently a bug in the dockerized MoM Bot solutions that allows only one microphone. This is due to some issues with samplerates and a resampler. We are currently investigating this bug.
 - If you run into any other problems, please feel free to contact us!

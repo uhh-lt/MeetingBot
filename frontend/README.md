@@ -5,7 +5,7 @@ The frontend provides many visualization features for meetings.
 1. The mom bot users speak something
 2. The speech input is converted into text by the ASR backend
 3. The text input is sent to the frontend and is visualized
-4. THe frontend sends parts of the text input to microservices for further analysis and more advanced visualization
+4. The frontend sends parts of the text input to microservices for further analysis and more advanced visualizations
 
 ## Features
 - conversation history with various visualization options
