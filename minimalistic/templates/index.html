@@ -1,14 +1,17 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Flask-SocketIO Test</title>
+    <title>Minimalistic Recording Test</title>
+    <script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h1>Flask-SocketIO Test</h1>
+    <h1>Minimalistic Recorder</h1>
     <p>Async mode is: <b>{{ async_mode }}</b></p>
     <div id="buttons">
       <button class="record">Record</button>
+      <button class="pause">Pause</button>
+      <button class="resume">Resume</button>
       <button class="stop">Stop</button>
     </div>
     <h2>Receive:</h2>
@@ -16,107 +19,103 @@
 </body>
 <script type="text/javascript" charset="utf-8">
   // Use a "/test" namespace.
-  // An application can open a connection on multiple namespaces, and
-  // Socket.IO will multiplex all those connections on a single
-  // physical channel. If you don't care about multiple channels, you
-  // can set the namespace to an empty string.
   namespace = '/test';
 
-  // Connect to the Socket.IO server.
-  // The connection URL has the following format, relative to the current page:
-  //     http[s]://<domain>:<port>[/<namespace>]
+  // Connect to the Socket.IO server. The connection URL has the following format, relative to the current page: http[s]://<domain>:<port>[/<namespace>]
   let socket = io(namespace);
 
   // Event handler for new connections.
-  // The callback function is invoked when a connection with the
-  // server is established.
   socket.on('connect', function() {
     console.log("connected!")
   });
 
-  // get the correct mime type (ogg for chrome or webm for firefox)
-  let enc = ['ogg', 'webm'];
-  let mime = "";
-  let extension = "";
-  enc.forEach(e => !extension &&
-    (mime = `${e}`) &&
-    MediaRecorder.isTypeSupported(`audio/${mime};codecs="opus"`) &&
-    (extension = e));
-
   let record = document.querySelector('.record');
   let stop = document.querySelector('.stop');
+  let pause = document.querySelector('.pause');
+  let resume = document.querySelector('.resume');
+  record.disabled = false;
+  stop.disabled = true;
+  pause.disabled = true;
+  resume.disabled = true;
 
-  if (navigator.mediaDevices.getUserMedia) {
-    console.log('getUserMedia supported.');
+  navigator.mediaDevices.getUserMedia({
+    video: false,
+    audio: true
+  }).then(async function(stream) {
+    let recorder = RecordRTC(stream, {
+      type: 'audio',
+      mimeType: 'audio/wav',
+      recorderType: StereoAudioRecorder,
+      disableLogs: true, // disable logs
+      timeSlice: 1000, // get intervals based blobs, value in milliseconds
+      ondataavailable: function(blob) { // requires timeSlice above returns blob via callback function
+        console.log("BLOB!");
+        blobToBase64(blob, function(dataURL, base64) {
+          socket.emit('data_available', {blob: blob, base64: base64, mime: "wav"});
+        });
+      },
+      audioBitsPerSecond: 128000,
+      //sampleRate: 96000, // used by StereoAudioRecorder the range 22050 to 96000
+      desiredSampRate: 16000, // used by StereoAudioRecorder let us force 16khz recording
+      bufferSize: 1024, // used by StereoAudioRecorder Legal values are (256, 512, 1024, 2048, 4096, 8192, 16384).
+      numberOfAudioChannels: 1, // used by StereoAudioRecorder 1 or 2
+    });
 
-    let constraints = { audio: true };
-    let chunks = [];
+    record.onclick = function() {
+      recorder.startRecording();
+      socket.emit('recording_started');
+      record.style.background = "red";
+      record.disabled = true;
+      stop.disabled = false;
+      pause.disabled = false;
+      resume.disabled = true;
+    };
 
-    let onSuccess = function(stream) {
-      let mediaRecorder = new MediaRecorder(stream, {
-        mimeType: `audio/${mime};codecs="opus"` // use the mimeType we have found earlier
+    stop.onclick = function() {
+      recorder.stopRecording(function() {
+        console.log("Stopped recording :)");
+        let blob = recorder.getBlob();
+        blobToBase64(blob, function(dataURL, base64) {
+          let au = new Audio(dataURL);
+          au.controls = true;
+          document.body.appendChild(au);
+          socket.emit('recording_stopped', {blob: blob, base64: base64, mime: "wav"});
+        });
       });
-
-      record.onclick = function() {
-        mediaRecorder.start(1000); // SPECIFY INTERVAL HERE!
-        record.style.background = "red";
-        stop.disabled = false;
-        record.disabled = true;
-      };
-
-      stop.onclick = function() {
-        mediaRecorder.stop();
-        record.style.background = "";
-        record.style.color = "";
-        stop.disabled = true;
-        record.disabled = false;
-      };
-
-      mediaRecorder.onstart = function(e) {
-        console.log("media recorder started!");
-        socket.emit('recording_started');
-      };
-
-      mediaRecorder.onstop = function(e) {
-        console.log("media recorder stopped!");
-        console.log("data available after MediaRecorder.stop() called.");
-
-        let blob = new Blob(chunks, { 'type' : `audio/${mime};codecs="opus"` });
-        chunks = [];
-        let audioURL = window.URL.createObjectURL(blob);
-        console.log("AudioURL: " + audioURL);
-
-        // create audio controls for the user and automatically play the recorded audio
-        let au = new Audio(audioURL);
-        au.controls = true;
-        document.body.appendChild(au);
-        au.play();
-        // and create an downloadable link from it :
-        let a = document.createElement('a');
-        a.href = audioURL;
-        a.download = 'filename.' + extension;
-        a.innerHTML = 'download';
-        document.body.appendChild(a);
-
-        socket.emit('recording_stopped', {blob: blob, mime: mime, codec: 'opus'});
-      };
-
-      mediaRecorder.ondataavailable = function(e) {
-        console.log("media recorder data available!");
-        chunks.push(e.data);
-        console.log(e);
-        socket.emit('data_available', {data: e.data});
-      }
+      record.style.background = "";
+      record.style.color = "";
+      record.disabled = false;
+      stop.disabled = true;
+      pause.disabled = true;
+      resume.disabled = true;
     };
 
-    let onError = function(err) {
-      console.log('The following error occured: ' + err);
+    pause.onclick = function() {
+      recorder.pauseRecording();
+      record.disabled = true;
+      stop.disabled = true;
+      pause.disabled = true;
+      resume.disabled = false;
     };
 
-    navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
+    resume.onclick = function () {
+      recorder.resumeRecording();
+      record.disabled = true;
+      stop.disabled = false;
+      pause.disabled = false;
+      resume.disabled = true;
+    }
 
-  } else {
-    console.log('getUserMedia not supported on your browser!');
-  }
+  });
+
+  let blobToBase64 = function(blob, callback) {
+    let reader = new FileReader();
+    reader.onload = function() {
+      let dataURL = reader.result;
+      let base64 = dataURL.split(',')[1];
+      callback(dataURL, base64);
+    };
+    reader.readAsDataURL(blob);
+  };
 </script>
 </html>
