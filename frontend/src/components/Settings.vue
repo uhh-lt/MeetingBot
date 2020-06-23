@@ -28,6 +28,22 @@
               <language-switcher></language-switcher>
               <hr>
               <fieldset class="form-group px-2">
+                <label>{{ $t('settings_microphone_mode') }}:</label><br>
+                <div class="form-check form-check-inline mb-2">
+                  <label for="settings-microphone-mode-true" class="form-check-label">
+                    <input v-model="microphonemode" class="form-check-input" type="radio" name="microphone-mode" id="settings-microphone-mode-true" value="FRONTEND">
+                    Frontend
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mb-2">
+                  <label for="settings-microphone-mode-false" class="form-check-label">
+                    <input v-model="microphonemode" class="form-check-input" type="radio" name="microphone-mode" id="settings-microphone-mode-false" value="SERVER">
+                    Server
+                  </label>
+                </div>
+              </fieldset>
+              <hr>
+              <fieldset class="form-group px-2">
                 <label>{{ $t('settings_summary_method') }}:</label><br>
                 <div class="form-check form-check-inline mb-2">
                   <label for="settings-summary-method-textrank" class="form-check-label">
@@ -279,6 +295,7 @@ export default {
       controlButtonsStateDependent: 'true',
       visualizeLinks: 'false',
       summarymethod: 'TEXTRANK',
+      microphonemode: 'FRONTEND',
     };
   },
   mounted() {
@@ -334,6 +351,7 @@ export default {
         controlButtonsStateDependent: this.controlButtonsStateDependent,
         visualizeLinks: this.visualizeLinks,
         summarymethod: this.summarymethod,
+        microphonemode: this.microphonemode,
       };
       this.oldSettings = this.jsonCopy(settings);
       this.$root.$emit('onSettingsSaved', this.jsonCopy(settings));
@@ -361,6 +379,7 @@ export default {
       this.controlButtonsStateDependent = this.oldSettings.controlButtonsStateDependent;
       this.visualizeLinks = this.oldSettings.visualizeLinks;
       this.summarymethod = this.oldSettings.summarymethod;
+      this.microphonemode = this.oldSettings.microphonemode;
     },
     /**
      * This event fires when the users imports a .ics file with the importer.

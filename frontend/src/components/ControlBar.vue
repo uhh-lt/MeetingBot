@@ -14,10 +14,10 @@
     </template>
     <template v-if="settings.controlButtonsStateDependent === 'true'">
       <template v-if="status === StatusEnum.CONNECTING">
-        <button type="button" class="btn btn-outline-light disabled">CONNECTING TO ASR...</button>
+        <button type="button" class="btn btn-outline-light disabled">Connecting to event server...</button>
       </template>
       <template v-else-if="status === StatusEnum.NOT_READY">
-        <button type="button" class="btn btn-outline-light disabled">WAITING FOR ASR TO LOAD...</button>
+        <button type="button" class="btn btn-outline-light disabled">Connected to event server! Waiting for ASR...</button>
       </template>
       <template v-else-if="status === StatusEnum.STOPPED && meeting.status === meeting.enum.BEFORE_MEETING">
         <button v-on:click="handleClick('START')" type="button" class="btn btn-labeled btn-success" :disabled="buttonStatus.start">
@@ -67,7 +67,7 @@ export default {
         STARTED: 4,
         PAUSED: 5,
       },
-      status: 4,
+      status: 1,
       buttonStatus: {
         start: false,
         pause: false,
@@ -89,45 +89,90 @@ export default {
     sendReset() {
       this.$root.$emit('onReset');
     },
+    sendRecorderCommand(command) {
+      this.$root.$emit('onRecorder', command);
+    },
     // END Methods to trigger events for other components
     /**
      * This is a button handler function that updates the meeting status and informs the ASR backend based on the pressed button.
      * @param buttonType {string} the name of pressed button
      */
     handleClick(buttonType) {
-      switch (buttonType) {
-        case 'START':
-          console.log('START clicked');
-          this.sendButtonCommand('start', 'start');
-          this.meeting.status = this.meeting.enum.IN_MEETING;
-          sendCommand('reset_timer')
-            .catch((error) => {
-              console.log(`ERROR while sending button command: ${error}`);
-            });
-          break;
-        case 'PAUSE':
-          console.log('PAUSE clicked');
-          this.sendButtonCommand('stop', 'stop');
-          this.meeting.status = this.meeting.enum.IN_MEETING;
-          break;
-        case 'STOP':
-          console.log('STOP clicked');
-          this.sendButtonCommand('stop', 'stop');
-          this.meeting.status = this.meeting.enum.AFTER_MEETING;
-          break;
-        case 'RESUME':
-          console.log('RESUME clicked');
-          this.sendButtonCommand('start', 'start');
-          this.meeting.status = this.meeting.enum.IN_MEETING;
-          break;
-        case 'NEWMEETING':
-          console.log('New Meeting clicked');
-          this.sendReset();
-          this.meeting.status = this.meeting.enum.BEFORE_MEETING;
-          break;
-        default:
-          console.log(`ERROR: Button does not exist - ${buttonType}`);
-          break;
+      if (this.settings.microphonemode === 'SERVER') {
+        switch (buttonType) {
+          case 'START':
+            console.log('START clicked');
+            this.sendButtonCommand('start', 'start');
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            sendCommand('reset_timer')
+              .catch((error) => {
+                console.log(`ERROR while sending button command: ${error}`);
+              });
+            break;
+          case 'PAUSE':
+            console.log('PAUSE clicked');
+            this.sendButtonCommand('pause', 'stop');
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            break;
+          case 'STOP':
+            console.log('STOP clicked');
+            this.sendButtonCommand('stop', 'stop');
+            this.meeting.status = this.meeting.enum.AFTER_MEETING;
+            break;
+          case 'RESUME':
+            console.log('RESUME clicked');
+            this.sendButtonCommand('resume', 'start');
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            break;
+          case 'NEWMEETING':
+            console.log('New Meeting clicked');
+            this.sendReset();
+            this.meeting.status = this.meeting.enum.BEFORE_MEETING;
+            break;
+          default:
+            console.log(`ERROR: Button does not exist - ${buttonType}`);
+            break;
+        }
+      } else {
+        switch (buttonType) {
+          case 'START':
+            console.log('START clicked');
+            this.status = this.StatusEnum.STARTED;
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            this.sendRecorderCommand('start');
+            sendCommand('reset_timer')
+              .catch((error) => {
+                console.log(`ERROR while sending button command: ${error}`);
+              });
+            break;
+          case 'PAUSE':
+            console.log('PAUSE clicked');
+            this.status = this.StatusEnum.PAUSED;
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            this.sendRecorderCommand('pause');
+            break;
+          case 'STOP':
+            console.log('STOP clicked');
+            this.status = this.StatusEnum.STOPPED;
+            this.meeting.status = this.meeting.enum.AFTER_MEETING;
+            this.sendRecorderCommand('stop');
+            break;
+          case 'RESUME':
+            console.log('RESUME clicked');
+            this.status = this.StatusEnum.STARTED;
+            this.meeting.status = this.meeting.enum.IN_MEETING;
+            this.sendRecorderCommand('resume');
+            break;
+          case 'NEWMEETING':
+            console.log('New Meeting clicked');
+            this.sendReset();
+            this.status = this.StatusEnum.STOPPED;
+            this.meeting.status = this.meeting.enum.BEFORE_MEETING;
+            break;
+          default:
+            console.log(`ERROR: Button does not exist - ${buttonType}`);
+            break;
+        }
       }
     },
     /**
@@ -152,24 +197,31 @@ export default {
      * @param streamStatus status of the ASR backend
      */
     onStreamStatusChanged(streamStatus) {
-      console.log(`Stream Status has changed to ${streamStatus}`);
-      if (streamStatus === 'ERROR') {
-        this.status = this.StatusEnum.CONNECTING;
-      } else if (streamStatus === 'OPEN') {
-        this.status = this.StatusEnum.NOT_READY;
-      } else if (streamStatus === 'DECODING') {
-        this.status = this.StatusEnum.STARTED;
-        this.meeting.status = this.meeting.enum.IN_MEETING;
-      } else if (streamStatus === 'NOT_DECODING') {
-        if (this.meeting.status === this.meeting.enum.IN_MEETING) {
-          this.status = this.StatusEnum.PAUSED;
-        } else if (this.meeting.status === this.meeting.enum.BEFORE_MEETING || this.meeting.status === this.meeting.enum.AFTER_MEETING) {
+      // Ignore stream status!
+      if (this.settings.microphonemode === 'FRONTEND') {
+        if (streamStatus === 'OPEN') {
           this.status = this.StatusEnum.STOPPED;
         }
-      } else if (streamStatus === 'SHUTDOWN') {
-        this.status = this.StatusEnum.NOT_READY;
       } else {
-        console.log('STREAM STATUS UNKOWN!!!');
+        console.log(`Stream Status has changed to ${streamStatus}`);
+        if (streamStatus === 'ERROR') {
+          this.status = this.StatusEnum.CONNECTING;
+        } else if (streamStatus === 'OPEN') {
+          this.status = this.StatusEnum.NOT_READY;
+        } else if (streamStatus === 'DECODING') {
+          this.status = this.StatusEnum.STARTED;
+          this.meeting.status = this.meeting.enum.IN_MEETING;
+        } else if (streamStatus === 'NOT_DECODING') {
+          if (this.meeting.status === this.meeting.enum.IN_MEETING) {
+            this.status = this.StatusEnum.PAUSED;
+          } else if (this.meeting.status === this.meeting.enum.BEFORE_MEETING || this.meeting.status === this.meeting.enum.AFTER_MEETING) {
+            this.status = this.StatusEnum.STOPPED;
+          }
+        } else if (streamStatus === 'SHUTDOWN') {
+          this.status = this.StatusEnum.NOT_READY;
+        } else {
+          console.log('STREAM STATUS UNKOWN!!!');
+        }
       }
     },
     onSettingsSaved(settings) {

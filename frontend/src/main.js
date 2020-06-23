@@ -1,6 +1,9 @@
 import Vue from 'vue';
 import App from './App.vue';
 import { i18n } from './plugins/i18n';
+import LoadScript from 'vue-plugin-load-script';
+ 
+Vue.use(LoadScript);
 
 Vue.config.productionTip = false;
 

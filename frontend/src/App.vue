@@ -1,6 +1,8 @@
 <template>
   <div id="app">
 
+    <recorder></recorder>
+
     <!-- BEGIN MODAL WINDOWS -->
     <settings></settings>
     <exporter v-model="utterances"></exporter>
@@ -76,6 +78,7 @@ import $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import io from 'socket.io-client';
 import { computeKeywords } from './helper/api';
 import encodeHTML from './helper/htmlencoder';
 import Store from './helper/Store';
@@ -88,6 +91,7 @@ import Exporter from './components/Exporter.vue';
 import Importer from './components/Importer.vue';
 import calculateKeywordnessTokenMap from './helper/keyword';
 import Timeline from './components/Timeline.vue';
+import Recorder from './components/Recorder.vue';
 
 require('@/assets/css/main.css');
 require('@fortawesome/fontawesome-free/css/all.css');
@@ -95,6 +99,7 @@ require('@fortawesome/fontawesome-free/css/all.css');
 export default {
   name: 'app',
   components: {
+    Recorder,
     Timeline,
     Importer,
     Exporter,
@@ -108,6 +113,15 @@ export default {
     window.addEventListener('resize', this.onResize);
   },
   mounted() {
+    // connect with socket io
+    // Connect to the Socket.IO server. The connection URL has the following format, relative to the current page: http[s]://<domain>:<port>[/<namespace>]
+    this.socket = io('http://localhost:5000/test');
+
+    // Event handler for new connections.
+    this.socket.on('connect', () => {
+      console.log('connected!');
+    });
+
     // connect to the asr input stream (this is a text stream)
     const source = new EventSource('http://localhost:5000/stream');
     source.onmessage = this.handleStream; // handle stream will be called when there is a new message in the stream
@@ -125,6 +139,7 @@ export default {
     this.$root.$on('onReset', this.onReset);
     this.$root.$on('onNextAgenda', this.onNextAgenda);
     this.$root.$on('onWheelScroll', this.onWheelScroll);
+    this.$root.$on('onSocketIO', this.onSocketIO);
 
     // update height
     setTimeout(this.onResize(), 100);
@@ -158,6 +173,7 @@ export default {
       lastFakeScroll: 0,
       scrollAnimationTime: 100,
       scrollIdleTime: 3000,
+      socket: null,
     };
   },
   methods: {
@@ -393,6 +409,15 @@ export default {
     },
     onWheelScroll(time) {
       this.lastRealScroll = time;
+    },
+    onSocketIO(event, data) {
+      if (this.socket != null) {
+        this.socket.emit(event, data);
+      } else {
+        console.log('ERROR: Socket is null!');
+      }
+      // socket.emit('recording_started');
+      // socket.emit('recording_stopped', { blob, base64, mime: 'wav' });
     },
     // END methods that react to events
     // BEGIN utility functions
