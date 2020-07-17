@@ -7,115 +7,187 @@
 </head>
 <body>
     <h1>Minimalistic Recorder</h1>
-    <p>Async mode is: <b>{{ async_mode }}</b></p>
+
+    <h2>Your identifier:</h2>
+    <p>Before we can start, please type in any identifier / name / pseudonym:<br>
+        <span style="color:red">(min. 3 characters & whitespaces are not allowed!)</span></p>
+    <div id="name-input-div">
+        <input type="text" id="name-input">
+        <button class="confirm">confirm</button>
+    </div>
+
+    <hr>
+
+    <h2 id="recorder">Recorder:</h2>
+    <p><b>Instructions:</b><br>
+        Please click on the record button and read the sentence below. <br>
+        Click the stop button when you have finished recording.<br>
+        You can listen to your recording in the section below 'Your recordings'.<br>
+        If you are not satisfied with your recording, just press the record button and read the sentence again.<br>
+        If you are satisfied with your recording, press the next button to continue with the next sentence.</p>
+    <div id="sentence" style="font-size:20px; font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace">
+        NO SENTENCE :(
+    </div>
+    <br>
     <div id="buttons">
       <button class="record">Record</button>
-      <button class="pause">Pause</button>
-      <button class="resume">Resume</button>
       <button class="stop">Stop</button>
+      <button class="next">Next</button>
     </div>
-    <h2>Receive:</h2>
-    <div id="log"></div>
+
+    <hr>
+
+    <h2>Your recordings:</h2>
+    <div id="recordings">
+    </div>
 </body>
 <script type="text/javascript" charset="utf-8">
-  // Use a "/test" namespace.
-  namespace = '/test';
 
-  // Connect to the Socket.IO server. The connection URL has the following format, relative to the current page: http[s]://<domain>:<port>[/<namespace>]
-  let socket = io(namespace);
-
-  // Event handler for new connections.
-  socket.on('connect', function() {
-    console.log("connected!")
-  });
-
-  let record = document.querySelector('.record');
-  let stop = document.querySelector('.stop');
-  let pause = document.querySelector('.pause');
-  let resume = document.querySelector('.resume');
-  record.disabled = false;
-  stop.disabled = true;
-  pause.disabled = true;
-  resume.disabled = true;
-
-  navigator.mediaDevices.getUserMedia({
-    video: false,
-    audio: true
-  }).then(async function(stream) {
-    let recorder = RecordRTC(stream, {
-      type: 'audio',
-      mimeType: 'audio/wav',
-      recorderType: StereoAudioRecorder,
-      disableLogs: true, // disable logs
-      timeSlice: 1000, // get intervals based blobs, value in milliseconds
-      ondataavailable: function(blob) { // requires timeSlice above returns blob via callback function
-        console.log("BLOB!");
-        blobToBase64(blob, function(dataURL, base64) {
-          socket.emit('data_available', {blob: blob, base64: base64, mime: "wav"});
-        });
-      },
-      audioBitsPerSecond: 128000,
-      //sampleRate: 96000, // used by StereoAudioRecorder the range 22050 to 96000
-      desiredSampRate: 16000, // used by StereoAudioRecorder let us force 16khz recording
-      bufferSize: 1024, // used by StereoAudioRecorder Legal values are (256, 512, 1024, 2048, 4096, 8192, 16384).
-      numberOfAudioChannels: 1, // used by StereoAudioRecorder 1 or 2
-    });
-
-    record.onclick = function() {
-      recorder.startRecording();
-      socket.emit('recording_started');
-      record.style.background = "red";
-      record.disabled = true;
-      stop.disabled = false;
-      pause.disabled = false;
-      resume.disabled = true;
+    // Helper methods
+    let blobToBase64 = function(blob, callback) {
+        let reader = new FileReader();
+        reader.onload = function() {
+            let dataURL = reader.result;
+            let base64 = dataURL.split(',')[1];
+            callback(dataURL, base64);
+        };
+        reader.readAsDataURL(blob);
     };
 
-    stop.onclick = function() {
-      recorder.stopRecording(function() {
-        console.log("Stopped recording :)");
-        let blob = recorder.getBlob();
-        blobToBase64(blob, function(dataURL, base64) {
-          let au = new Audio(dataURL);
-          au.controls = true;
-          document.body.appendChild(au);
-          socket.emit('recording_stopped', {blob: blob, base64: base64, mime: "wav"});
-        });
-      });
-      record.style.background = "";
-      record.style.color = "";
-      record.disabled = false;
-      stop.disabled = true;
-      pause.disabled = true;
-      resume.disabled = true;
-    };
-
-    pause.onclick = function() {
-      recorder.pauseRecording();
-      record.disabled = true;
-      stop.disabled = true;
-      pause.disabled = true;
-      resume.disabled = false;
-    };
-
-    resume.onclick = function () {
-      recorder.resumeRecording();
-      record.disabled = true;
-      stop.disabled = false;
-      pause.disabled = false;
-      resume.disabled = true;
+    let createRecorder = async function() {
+        return navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: true
+        }).then(async function (stream) {
+            return RecordRTC(stream, {
+                type: 'audio',
+                mimeType: 'audio/wav',
+                recorderType: StereoAudioRecorder,
+                disableLogs: true, // disable logs
+                audioBitsPerSecond: 128000,
+                //sampleRate: 96000, // used by StereoAudioRecorder the range 22050 to 96000
+                desiredSampRate: 16000, // used by StereoAudioRecorder let us force 16khz recording
+                bufferSize: 1024, // used by StereoAudioRecorder Legal values are (256, 512, 1024, 2048, 4096, 8192, 16384).
+                numberOfAudioChannels: 1, // used by StereoAudioRecorder 1 or 2
+            });
+        })
     }
 
-  });
+    // init sentences
+    let sentences = '{{ sentences }}';
+    sentences = sentences.split('###');
+    let currentSentence = 0;
+    let lastSentence = -1;
+    let maxSentences = sentences.length - 1;
+    let showSentence = function() {
+        if (currentSentence < maxSentences) {
+            document.getElementById("sentence").innerHTML = sentences[currentSentence];
+        } else {
+            document.getElementById("sentence").innerHTML = "Finished :) Thank you!";
+        }
+    }
 
-  let blobToBase64 = function(blob, callback) {
-    let reader = new FileReader();
-    reader.onload = function() {
-      let dataURL = reader.result;
-      let base64 = dataURL.split(',')[1];
-      callback(dataURL, base64);
-    };
-    reader.readAsDataURL(blob);
-  };
+    // Main function
+    let main = async function() {
+        showSentence();
+
+        // init username
+        let username = 'test';
+
+        // init socket io
+        let namespace = '/test';
+        let socket = io(namespace);
+
+        // init recorder
+        let recorder = await createRecorder();
+
+        // init recorder ui
+        let record = document.querySelector('.record');
+        let stop = document.querySelector('.stop');
+        let next = document.querySelector('.next');
+        let confirm = document.querySelector('.confirm');
+        let nameInput = document.getElementById('name-input');
+        record.disabled = true;
+        stop.disabled = true;
+        next.disabled = true;
+
+        confirm.onclick = function() {
+            if(nameInput.value.length >= 3 && !nameInput.value.includes(" ")) {
+                let text = document.createElement("p");
+                username = nameInput.value
+                text.innerText = "Hello " + username + "!";
+                let inputDiv = document.getElementById("name-input-div");
+                inputDiv.innerHTML = "";
+                inputDiv.appendChild(text);
+
+                record.disabled = false;
+                next.disabled = false;
+                stop.disabled = true;
+            } else {
+                nameInput.value = "";
+            }
+        }
+
+        record.onclick = function() {
+            recorder.startRecording();
+            socket.emit('recording_started');
+            record.style.background = "red";
+            record.disabled = true;
+            stop.disabled = false;
+            next.disabled = true;
+        };
+
+        stop.onclick = function() {
+            recorder.stopRecording(function() {
+            console.log("Stopped recording :)");
+
+            let blob = recorder.getBlob();
+            blobToBase64(blob, function(dataURL, base64) {
+                let child = document.getElementById("audioDiv-" + currentSentence)
+                if (child) {
+                    document.getElementById("recordings").removeChild(child);
+                }
+                let audioDiv = document.createElement("div")
+                audioDiv.id = "audioDiv-" + currentSentence;
+                let description = document.createElement("h4")
+                description.innerText = sentences[currentSentence];
+                let au = new Audio(dataURL);
+                au.controls = true;
+                audioDiv.appendChild(description);
+                audioDiv.appendChild(au);
+                document.getElementById("recordings").prepend(audioDiv);
+                socket.emit('recording_stopped', {blob: blob, base64: base64, mime: "wav", username: username, sentencenumber: currentSentence});
+                });
+
+                createRecorder().then((r) => {
+                    recorder = r;
+                    record.disabled = false;
+                    next.disabled = false;
+                });
+            });
+
+            record.style.background = "";
+            record.style.color = "";
+            stop.disabled = true;
+        };
+
+        next.onclick = async function() {
+            lastSentence = currentSentence;
+            currentSentence += 1;
+            showSentence();
+            if (currentSentence >= maxSentences) {
+                next.disabled = true;
+                record.disabled = true;
+            }
+        }
+
+
+        // other socket io event handlers
+        socket.on('connect', function() {
+            console.log("connected!")
+        });
+    }
+
+    main();
 </script>
 </html>
