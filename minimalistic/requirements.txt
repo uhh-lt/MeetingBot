@@ -13,4 +13,4 @@ python-engineio==3.13.1
 python-socketio==4.6.0
 scipy==1.5.1
 six==1.11.0
-Werkzeug==0.14.1
+Werkzeug==0.15.3
