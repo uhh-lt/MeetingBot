@@ -6,7 +6,7 @@ Flask-Session==0.3.1
 Flask-SocketIO==4.3.1
 future==0.18.2
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.11.3
 MarkupSafe==1.1.0
 numpy==1.19.0
 python-engineio==3.13.1
