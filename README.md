@@ -29,6 +29,7 @@ For detailed instructions on how to develop and build (for production) the front
 
 If you use Meetingbot, please cite:
 
+```
 @InProceedings{Milde-et-al-2021-meetingbot,
   author = {Benjamin Milde, Tim Fischer, Steffen Remus and Chris Biemann},
   title = {{MoM}: Minutes of Meeting Bot},
@@ -36,3 +37,4 @@ If you use Meetingbot, please cite:
   year = {2021},
   address = {Brno, Czech Republic}
 }
+```
