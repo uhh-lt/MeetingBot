@@ -29,7 +29,7 @@ For detailed instructions on how to develop and build (for production) the front
 
 ## Citation
 
-If you use Meetingbot, please cite:
+If you use Meetingbot, please cite our [paper](./MoM_paper.pdf?raw=true):
 
 ```
 @InProceedings{Milde-et-al-2021-meetingbot,
