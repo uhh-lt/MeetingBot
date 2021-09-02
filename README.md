@@ -11,6 +11,8 @@ The code for the [frontend](./frontend/) and [microservices](./backend/) can be 
 
 ![example screenshot](./MoM_screenshot.png?raw=true "MoM meetingbot example screenshot")
 
+For more information, see also our [paper](./MoM_paper.pdf).
+
 ## Usage
 Please note that the following instructions will start the frontend as well as all the microservices so that all functionalities of the frontend will work. 
 However, this will NOT start the ASR backend. 
